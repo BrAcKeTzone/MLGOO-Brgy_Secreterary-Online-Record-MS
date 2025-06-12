@@ -1,0 +1,70 @@
+import React, { useRef, useState } from "react";
+
+const OTPInput = ({ value, onChange, length = 6 }) => {
+  const [otp, setOtp] = useState(value.split(""));
+  const inputRefs = useRef([]);
+
+  const handleChange = (index, e) => {
+    const value = e.target.value;
+    if (isNaN(value)) return;
+
+    const newOtp = [...otp];
+    // Take only the last digit if multiple digits are pasted
+    newOtp[index] = value.slice(-1);
+    setOtp(newOtp);
+
+    // Combine the OTP digits and call the onChange handler
+    const otpValue = newOtp.join("");
+    onChange({ target: { name: "otp", value: otpValue } });
+
+    // Move to next input if value is entered
+    if (value && index < length - 1) {
+      inputRefs.current[index + 1].focus();
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    // Move to previous input on backspace
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text");
+    const pastedOtp = pastedData.slice(0, length).split("");
+
+    if (pastedOtp.some((char) => isNaN(char))) return;
+
+    const newOtp = [...otp];
+    pastedOtp.forEach((digit, index) => {
+      newOtp[index] = digit;
+    });
+    setOtp(newOtp);
+
+    const otpValue = newOtp.join("");
+    onChange({ target: { name: "otp", value: otpValue } });
+  };
+
+  return (
+    <div className="flex gap-2">
+      {[...Array(length)].map((_, index) => (
+        <input
+          key={index}
+          type="text"
+          maxLength={1}
+          ref={(el) => (inputRefs.current[index] = el)}
+          value={otp[index] || ""}
+          onChange={(e) => handleChange(index, e)}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={handlePaste}
+          className="w-12 h-12 text-center text-xl font-semibold rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+          required
+        />
+      ))}
+    </div>
+  );
+};
+
+export default OTPInput;
