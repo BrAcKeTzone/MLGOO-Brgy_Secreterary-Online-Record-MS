@@ -1,6 +1,6 @@
 // src/routes/AppRouter.jsx
 import React, { useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import Home from "../pages/Home";
 import Login from "../pages/Login";
@@ -28,25 +28,47 @@ const AppRouter = () => {
   const { user, initializeAuth } = useAuthStore();
   const isBarangaySecretary = user?.role === "role001";
   const isMLGOOStaff = user?.role === "role002";
+  const location = useLocation();
 
   // Initialize auth on mount
   useEffect(() => {
     initializeAuth();
   }, []);
 
+  // Show loading while initializing auth
+  if (!user && location.pathname !== "/login" && location.pathname !== "/signup" && location.pathname !== "/forgot-password") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <Routes>
-      {/* Default route redirects to login if not authenticated */}
+      {/* Default route with smarter redirection */}
       <Route
         path="/"
         element={
           !user ? (
             <Navigate to="/login" />
-          ) : isBarangaySecretary ? (
-            <Home />
+          ) : isMLGOOStaff ? (
+            <Navigate to="/dashboard" />
           ) : (
-            <Dashboard />
+            <Navigate to="/home" />
           )
+        }
+      />
+
+      {/* Add explicit home route for barangay secretary */}
+      <Route
+        path="/home"
+        element={
+          <ProtectedRoute
+            element={<Home />}
+            redirectTo="/login"
+            condition={!!user && isBarangaySecretary}
+          />
         }
       />
 

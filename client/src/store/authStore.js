@@ -9,7 +9,7 @@ const apiURL = import.meta.env.VITE_API_URL_DEV;
 const useAuthStore = create((set) => ({
   user: null,
   token: null,
-  loading: false,
+  loading: true, // Start with loading true
   error: null,
 
   // Add initializeAuth function
@@ -18,10 +18,12 @@ const useAuthStore = create((set) => ({
     if (token) {
       // Mock user restoration based on token
       if (token.includes('admin001')) {
-        set({ user: sampleAdmin, token });
+        set({ user: sampleAdmin, token, loading: false });
       } else {
-        set({ user: sampleUser, token });
+        set({ user: sampleUser, token, loading: false });
       }
+    } else {
+      set({ loading: false });
     }
   },
 
