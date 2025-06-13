@@ -101,7 +101,6 @@ const SignupForm = () => {
         <OTPVerificationStep
           email={form.email}
           otp={form.otp}
-          purpose="account_creation"
           loading={loading}
           error={error}
           handleChange={handleChange}
