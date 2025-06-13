@@ -43,4 +43,10 @@ export const roleAPI = {
   getRole: (id) => api.get(`/roles/${id}`),
 };
 
+// Dashboard API endpoints
+export const dashboardAPI = {
+  fetchMetrics: () => api.get('/dashboard/metrics'),
+  fetchActivityData: () => api.get('/dashboard/activity'),
+};
+
 export default api;

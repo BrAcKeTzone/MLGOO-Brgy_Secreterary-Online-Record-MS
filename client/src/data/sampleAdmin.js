@@ -1,8 +1,8 @@
 export const sampleAdmin = {
   _id: "admin001",
   email: "mlgoo@dilg.gov.ph",
-  firstName: "Maria",
-  lastName: "Santos",
+  firstName: "Herlyn",
+  lastName: "Aranjuez",
   role: "role002", // MLGOO Staff
   dateOfBirth: "1985-05-15",
   status: "active",
