@@ -5,7 +5,7 @@ import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
 import FormInput from "../components/Common/FormInput";
 import PasswordInput from "../components/Common/PasswordInput";
-import NationalIdSection from "../components/Profile/NationalIdSection";
+import NationalIdSection from "../components/ProfileComp/NationalIdSection";
 
 const Profile = () => {
   const { user } = useAuthStore();

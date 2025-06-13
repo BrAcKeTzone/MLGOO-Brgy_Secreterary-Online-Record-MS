@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
-import LogFilters from "../components/Logs/LogFilters";
-import LogTable from "../components/Logs/LogTable";
+import LogFilters from "../components/LogsComp/LogFilters";
+import LogTable from "../components/LogsComp/LogTable";
 import useLogsStore from "../store/logsStore";
 import { logActionTypes } from "../data/options/optionsLogActionTypes";
 

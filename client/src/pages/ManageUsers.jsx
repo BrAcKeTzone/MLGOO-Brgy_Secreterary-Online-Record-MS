@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import useUserListStore from "../store/userListStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
-import UserFilters from "../components/UserManagement/UserFilters";
-import UserTable from "../components/UserManagement/UserTable";
+import UserFilters from "../components/UserManagementComp/UserFilters";
+import UserTable from "../components/UserManagementComp/UserTable";
 
 const ManageUsers = () => {
   const {

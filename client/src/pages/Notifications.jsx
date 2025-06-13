@@ -2,9 +2,9 @@ import React, { useEffect } from "react";
 import useNotificationStore from "../store/notificationStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
-import UserSelection from "../components/Notifications/UserSelection";
-import NotificationComposer from "../components/Notifications/NotificationComposer";
-import NotificationLog from "../components/Notifications/NotificationLog";
+import UserSelection from "../components/NotificationsComp/UserSelection";
+import NotificationComposer from "../components/NotificationsComp/NotificationComposer";
+import NotificationLog from "../components/NotificationsComp/NotificationLog";
 
 const Notifications = () => {
   const {

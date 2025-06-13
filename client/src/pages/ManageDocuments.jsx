@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import useDocumentStore from "../store/documentStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
-import DocumentFilters from "../components/DocumentManagement/DocumentFilters";
-import DocumentTable from "../components/DocumentManagement/DocumentTable";
+import DocumentFilters from "../components/DocumentManagementComp/DocumentFilters";
+import DocumentTable from "../components/DocumentManagementComp/DocumentTable";
 
 const ManageDocuments = () => {
   const {
