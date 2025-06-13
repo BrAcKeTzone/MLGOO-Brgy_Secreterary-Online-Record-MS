@@ -66,4 +66,10 @@ export const userAPI = {
     api.put(`/users/${userId}`, data),
 };
 
+// Logs API endpoints
+export const logsAPI = {
+  fetchLogs: () => api.get('/logs'),
+  searchLogs: (filters) => api.post('/logs/search', filters),
+};
+
 export default api;

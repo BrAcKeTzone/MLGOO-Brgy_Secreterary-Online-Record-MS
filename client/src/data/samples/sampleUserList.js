@@ -102,6 +102,54 @@ export const sampleUserList = [
     activeStatus: null,
     createdAt: "2025-01-08T00:00:00.000Z",
     updatedAt: "2025-01-08T00:00:00.000Z"
+  },
+  {
+    _id: "admin001",
+    email: "mlgoo@dilg.gov.ph",
+    firstName: "Herlyn",
+    lastName: "Aranjuez",
+    role: "role002", // MLGOO Staff
+    dateOfBirth: "1985-05-15",
+    creationStatus: "Approved",
+    activeStatus: "Active",
+    createdAt: "2025-01-01T00:00:00.000Z",
+    updatedAt: "2025-01-01T00:00:00.000Z"
+  },
+  {
+    _id: "admin002",
+    email: "raymond.castro@dilg.gov.ph",
+    firstName: "Raymond",
+    lastName: "Castro",
+    role: "role002", // MLGOO Staff
+    dateOfBirth: "1983-08-20",
+    creationStatus: "Approved",
+    activeStatus: "Active",
+    createdAt: "2025-01-09T00:00:00.000Z",
+    updatedAt: "2025-01-09T00:00:00.000Z"
+  },
+  {
+    _id: "admin003",
+    email: "jennifer.lim@dilg.gov.ph",
+    firstName: "Jennifer",
+    lastName: "Lim",
+    role: "role002", // MLGOO Staff
+    dateOfBirth: "1988-03-12",
+    creationStatus: "Approved",
+    activeStatus: "Active",
+    createdAt: "2025-01-10T00:00:00.000Z",
+    updatedAt: "2025-01-10T00:00:00.000Z"
+  },
+  {
+    _id: "admin004",
+    email: "michael.santos@dilg.gov.ph",
+    firstName: "Michael",
+    lastName: "Santos",
+    role: "role002", // MLGOO Staff
+    dateOfBirth: "1986-11-25",
+    creationStatus: "Pending",
+    activeStatus: null,
+    createdAt: "2025-01-11T00:00:00.000Z",
+    updatedAt: "2025-01-11T00:00:00.000Z"
   }
 ];
 
@@ -118,5 +166,17 @@ export const sampleUserCredentials = [
   {
     email: "carlo.cruz@brgy.gov.ph",
     password: "CarloCruz456!"
+  },
+  {
+    email: "mlgoo@dilg.gov.ph",
+    password: "ManiwangJP682"
+  },
+  {
+    email: "raymond.castro@dilg.gov.ph",
+    password: "RaymondCastro123!"
+  },
+  {
+    email: "jennifer.lim@dilg.gov.ph",
+    password: "JenniferLim456!"
   }
 ];
