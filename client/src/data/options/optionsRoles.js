@@ -1,4 +1,4 @@
-export const sampleRoles = [
+export const optionsRoles = [
   { 
     _id: "role001", 
     name: "Barangay Secretary",

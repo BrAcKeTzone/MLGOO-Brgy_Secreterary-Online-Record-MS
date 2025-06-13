@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { homeAPI } from "../services/api";
-import { sampleActivities, sampleNotifications } from "../data/sampleHomeData";
+import { sampleActivities, sampleNotifications } from "../data/samples/sampleHomeData";
 
 const SIMULATED_DELAY = 1500;
 

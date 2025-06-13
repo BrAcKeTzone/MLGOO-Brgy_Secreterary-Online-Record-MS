@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { authAPI } from "../services/api";
-import { sampleUser, sampleUserCredentials } from "../data/sampleUser";
-import { sampleAdmin, sampleAdminCredentials } from "../data/sampleAdmin";
+import { sampleUser, sampleUserCredentials } from "../data/samples/sampleUser";
+import { sampleAdmin, sampleAdminCredentials } from "../data/samples/sampleAdmin";
 
 
 const apiURL = import.meta.env.VITE_API_URL_DEV;

@@ -55,4 +55,15 @@ export const homeAPI = {
   fetchNotifications: () => api.get('/home/notifications'),
 }
 
+// User Management API endpoints
+export const userAPI = {
+  fetchUsers: () => api.get('/users'),
+  updateUserStatus: (userId, status) => 
+    api.patch(`/users/${userId}/status`, { status }),
+  deleteUser: (userId) => 
+    api.delete(`/users/${userId}`),
+  updateUser: (userId, data) => 
+    api.put(`/users/${userId}`, data),
+};
+
 export default api;

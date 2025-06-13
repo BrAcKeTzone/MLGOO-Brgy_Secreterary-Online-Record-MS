@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { roleAPI } from "../services/api";
-import { sampleRoles } from "../data/sampleRoles";
+import { optionsRoles } from "../data/options/optionsRoles";
 
 const useRoleStore = create((set) => ({
   roles: [],
@@ -13,7 +13,7 @@ const useRoleStore = create((set) => ({
     try {
       // const { data } = await roleAPI.fetchRoles();
       set({ 
-        roles: sampleRoles,
+        roles: optionsRoles,
         loading: false 
       });
     } catch (err) {

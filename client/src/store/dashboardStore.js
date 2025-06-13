@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { dashboardAPI } from "../services/api";
-import { sampleDashboardMetrics, sampleActivityData } from "../data/sampleDashboardData";
+import { sampleDashboardMetrics, sampleActivityData } from "../data/samples/sampleDashboardData";
 
 // Simulate API delay (in milliseconds)
 const SIMULATED_DELAY = 1500;

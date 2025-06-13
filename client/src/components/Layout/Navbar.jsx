@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
-import { sampleRoles } from "../../data/sampleRoles";
+import { optionsRoles } from "../../data/options/optionsRoles";
 import DesktopNav from "./NavComponents/DesktopNav";
 import MobileNav from "./NavComponents/MobileNav";
 import MenuButton from "./NavComponents/MenuButton";
@@ -30,7 +30,7 @@ const Navbar = () => {
 
   const getNavItems = () => {
     if (!user) return [];
-    const roleData = sampleRoles.find((role) => role._id === user.role);
+    const roleData = optionsRoles.find((role) => role._id === user.role);
     return roleData ? roleData.routes : [];
   };
 

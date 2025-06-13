@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { brgyAPI } from "../services/api";
-import { sampleBarangays } from "../data/sampleBarangays";
+import { sampleBarangays } from "../data/samples/sampleBarangays";
 
 const useBrgyStore = create((set) => ({
   barangays: [],
