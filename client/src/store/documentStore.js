@@ -3,6 +3,11 @@ import { sampleReports } from "../data/samples/sampleReports";
 
 const SIMULATED_DELAY = 1500;
 
+// Helper function to sort documents by date
+const sortByDate = (docs) => {
+  return [...docs].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+};
+
 const useDocumentStore = create((set, get) => ({
   documents: [],
   filteredDocuments: [],
@@ -12,16 +17,19 @@ const useDocumentStore = create((set, get) => ({
     search: "",
     reportType: "all",
     status: "all",
-    barangay: "all"
+    barangay: "all",
+    startDate: "", // Add start date filter
+    endDate: ""    // Add end date filter
   },
 
   fetchDocuments: async () => {
     set({ loading: true, error: null });
     try {
       await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
+      const sortedDocs = sortByDate(sampleReports);
       set({ 
-        documents: sampleReports,
-        filteredDocuments: sampleReports,
+        documents: sortedDocs,
+        filteredDocuments: sortedDocs,
         loading: false 
       });
     } catch (err) {
@@ -59,6 +67,22 @@ const useDocumentStore = create((set, get) => ({
     if (filters.barangay !== 'all') {
       filtered = filtered.filter(doc => doc.barangayId === filters.barangay);
     }
+
+    // Add date range filtering
+    if (filters.startDate) {
+      filtered = filtered.filter(doc => 
+        new Date(doc.submittedAt) >= new Date(filters.startDate)
+      );
+    }
+
+    if (filters.endDate) {
+      filtered = filtered.filter(doc => 
+        new Date(doc.submittedAt) <= new Date(filters.endDate)
+      );
+    }
+
+    // Sort the filtered results by date
+    filtered = sortByDate(filtered);
 
     set({ filteredDocuments: filtered });
   },
