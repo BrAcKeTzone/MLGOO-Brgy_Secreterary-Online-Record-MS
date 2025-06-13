@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import useAuthStore from "../store/authStore";
 import useProfileStore from "../store/profileStore";
+import LoadingScreen from "../components/Common/LoadingScreen";
+import ErrorScreen from "../components/Common/ErrorScreen";
 import FormInput from "../components/Common/FormInput";
-import PasswordInput from "../components/Common/PasswordInput"; // Add this import
+import PasswordInput from "../components/Common/PasswordInput";
+import NationalIdSection from "../components/Profile/NationalIdSection";
 
 const Profile = () => {
   const { user } = useAuthStore();
@@ -74,19 +77,11 @@ const Profile = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading profile...</div>
-      </div>
-    );
+    return <LoadingScreen message="Loading profile..." />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-600">Error: {error}</div>
-      </div>
-    );
+    return <ErrorScreen error={error} />;
   }
 
   return (
@@ -133,49 +128,10 @@ const Profile = () => {
         </div>
 
         {/* National ID Images (View Only) */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">
-            ID Verification Documents
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-2">
-                National ID (Front)
-              </label>
-              {formData.nationalIdFront ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <img
-                    src={formData.nationalIdFront}
-                    alt="National ID Front"
-                    className="w-full h-48 object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="h-48 bg-gray-100 flex items-center justify-center rounded-lg">
-                  <p className="text-gray-500">No image available</p>
-                </div>
-              )}
-            </div>
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-2">
-                National ID (Back)
-              </label>
-              {formData.nationalIdBack ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <img
-                    src={formData.nationalIdBack}
-                    alt="National ID Back"
-                    className="w-full h-48 object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="h-48 bg-gray-100 flex items-center justify-center rounded-lg">
-                  <p className="text-gray-500">No image available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <NationalIdSection
+          frontImage={formData.nationalIdFront}
+          backImage={formData.nationalIdBack}
+        />
 
         {/* Password Change Form (Editable) */}
         <div className="bg-white rounded-lg shadow-md p-6">

@@ -1,5 +1,7 @@
 import React, { useEffect } from "react";
 import useDocumentStore from "../store/documentStore";
+import LoadingScreen from "../components/Common/LoadingScreen";
+import ErrorScreen from "../components/Common/ErrorScreen";
 import DocumentFilters from "../components/DocumentManagement/DocumentFilters";
 import DocumentTable from "../components/DocumentManagement/DocumentTable";
 
@@ -26,19 +28,11 @@ const ManageDocuments = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading documents...</div>
-      </div>
-    );
+    return <LoadingScreen message="Loading documents..." />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-600">Error: {error}</div>
-      </div>
-    );
+    return <ErrorScreen error={error} />;
   }
 
   return (

@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { FaUsers, FaFileAlt, FaBell, FaChartLine } from "react-icons/fa";
 import useAuthStore from "../store/authStore";
 import useDashboardStore from "../store/dashboardStore";
+import LoadingScreen from "../components/Common/LoadingScreen";
+import ErrorScreen from "../components/Common/ErrorScreen";
 
 import DashboardCard from "../components/DashboardComp/DashboardCard";
 import QuickLink from "../components/DashboardComp/QuickLink";
@@ -25,19 +27,11 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading dashboard data...</div>
-      </div>
-    );
+    return <LoadingScreen message="Loading dashboard data..." />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-600">Error: {error}</div>
-      </div>
-    );
+    return <ErrorScreen error={error} />;
   }
 
   return (

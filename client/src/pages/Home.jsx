@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import useAuthStore from "../store/authStore";
 import useUserHomeStore from "../store/userHomeStore";
+import LoadingScreen from "../components/Common/LoadingScreen";
+import ErrorScreen from "../components/Common/ErrorScreen";
 
 import WelcomeSection from "../components/DashboardComp/WelcomeSection";
 import RecentActivity from "../components/HomeComp/RecentActivity";
@@ -24,19 +26,11 @@ const Home = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading dashboard data...</div>
-      </div>
-    );
+    return <LoadingScreen message="Loading dashboard data..." />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-600">Error: {error}</div>
-      </div>
-    );
+    return <ErrorScreen error={error} />;
   }
 
   return (

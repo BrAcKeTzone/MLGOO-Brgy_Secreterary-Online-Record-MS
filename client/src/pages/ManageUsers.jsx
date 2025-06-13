@@ -1,5 +1,7 @@
 import React, { useEffect } from "react";
 import useUserListStore from "../store/userListStore";
+import LoadingScreen from "../components/Common/LoadingScreen";
+import ErrorScreen from "../components/Common/ErrorScreen";
 import UserFilters from "../components/UserManagement/UserFilters";
 import UserTable from "../components/UserManagement/UserTable";
 
@@ -26,19 +28,11 @@ const ManageUsers = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading users...</div>
-      </div>
-    );
+    return <LoadingScreen message="Loading users..." />;
   }
 
   if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-600">Error: {error}</div>
-      </div>
-    );
+    return <ErrorScreen error={error} />;
   }
 
   return (
