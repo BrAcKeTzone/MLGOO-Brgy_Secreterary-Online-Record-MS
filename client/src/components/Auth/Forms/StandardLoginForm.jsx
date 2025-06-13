@@ -37,6 +37,7 @@ const StandardLoginForm = ({
         togglePassword={togglePassword}
         placeholder="Enter your password"
         required
+        showStrength={false}
       />
 
       <ErrorMessage error={error} />

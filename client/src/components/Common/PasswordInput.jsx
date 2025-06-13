@@ -11,8 +11,9 @@ const PasswordInput = ({
   error,
   placeholder,
   required = false,
+  showStrength = true, // New prop to control strength meter visibility
 }) => {
-  const { score, feedback } = checkPasswordStrength(value);
+  const { score, feedback } = showStrength ? checkPasswordStrength(value) : { score: 0, feedback: "" };
 
   // Calculate strength meter color
   const getStrengthColor = (score) => {
@@ -87,7 +88,7 @@ const PasswordInput = ({
           )}
         </button>
       </div>
-      {value && (
+      {showStrength && value && (
         <div className="mt-2">
           <div className="h-1 w-full bg-gray-200 rounded-full">
             <div

@@ -104,6 +104,7 @@ const AccountDetailsStep = ({
         required
         placeholder="Confirm your password"
         error={passwordError}
+        showStrength={false}
       />
 
       <ErrorMessage error={error || passwordError} />
