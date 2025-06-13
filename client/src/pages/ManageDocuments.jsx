@@ -1,7 +1,66 @@
-import React from "react";
+import React, { useEffect } from "react";
+import useDocumentStore from "../store/documentStore";
+import DocumentFilters from "../components/DocumentManagement/DocumentFilters";
+import DocumentTable from "../components/DocumentManagement/DocumentTable";
 
 const ManageDocuments = () => {
-  return <div>ManageDocuments</div>;
+  const {
+    filteredDocuments,
+    loading,
+    error,
+    filters,
+    fetchDocuments,
+    updateFilters,
+    updateDocumentStatus,
+    deleteDocument,
+  } = useDocumentStore();
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const handleDelete = async (documentId) => {
+    if (window.confirm("Are you sure you want to delete this document?")) {
+      await deleteDocument(documentId);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading documents...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-red-600">Error: {error}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Manage Documents
+        </h1>
+        <p className="text-gray-600">
+          View and manage all submitted reports and documents
+        </p>
+      </div>
+
+      <DocumentFilters filters={filters} onFilterChange={updateFilters} />
+
+      <DocumentTable
+        documents={filteredDocuments}
+        onStatusUpdate={updateDocumentStatus}
+        onDelete={handleDelete}
+      />
+    </div>
+  );
 };
 
 export default ManageDocuments;
