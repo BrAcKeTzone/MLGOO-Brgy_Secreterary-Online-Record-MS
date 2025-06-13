@@ -1,18 +1,26 @@
 import React, { useEffect } from "react";
 import useAuthStore from "../store/authStore";
-import useDashboardStore from "../store/dashboardStore";
+import useUserHomeStore from "../store/userHomeStore";
+
 import WelcomeSection from "../components/DashboardComp/WelcomeSection";
 import RecentActivity from "../components/HomeComp/RecentActivity";
 import NotificationsPanel from "../components/HomeComp/NotificationsPanel";
 import QuickActions from "../components/HomeComp/QuickActions";
-import { sampleActivities, sampleNotifications } from "../data/sampleHomeData";
 
 const Home = () => {
   const { user } = useAuthStore();
-  const { metrics, loading, error, fetchMetrics } = useDashboardStore();
+  const {
+    activities,
+    notifications,
+    loading,
+    error,
+    fetchActivities,
+    fetchNotifications,
+  } = useUserHomeStore();
 
   useEffect(() => {
-    fetchMetrics();
+    fetchActivities();
+    fetchNotifications();
   }, []);
 
   if (loading) {
@@ -36,8 +44,8 @@ const Home = () => {
       <WelcomeSection userName={user?.firstName} />
       <QuickActions />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentActivity activities={sampleActivities} />
-        <NotificationsPanel notifications={sampleNotifications} />
+        <RecentActivity activities={activities} />
+        <NotificationsPanel notifications={notifications} />
       </div>
     </div>
   );

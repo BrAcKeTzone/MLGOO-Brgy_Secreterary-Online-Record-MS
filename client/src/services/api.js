@@ -49,4 +49,10 @@ export const dashboardAPI = {
   fetchActivityData: () => api.get('/dashboard/activity'),
 };
 
+// Home API endpoints
+export const homeAPI = {
+  fetchActivities: () => api.get('/home/activities'),
+  fetchNotifications: () => api.get('/home/notifications'),
+}
+
 export default api;
