@@ -1,5 +1,5 @@
 // src/routes/AppRouter.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "../pages/Home";
@@ -25,9 +25,14 @@ const ProtectedRoute = ({ element, redirectTo, condition }) =>
   condition ? element : <Navigate to={redirectTo} />;
 
 const AppRouter = () => {
-  const { user } = useAuthStore();
+  const { user, initializeAuth } = useAuthStore();
   const isBarangaySecretary = user?.role === "role001";
   const isMLGOOStaff = user?.role === "role002";
+
+  // Initialize auth on mount
+  useEffect(() => {
+    initializeAuth();
+  }, []);
 
   return (
     <Routes>

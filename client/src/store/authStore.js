@@ -12,6 +12,19 @@ const useAuthStore = create((set) => ({
   loading: false,
   error: null,
 
+  // Add initializeAuth function
+  initializeAuth: () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Mock user restoration based on token
+      if (token.includes('admin001')) {
+        set({ user: sampleAdmin, token });
+      } else {
+        set({ user: sampleUser, token });
+      }
+    }
+  },
+
   login: async (email, password) => {
     set({ loading: true, error: null });
     try {
