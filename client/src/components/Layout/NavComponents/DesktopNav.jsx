@@ -7,19 +7,25 @@ const DesktopNav = ({ user, navItems, handleLogout }) => (
     {user ? (
       <>
         {navItems.map((item) => (
-          <NavLink key={item.path} to={item.path}>
+          <NavLink
+            key={item.path}
+            to={item.path}
+            className="py-2 px-3 rounded-md transition-colors duration-200"
+          >
             {item.name}
           </NavLink>
         ))}
         <button
           onClick={handleLogout}
-          className="hover:text-gray-300 bg-transparent border-none cursor-pointer"
+          className="text-gray-300 hover:text-white transition-colors duration-200 bg-transparent border-none cursor-pointer py-2 px-3 rounded-md"
         >
           Logout
         </button>
       </>
     ) : (
-      <NavLink to="/login">Login</NavLink>
+      <NavLink to="/login" className="transition-colors duration-200">
+        Login
+      </NavLink>
     )}
   </div>
 );
