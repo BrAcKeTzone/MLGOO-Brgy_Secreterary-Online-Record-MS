@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import useRoleStore from "../../store/roleStore";
 import FormInput from "../Common/FormInput";
 import FormSelect from "../Common/FormSelect";
-import { optionsStatus } from "../../data/options/optionsStatus";
+import { optionsAccountStatus } from "../../data/options/optionsAccountStatus";
 
 const UserFilters = ({ filters, onFilterChange }) => {
   const { roles, fetchRoles } = useRoleStore();
@@ -33,7 +33,7 @@ const UserFilters = ({ filters, onFilterChange }) => {
       <FormSelect
         value={filters.status}
         onChange={(e) => onFilterChange({ status: e.target.value })}
-        options={optionsStatus}
+        options={optionsAccountStatus}
         placeholder="Select Status"
         className="h-[46px]"
       />
