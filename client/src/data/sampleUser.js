@@ -6,7 +6,8 @@ export const sampleUser = {
   role: "role001", // Barangay Secretary
   assignedBrgy: "brgy001",
   dateOfBirth: "1990-01-01",
-  status: "active",
+  creationStatus: "Approved",
+  activeStatus: "Active",
   createdAt: "2025-01-01T00:00:00.000Z",
   updatedAt: "2025-01-01T00:00:00.000Z"
 };
