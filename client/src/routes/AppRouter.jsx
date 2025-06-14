@@ -18,6 +18,8 @@ import ManageUsers from "../pages/ManageUsers";
 import ManageDocuments from "../pages/ManageDocuments";
 import Logs from "../pages/Logs";
 
+import LoadingScreen from "../components/Common/LoadingScreen";
+
 const PublicRoute = ({ element, redirectTo, condition }) =>
   condition ? element : <Navigate to={redirectTo} />;
 
@@ -36,12 +38,13 @@ const AppRouter = () => {
   }, []);
 
   // Show loading while initializing auth
-  if (!user && location.pathname !== "/login" && location.pathname !== "/signup" && location.pathname !== "/forgot-password") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
-      </div>
-    );
+  if (
+    !user &&
+    location.pathname !== "/login" &&
+    location.pathname !== "/signup" &&
+    location.pathname !== "/forgot-password"
+  ) {
+    return <LoadingScreen />;
   }
 
   return (
