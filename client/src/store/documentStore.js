@@ -1,16 +1,9 @@
-import { create } from "zustand";
-import { sampleReports } from "../data/samples/sampleReports";
-
-const SIMULATED_DELAY = 1500;
-
-// Helper function to sort documents by date
-const sortByDate = (docs) => {
-  return [...docs].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-};
+import { create } from 'zustand';
+import { CURRENT_YEAR } from '../utils/dateUtils';
+import { sampleReports } from '../data/samples/sampleReports';
 
 const useDocumentStore = create((set, get) => ({
   documents: [],
-  filteredDocuments: [],
   loading: false,
   error: null,
   filters: {
@@ -18,122 +11,70 @@ const useDocumentStore = create((set, get) => ({
     reportType: "all",
     status: "all",
     barangay: "all",
-    startDate: "", // Add start date filter
-    endDate: ""    // Add end date filter
+    year: CURRENT_YEAR
   },
 
-  fetchDocuments: async () => {
+  fetchDocuments: async (filters = null) => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
-      const sortedDocs = sortByDate(sampleReports);
-      set({ 
-        documents: sortedDocs,
-        filteredDocuments: sortedDocs,
-        loading: false 
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // If no filters provided, use current store filters
+      const currentFilters = filters || get().filters;
+      
+      // Filter documents based on current filters
+      let filteredDocs = [...sampleReports];
+      
+      // Filter by year
+      filteredDocs = filteredDocs.filter(doc => 
+        new Date(doc.submittedDate).getFullYear().toString() === currentFilters.year
+      );
+
+      // Apply search filter if present
+      if (currentFilters.search) {
+        const searchTerm = currentFilters.search.toLowerCase();
+        filteredDocs = filteredDocs.filter(doc => 
+          doc.reportName.toLowerCase().includes(searchTerm) ||
+          doc.barangayName.toLowerCase().includes(searchTerm) ||
+          doc.fileName.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      // Apply other filters
+      if (currentFilters.reportType !== 'all') {
+        filteredDocs = filteredDocs.filter(doc => doc.reportType === currentFilters.reportType);
+      }
+      if (currentFilters.status !== 'all') {
+        filteredDocs = filteredDocs.filter(doc => doc.status === currentFilters.status);
+      }
+      if (currentFilters.barangay !== 'all') {
+        filteredDocs = filteredDocs.filter(doc => doc.barangayId === currentFilters.barangay);
+      }
+
+      // Sort by submission date (newest first)
+      filteredDocs.sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate));
+
+      set({ documents: filteredDocs, loading: false });
     } catch (err) {
       set({
-        error: err.response?.data?.message || "Failed to fetch documents",
+        error: err.message || "Failed to fetch documents",
         loading: false
       });
     }
   },
 
   updateFilters: (newFilters) => {
-    const { documents } = get();
-    const filters = { ...get().filters, ...newFilters };
-    set({ filters });
-
-    let filtered = [...documents];
-
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filtered = filtered.filter(doc => 
-        doc.reportName.toLowerCase().includes(searchTerm) ||
-        doc.barangayName.toLowerCase().includes(searchTerm) ||
-        doc._id.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    if (filters.reportType !== 'all') {
-      filtered = filtered.filter(doc => doc.reportType === filters.reportType);
-    }
-
-    if (filters.status !== 'all') {
-      filtered = filtered.filter(doc => doc.status === filters.status);
-    }
-
-    if (filters.barangay !== 'all') {
-      filtered = filtered.filter(doc => doc.barangayId === filters.barangay);
-    }
-
-    // Add date range filtering
-    if (filters.startDate) {
-      filtered = filtered.filter(doc => 
-        new Date(doc.submittedAt) >= new Date(filters.startDate)
-      );
-    }
-
-    if (filters.endDate) {
-      filtered = filtered.filter(doc => 
-        new Date(doc.submittedAt) <= new Date(filters.endDate)
-      );
-    }
-
-    // Sort the filtered results by date
-    filtered = sortByDate(filtered);
-
-    set({ filteredDocuments: filtered });
-  },
-
-  updateDocumentStatus: async (documentId, newStatus, comments = "") => {
-    set({ loading: true, error: null });
-    try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
+    set(state => {
+      const updatedFilters = { ...state.filters, ...newFilters };
       
-      const updatedDocs = get().documents.map(doc => {
-        if (doc._id === documentId) {
-          return {
-            ...doc,
-            status: newStatus,
-            comments: comments,
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return doc;
-      });
-
-      set({ 
-        documents: updatedDocs,
-        loading: false 
-      });
-      get().updateFilters({});
-    } catch (err) {
-      set({
-        error: err.response?.data?.message || "Failed to update document status",
-        loading: false
-      });
-    }
-  },
-
-  deleteDocument: async (documentId) => {
-    set({ loading: true, error: null });
-    try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
+      // Only fetch if the changes include non-search filters or if it's a search action
+      if (!newFilters.hasOwnProperty('search') || newFilters.search !== undefined) {
+        state.fetchDocuments(updatedFilters);
+      }
       
-      const updatedDocs = get().documents.filter(doc => doc._id !== documentId);
-      set({ 
-        documents: updatedDocs,
-        loading: false 
-      });
-      get().updateFilters({});
-    } catch (err) {
-      set({
-        error: err.response?.data?.message || "Failed to delete document",
-        loading: false
-      });
-    }
+      return { filters: updatedFilters };
+    });
   }
 }));
 

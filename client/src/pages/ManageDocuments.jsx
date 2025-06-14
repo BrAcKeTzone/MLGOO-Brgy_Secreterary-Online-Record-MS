@@ -6,26 +6,13 @@ import DocumentFilters from "../components/DocumentManagementComp/DocumentFilter
 import DocumentTable from "../components/DocumentManagementComp/DocumentTable";
 
 const ManageDocuments = () => {
-  const {
-    filteredDocuments,
-    loading,
-    error,
-    filters,
-    fetchDocuments,
-    updateFilters,
-    updateDocumentStatus,
-    deleteDocument,
-  } = useDocumentStore();
+  const { documents, loading, error, filters, fetchDocuments, updateFilters } =
+    useDocumentStore();
 
+  // Initial fetch with default filters
   useEffect(() => {
-    fetchDocuments();
+    fetchDocuments(filters);
   }, []);
-
-  const handleDelete = async (documentId) => {
-    if (window.confirm("Are you sure you want to delete this document?")) {
-      await deleteDocument(documentId);
-    }
-  };
 
   if (loading) {
     return <LoadingScreen message="Loading documents..." />;
@@ -48,11 +35,7 @@ const ManageDocuments = () => {
 
       <DocumentFilters filters={filters} onFilterChange={updateFilters} />
 
-      <DocumentTable
-        documents={filteredDocuments}
-        onStatusUpdate={updateDocumentStatus}
-        onDelete={handleDelete}
-      />
+      <DocumentTable documents={documents} />
     </div>
   );
 };
