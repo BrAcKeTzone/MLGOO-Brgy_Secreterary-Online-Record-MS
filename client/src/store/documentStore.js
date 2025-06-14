@@ -75,6 +75,55 @@ const useDocumentStore = create((set, get) => ({
       
       return { filters: updatedFilters };
     });
+  },
+
+  approveDocument: async (documentId) => {
+    set({ loading: true, error: null });
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      set(state => ({
+        documents: state.documents.map(doc =>
+          doc._id === documentId ? { ...doc, status: "Approved", updatedAt: new Date().toISOString() } : doc
+        ),
+        loading: false
+      }));
+    } catch (err) {
+      set({ error: err.message || "Failed to approve document", loading: false });
+    }
+  },
+
+  rejectDocument: async (documentId) => {
+    set({ loading: true, error: null });
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      set(state => ({
+        documents: state.documents.map(doc =>
+          doc._id === documentId ? { ...doc, status: "Rejected", updatedAt: new Date().toISOString() } : doc
+        ),
+        loading: false
+      }));
+    } catch (err) {
+      set({ error: err.message || "Failed to reject document", loading: false });
+    }
+  },
+
+  deleteDocument: async (documentId) => {
+    set({ loading: true, error: null });
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      set(state => ({
+        documents: state.documents.filter(doc => doc._id !== documentId),
+        loading: false
+      }));
+    } catch (err) {
+      set({ error: err.message || "Failed to delete document", loading: false });
+    }
   }
 }));
 

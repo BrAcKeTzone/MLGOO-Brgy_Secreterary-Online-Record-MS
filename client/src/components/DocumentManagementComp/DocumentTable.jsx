@@ -1,10 +1,17 @@
 import React from "react";
 import { format } from "date-fns";
+import { FaCheck, FaTimes, FaEdit, FaTrash } from "react-icons/fa";
 
-const DocumentTable = ({ documents }) => {
+const DocumentTable = ({ documents, onApprove, onReject, onDelete }) => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return format(new Date(dateString), "PPp");
+  };
+
+  const handleDelete = (docId) => {
+    if (window.confirm("Are you sure you want to delete this document?")) {
+      onDelete(docId);
+    }
   };
 
   return (
@@ -12,6 +19,9 @@ const DocumentTable = ({ documents }) => {
       <table className="min-w-full">
         <thead className="bg-gray-50">
           <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Report ID
+            </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Report Type
             </th>
@@ -25,13 +35,18 @@ const DocumentTable = ({ documents }) => {
               Date Submitted
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              File Name
+              Actions
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {documents.map((doc) => (
             <tr key={doc._id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium text-gray-900">
+                  {doc._id}
+                </div>
+              </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900">
                   {doc.reportName}
@@ -63,7 +78,31 @@ const DocumentTable = ({ documents }) => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {doc.fileName}
+                {doc.status === "Pending" && (
+                  <>
+                    <button
+                      onClick={() => onApprove(doc._id)}
+                      className="text-green-600 hover:text-green-900 mr-2"
+                    >
+                      <FaCheck />
+                    </button>
+                    <button
+                      onClick={() => onReject(doc._id)}
+                      className="text-red-600 hover:text-red-900 mr-2"
+                    >
+                      <FaTimes />
+                    </button>
+                  </>
+                )}
+                <button className="text-blue-600 hover:text-blue-900 mr-2">
+                  <FaEdit />
+                </button>
+                <button
+                  onClick={() => handleDelete(doc._id)}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <FaTrash />
+                </button>
               </td>
             </tr>
           ))}

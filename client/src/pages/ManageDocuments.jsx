@@ -6,7 +6,7 @@ import DocumentFilters from "../components/DocumentManagementComp/DocumentFilter
 import DocumentTable from "../components/DocumentManagementComp/DocumentTable";
 
 const ManageDocuments = () => {
-  const { documents, loading, error, filters, fetchDocuments, updateFilters } =
+  const { documents, loading, error, filters, fetchDocuments, updateFilters, approveDocument, rejectDocument, deleteDocument } =
     useDocumentStore();
 
   // Initial fetch with default filters
@@ -35,7 +35,12 @@ const ManageDocuments = () => {
 
       <DocumentFilters filters={filters} onFilterChange={updateFilters} />
 
-      <DocumentTable documents={documents} />
+      <DocumentTable
+        documents={documents}
+        onApprove={approveDocument}
+        onReject={rejectDocument}
+        onDelete={deleteDocument}
+      />
     </div>
   );
 };
