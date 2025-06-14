@@ -9,10 +9,10 @@ import ForgotPass from "../pages/ForgotPass";
 import Dashboard from "../pages/Dashboard";
 import useAuthStore from "../store/authStore";
 
-// Import new pages (you'll need to create these)
 import SubmitReport from "../pages/SubmitReport";
 import MyReports from "../pages/MyReports";
-import Notifications from "../pages/Notifications";
+import AdminNotification from "../pages/AdminNotifications";
+import BrgyNotifications from "../pages/BrgyNotifications";
 import Profile from "../pages/Profile";
 import ManageUsers from "../pages/ManageUsers";
 import ManageDocuments from "../pages/ManageDocuments";
@@ -21,10 +21,18 @@ import Logs from "../pages/Logs";
 import LoadingScreen from "../components/Common/LoadingScreen";
 
 const PublicRoute = ({ element, redirectTo, condition }) =>
-  condition ? element : <Navigate to={redirectTo} />;
+  condition ? (
+    element
+  ) : (
+    <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
+  );
 
 const ProtectedRoute = ({ element, redirectTo, condition }) =>
-  condition ? element : <Navigate to={redirectTo} />;
+  condition ? (
+    element
+  ) : (
+    <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
+  );
 
 const AppRouter = () => {
   const { user, loading, initializeAuth } = useAuthStore();
@@ -32,51 +40,40 @@ const AppRouter = () => {
   const isMLGOOStaff = user?.role === "role002";
   const location = useLocation();
 
-  // Initialize auth on mount
   useEffect(() => {
     initializeAuth();
   }, []);
 
-  // Only show loading screen during initial auth check
-  if (loading && !user && location.pathname !== "/login") {
+  // Show loading screen only during initial auth check
+  if (loading) {
     return <LoadingScreen />;
   }
 
   return (
     <Routes>
-      {/* Default route with smarter redirection */}
+      {/* Default route with improved handling */}
       <Route
         path="/"
         element={
           !user ? (
             <Navigate to="/login" />
           ) : isMLGOOStaff ? (
-            <Navigate to="/dashboard" />
+            <Navigate to="/dashboard" replace />
           ) : (
-            <Navigate to="/home" />
+            <Navigate to="/home" replace />
           )
         }
       />
 
-      {/* Add explicit home route for barangay secretary */}
-      <Route
-        path="/home"
-        element={
-          <ProtectedRoute
-            element={<Home />}
-            redirectTo="/login"
-            condition={!!user && isBarangaySecretary}
-          />
-        }
-      />
-
-      {/* Public routes */}
+      {/* Public routes - don't redirect if already on these paths */}
       <Route
         path="/login"
         element={
           <PublicRoute
             element={<Login />}
-            redirectTo={isMLGOOStaff ? "/dashboard" : "/"}
+            redirectTo={
+              location.state?.from || (isMLGOOStaff ? "/dashboard" : "/home")
+            }
             condition={!user}
           />
         }
@@ -156,6 +153,19 @@ const AppRouter = () => {
         }
       />
       <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute
+            element={
+              isMLGOOStaff ? <AdminNotification /> : <BrgyNotifications />
+            }
+            redirectTo="/login"
+            condition={!!user}
+          />
+        }
+      />
+
+      <Route
         path="/logs"
         element={
           <ProtectedRoute
@@ -167,16 +177,7 @@ const AppRouter = () => {
       />
 
       {/* Shared Routes */}
-      <Route
-        path="/notifications"
-        element={
-          <ProtectedRoute
-            element={<Notifications />}
-            redirectTo="/login"
-            condition={!!user}
-          />
-        }
-      />
+
       <Route
         path="/profile"
         element={
