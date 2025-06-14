@@ -9,11 +9,11 @@ const apiURL = import.meta.env.VITE_API_URL_DEV;
 const useAuthStore = create((set) => ({
   user: null,
   token: null,
-  loading: true, // Start with loading true
+  loading: false,  // Changed initial loading state to false
   error: null,
 
-  // Add initializeAuth function
   initializeAuth: () => {
+    set({ loading: true });  // Set loading when starting initialization
     const token = localStorage.getItem('token');
     if (token) {
       // Mock user restoration based on token
@@ -138,8 +138,13 @@ const useAuthStore = create((set) => ({
 
   logout: () => {
     localStorage.removeItem('token');
-    set({ user: null, token: null });
-  },
+    set({ 
+      user: null, 
+      token: null,
+      loading: false,
+      error: null 
+    });
+  }
 }));
 
 export default useAuthStore;

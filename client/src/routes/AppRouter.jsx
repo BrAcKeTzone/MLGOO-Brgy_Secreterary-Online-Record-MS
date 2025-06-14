@@ -27,7 +27,7 @@ const ProtectedRoute = ({ element, redirectTo, condition }) =>
   condition ? element : <Navigate to={redirectTo} />;
 
 const AppRouter = () => {
-  const { user, initializeAuth } = useAuthStore();
+  const { user, loading, initializeAuth } = useAuthStore();
   const isBarangaySecretary = user?.role === "role001";
   const isMLGOOStaff = user?.role === "role002";
   const location = useLocation();
@@ -37,13 +37,8 @@ const AppRouter = () => {
     initializeAuth();
   }, []);
 
-  // Show loading while initializing auth
-  if (
-    !user &&
-    location.pathname !== "/login" &&
-    location.pathname !== "/signup" &&
-    location.pathname !== "/forgot-password"
-  ) {
+  // Only show loading screen during initial auth check
+  if (loading && !user && location.pathname !== "/login") {
     return <LoadingScreen />;
   }
 
