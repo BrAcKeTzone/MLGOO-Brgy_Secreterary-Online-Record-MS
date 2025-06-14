@@ -1,6 +1,6 @@
 // src/routes/AppRouter.jsx
 import React, { useEffect } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
 
 import Home from "../pages/Home";
 import Login from "../pages/Login";
@@ -20,19 +20,14 @@ import Logs from "../pages/Logs";
 
 import LoadingScreen from "../components/Common/LoadingScreen";
 
-const PublicRoute = ({ element, redirectTo, condition }) =>
-  condition ? (
-    element
+// Higher-Order Component for Protected Routes
+const ProtectedRoute = ({ children, redirectTo, condition, location }) => {
+  return condition ? (
+    children
   ) : (
-    <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
+    <Navigate to={redirectTo} state={{ from: location }} replace />
   );
-
-const ProtectedRoute = ({ element, redirectTo, condition }) =>
-  condition ? (
-    element
-  ) : (
-    <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
-  );
+};
 
 const AppRouter = () => {
   const { user, loading, initializeAuth } = useAuthStore();
@@ -51,51 +46,31 @@ const AppRouter = () => {
 
   return (
     <Routes>
-      {/* Default route with improved handling */}
-      <Route
-        path="/"
-        element={
-          !user ? (
-            <Navigate to="/login" />
-          ) : isMLGOOStaff ? (
-            <Navigate to="/dashboard" replace />
-          ) : (
-            <Navigate to="/home" replace />
-          )
-        }
-      />
-
-      {/* Public routes - don't redirect if already on these paths */}
+      {/* Public routes */}
       <Route
         path="/login"
-        element={
-          <PublicRoute
-            element={<Login />}
-            redirectTo={
-              location.state?.from || (isMLGOOStaff ? "/dashboard" : "/home")
-            }
-            condition={!user}
-          />
-        }
+        element={user ? <Navigate to="/" replace /> : <Login />}
       />
       <Route
         path="/signup"
-        element={
-          <PublicRoute
-            element={<Signup />}
-            redirectTo={isMLGOOStaff ? "/dashboard" : "/"}
-            condition={!user}
-          />
-        }
+        element={user ? <Navigate to="/" replace /> : <Signup />}
       />
       <Route
         path="/forgot-password"
+        element={user ? <Navigate to="/" replace /> : <ForgotPass />}
+      />
+
+      {/* Protected Routes */}
+      <Route
+        path="/"
         element={
-          <PublicRoute
-            element={<ForgotPass />}
-            redirectTo={isMLGOOStaff ? "/dashboard" : "/"}
-            condition={!user}
-          />
+          <ProtectedRoute
+            condition={!!user}
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            {isMLGOOStaff ? <Navigate to="/dashboard" replace /> : <Home />}
+          </ProtectedRoute>
         }
       />
 
@@ -104,20 +79,24 @@ const AppRouter = () => {
         path="/submit-report"
         element={
           <ProtectedRoute
-            element={<SubmitReport />}
-            redirectTo="/login"
             condition={!!user && isBarangaySecretary}
-          />
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            <SubmitReport />
+          </ProtectedRoute>
         }
       />
       <Route
         path="/my-reports"
         element={
           <ProtectedRoute
-            element={<MyReports />}
-            redirectTo="/login"
             condition={!!user && isBarangaySecretary}
-          />
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            <MyReports />
+          </ProtectedRoute>
         }
       />
 
@@ -126,66 +105,74 @@ const AppRouter = () => {
         path="/dashboard"
         element={
           <ProtectedRoute
-            element={<Dashboard />}
-            redirectTo="/login"
             condition={!!user && isMLGOOStaff}
-          />
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            <Dashboard />
+          </ProtectedRoute>
         }
       />
       <Route
         path="/manage-users"
         element={
           <ProtectedRoute
-            element={<ManageUsers />}
-            redirectTo="/login"
             condition={!!user && isMLGOOStaff}
-          />
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            <ManageUsers />
+          </ProtectedRoute>
         }
       />
       <Route
         path="/manage-documents"
         element={
           <ProtectedRoute
-            element={<ManageDocuments />}
-            redirectTo="/login"
             condition={!!user && isMLGOOStaff}
-          />
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            <ManageDocuments />
+          </ProtectedRoute>
         }
       />
       <Route
         path="/notifications"
         element={
           <ProtectedRoute
-            element={
-              isMLGOOStaff ? <AdminNotification /> : <BrgyNotifications />
-            }
-            redirectTo="/login"
             condition={!!user}
-          />
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            {isMLGOOStaff ? <AdminNotification /> : <BrgyNotifications />}
+          </ProtectedRoute>
         }
       />
-
       <Route
         path="/logs"
         element={
           <ProtectedRoute
-            element={<Logs />}
-            redirectTo="/login"
             condition={!!user && isMLGOOStaff}
-          />
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            <Logs />
+          </ProtectedRoute>
         }
       />
 
       {/* Shared Routes */}
-
       <Route
         path="/profile"
         element={
           <ProtectedRoute
-            element={<Profile />}
-            redirectTo="/login"
             condition={!!user}
-          />
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            <Profile />
+          </ProtectedRoute>
         }
       />
 
