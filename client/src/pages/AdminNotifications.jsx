@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import useNotificationStore from "../store/notificationStore";
+import useNotificationStore from "../store/adminNotificationStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
 import UserSelection from "../components/NotificationsComp/UserSelection";
