@@ -1,6 +1,7 @@
 import React from "react";
 import { format } from "date-fns";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import TableActions from "../Common/TableActions";
 
 const MyReportsTable = ({ reports, onDelete, onView, onEdit }) => {
   const formatDate = (dateString) => {
@@ -72,24 +73,28 @@ const MyReportsTable = ({ reports, onDelete, onView, onEdit }) => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <button
-                  onClick={() => onView(report._id)}
-                  className="text-blue-600 hover:text-blue-900 mr-2"
-                >
-                  <FaEye />
-                </button>
-                <button
-                  onClick={() => onEdit(report._id)}
-                  className="text-green-600 hover:text-green-900 mr-2"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(report._id)}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <FaTrash />
-                </button>
+                <TableActions
+                  actions={[
+                    {
+                      icon: <FaEye />,
+                      onClick: () => onView(report._id),
+                      className: "text-blue-600 hover:text-blue-900",
+                      title: "View",
+                    },
+                    {
+                      icon: <FaEdit />,
+                      onClick: () => onEdit(report._id),
+                      className: "text-green-600 hover:text-green-900",
+                      title: "Edit",
+                    },
+                    {
+                      icon: <FaTrash />,
+                      onClick: () => handleDelete(report._id),
+                      className: "text-gray-600 hover:text-gray-900",
+                      title: "Delete",
+                    },
+                  ]}
+                />
               </td>
             </tr>
           ))}

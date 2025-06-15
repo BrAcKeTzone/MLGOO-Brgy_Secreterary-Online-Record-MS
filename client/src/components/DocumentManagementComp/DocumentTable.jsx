@@ -1,6 +1,7 @@
 import React from "react";
 import { format } from "date-fns";
 import { FaCheck, FaTimes, FaEdit, FaTrash } from "react-icons/fa";
+import TableActions from "../Common/TableActions";
 
 const DocumentTable = ({ documents, onApprove, onReject, onDelete }) => {
   const formatDate = (dateString) => {
@@ -78,31 +79,38 @@ const DocumentTable = ({ documents, onApprove, onReject, onDelete }) => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {doc.status === "Pending" && (
-                  <>
-                    <button
-                      onClick={() => onApprove(doc._id)}
-                      className="text-green-600 hover:text-green-900 mr-2"
-                    >
-                      <FaCheck />
-                    </button>
-                    <button
-                      onClick={() => onReject(doc._id)}
-                      className="text-red-600 hover:text-red-900 mr-2"
-                    >
-                      <FaTimes />
-                    </button>
-                  </>
-                )}
-                <button className="text-blue-600 hover:text-blue-900 mr-2">
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(doc._id)}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <FaTrash />
-                </button>
+                <TableActions
+                  actions={[
+                    ...(doc.status === "Pending"
+                      ? [
+                          {
+                            icon: <FaCheck />,
+                            onClick: () => onApprove(doc._id),
+                            className: "text-green-600 hover:text-green-900",
+                            title: "Approve",
+                          },
+                          {
+                            icon: <FaTimes />,
+                            onClick: () => onReject(doc._id),
+                            className: "text-red-600 hover:text-red-900",
+                            title: "Reject",
+                          },
+                        ]
+                      : []),
+                    {
+                      icon: <FaEdit />,
+                      onClick: () => {}, // Add edit functionality
+                      className: "text-blue-600 hover:text-blue-900",
+                      title: "Edit",
+                    },
+                    {
+                      icon: <FaTrash />,
+                      onClick: () => handleDelete(doc._id),
+                      className: "text-gray-600 hover:text-gray-900",
+                      title: "Delete",
+                    },
+                  ]}
+                />
               </td>
             </tr>
           ))}

@@ -1,5 +1,6 @@
 import React from "react";
 import { FaCheck, FaTimes, FaEdit, FaTrash, FaPowerOff } from "react-icons/fa";
+import TableActions from "../Common/TableActions";
 
 const UserTable = ({ users, onStatusUpdate, onDelete }) => {
   const getStatusColor = (status) => {
@@ -52,66 +53,62 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
                 )}
               </td>
               <td className="p-4">
-                <div className="flex space-x-2">
-                  {user.creationStatus === "Pending" && (
-                    <>
-                      <button
-                        onClick={() =>
-                          onStatusUpdate(user._id, "Approved", "Active")
-                        }
-                        className="p-1 text-green-600 hover:text-green-800"
-                        title="Approve"
-                      >
-                        <FaCheck />
-                      </button>
-                      <button
-                        onClick={() => onStatusUpdate(user._id, "Rejected")}
-                        className="p-1 text-red-600 hover:text-red-800"
-                        title="Reject"
-                      >
-                        <FaTimes />
-                      </button>
-                    </>
-                  )}
-                  {user.creationStatus === "Approved" && (
-                    <button
-                      onClick={() =>
-                        onStatusUpdate(
-                          user._id,
-                          "Approved",
-                          user.activeStatus === "Active"
-                            ? "Deactivated"
-                            : "Active"
-                        )
-                      }
-                      className={`p-1 ${
-                        user.activeStatus === "Active"
-                          ? "text-red-600 hover:text-red-800"
-                          : "text-green-600 hover:text-green-800"
-                      }`}
-                      title={
-                        user.activeStatus === "Active"
-                          ? "Deactivate"
-                          : "Activate"
-                      }
-                    >
-                      <FaPowerOff />
-                    </button>
-                  )}
-                  <button
-                    className="p-1 text-blue-600 hover:text-blue-800"
-                    title="Edit"
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    onClick={() => onDelete(user._id)}
-                    className="p-1 text-red-600 hover:text-red-800"
-                    title="Delete"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
+                <TableActions
+                  actions={[
+                    ...(user.creationStatus === "Pending"
+                      ? [
+                          {
+                            icon: <FaCheck />,
+                            onClick: () =>
+                              onStatusUpdate(user._id, "Approved", "Active"),
+                            className: "text-green-600 hover:text-green-800",
+                            title: "Approve",
+                          },
+                          {
+                            icon: <FaTimes />,
+                            onClick: () => onStatusUpdate(user._id, "Rejected"),
+                            className: "text-red-600 hover:text-red-800",
+                            title: "Reject",
+                          },
+                        ]
+                      : []),
+                    ...(user.creationStatus === "Approved"
+                      ? [
+                          {
+                            icon: <FaPowerOff />,
+                            onClick: () =>
+                              onStatusUpdate(
+                                user._id,
+                                "Approved",
+                                user.activeStatus === "Active"
+                                  ? "Deactivated"
+                                  : "Active"
+                              ),
+                            className:
+                              user.activeStatus === "Active"
+                                ? "text-red-600 hover:text-red-800"
+                                : "text-green-600 hover:text-green-800",
+                            title:
+                              user.activeStatus === "Active"
+                                ? "Deactivate"
+                                : "Activate",
+                          },
+                        ]
+                      : []),
+                    {
+                      icon: <FaEdit />,
+                      onClick: () => {}, // Add edit functionality
+                      className: "text-blue-600 hover:text-blue-800",
+                      title: "Edit",
+                    },
+                    {
+                      icon: <FaTrash />,
+                      onClick: () => onDelete(user._id),
+                      className: "text-red-600 hover:text-red-800",
+                      title: "Delete",
+                    },
+                  ]}
+                />
               </td>
             </tr>
           ))}

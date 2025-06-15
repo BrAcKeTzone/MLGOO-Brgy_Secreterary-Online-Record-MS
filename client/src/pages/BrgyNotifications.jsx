@@ -2,11 +2,19 @@ import React, { useEffect } from "react";
 import useBrgyNotificationStore from "../store/brgyNotificationStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
+import BrgyNotificationFilters from "../components/BrgyNotificationComp/BrgyNotificationFilters";
 import BrgyNotificationList from "../components/BrgyNotificationComp/BrgyNotificationList";
 
 const BrgyNotifications = () => {
-  const { notifications, loading, error, fetchNotifications, markAsRead } =
-    useBrgyNotificationStore();
+  const {
+    notifications,
+    loading,
+    error,
+    filters,
+    fetchNotifications,
+    markAsRead,
+    updateFilters,
+  } = useBrgyNotificationStore();
 
   useEffect(() => {
     fetchNotifications();
@@ -36,6 +44,11 @@ const BrgyNotifications = () => {
         </h1>
         <p className="text-gray-600">View and manage your notifications</p>
       </div>
+
+      <BrgyNotificationFilters
+        filters={filters}
+        onFilterChange={updateFilters}
+      />
 
       <BrgyNotificationList
         notifications={notifications}

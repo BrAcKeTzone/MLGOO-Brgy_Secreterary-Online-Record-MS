@@ -20,15 +20,14 @@ const BrgyNotificationList = ({ notifications, onMarkAsRead }) => {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Date Sent
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {notifications.map((notification) => {
             // Find the recipient for the current user
-            const recipient = notification.sentTo.find(r => r.userId === "user001"); // Replace "user001" with actual user ID
+            const recipient = notification.sentTo.find(
+              (r) => r.userId === "user001"
+            ); // Replace "user001" with actual user ID
             if (!recipient) return null; // Skip if not sent to this user
 
             return (
@@ -47,19 +46,6 @@ const BrgyNotificationList = ({ notifications, onMarkAsRead }) => {
                   <div className="text-sm text-gray-500">
                     {formatDate(notification.dateSent)}
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {!recipient.read && (
-                    <button
-                      onClick={() => onMarkAsRead(notification._id)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                    >
-                      Mark as Read
-                    </button>
-                  )}
-                  {recipient.read && (
-                    <span className="text-green-500">Read</span>
-                  )}
                 </td>
               </tr>
             );
