@@ -4,7 +4,7 @@ import Footer from "../components/LandingComp/Footer";
 
 const Landing = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[90vh] flex flex-col">
       <div className="flex-grow">
         <Hero />
       </div>
