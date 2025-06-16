@@ -12,21 +12,16 @@ const Hero = () => {
   };
 
   return (
-    <div className="relative bg-gradient-to-r from-blue-900 via-indigo-900 to-gray-900 text-white py-32">
+    <div className="relative min-h-[calc(100vh-136px)] bg-gradient-to-r from-blue-900 via-indigo-900 to-gray-900 text-white flex items-center">
       <div className="absolute inset-0 bg-black opacity-40"></div>
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: "url('path/to/pattern.svg')",
-          opacity: 0.1,
-        }}
-      ></div>
+
       <div
         className="absolute inset-0 flex items-center justify-center"
         style={{
           backgroundImage: `url(${heroImage})`,
-          backgroundSize: "cover",
+          backgroundSize: "contain",
           backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
           opacity: 0.2,
         }}
       ></div>
@@ -55,7 +50,7 @@ const Hero = () => {
               Get Started
               <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
             </button>
-            <button
+            {/* <button
               onClick={() =>
                 document
                   .getElementById("features")
@@ -64,7 +59,7 @@ const Hero = () => {
               className="w-full sm:w-auto bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition duration-300 border border-white/30"
             >
               Learn More
-            </button>
+            </button> */}
           </div>
         </motion.div>
       </div>
