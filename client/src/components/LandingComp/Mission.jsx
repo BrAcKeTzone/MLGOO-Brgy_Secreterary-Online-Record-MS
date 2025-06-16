@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import tabinaLogo from "../../assets/tabina.png"; // Verify this path
+import tabinaLogo from "../../assets/tabina.png";
 
 const Mission = () => {
   return (
@@ -15,14 +15,13 @@ const Mission = () => {
         style={{
           backgroundImage: `url(${tabinaLogo})`,
           backgroundPosition: "center",
-          backgroundSize: "50%",
+          backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           opacity: 0.15,
           filter: "brightness(150%)",
         }}
       ></div>
 
-      {/* Content Container */}
       <div className="container relative z-20 mx-auto px-6">
         <motion.div
           initial={{ opacity: 0 }}

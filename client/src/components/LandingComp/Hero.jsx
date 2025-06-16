@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FaArrowRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import heroImage from "../../assets/logo1.png"; // Import your image
+import heroImage from "../../assets/logo1.png";
 
 const Hero = () => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
-import React from 'react';
-import useSubmitReportStore from '../../store/submitReportStore';
+import React from "react";
+import useSubmitReportStore from "../../store/submitReportStore";
 
 const ReportForm = () => {
   const { reportType, formData, handleInputChange } = useSubmitReportStore();
@@ -24,7 +24,6 @@ const ReportForm = () => {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
-          {/* Add more KP-specific fields here */}
         </div>
       );
     case "MBCRS":
@@ -46,7 +45,6 @@ const ReportForm = () => {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             />
           </div>
-          {/* Add more MBCRS-specific fields here */}
         </div>
       );
     default:

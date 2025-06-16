@@ -7,8 +7,6 @@ import {
   FaDesktop,
   FaComments,
   FaTasks,
-  FaUsers,
-  FaUserTie,
 } from "react-icons/fa";
 
 const benefitsList = {

@@ -1,4 +1,3 @@
-// src/components/Auth/SignupForm.jsx
 import React, { useState, useEffect } from "react";
 import useAuthStore from "../../store/authStore";
 import InitialInfoStep from "./Steps/InitialInfoStep";
@@ -33,13 +32,11 @@ const SignupForm = () => {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
 
-    // Clear password error when either password field changes
     if (name === "password" || name === "confirmPassword") {
       setPasswordError("");
     }
   };
 
-  // Validate passwords when either password field changes
   useEffect(() => {
     if (form.confirmPassword && form.password !== form.confirmPassword) {
       setPasswordError("Passwords do not match");
@@ -71,7 +68,6 @@ const SignupForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate password
     const passwordValidationErrors = validatePassword(form.password);
     if (passwordValidationErrors.length > 0) {
       setPasswordError(passwordValidationErrors.join(". "));

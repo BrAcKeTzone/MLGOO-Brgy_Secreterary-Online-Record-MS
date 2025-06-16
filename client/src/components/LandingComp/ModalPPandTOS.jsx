@@ -1,7 +1,7 @@
 import React from "react";
 import { privacyPolicyOptions } from "../../data/options/optionsPrivacyPolicy";
 import { termsOfServiceOptions } from "../../data/options/optionsTermsOfService";
-import { FaTimes } from "react-icons/fa"; // Import close icon
+import { FaTimes } from "react-icons/fa";
 
 const Modal = ({ isOpen, onClose, type }) => {
   if (!isOpen) return null;

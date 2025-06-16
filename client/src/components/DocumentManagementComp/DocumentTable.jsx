@@ -99,7 +99,7 @@ const DocumentTable = ({ documents, onApprove, onReject, onDelete }) => {
                       : []),
                     {
                       icon: <FaEdit />,
-                      onClick: () => {}, // Add edit functionality
+                      onClick: () => {},
                       className: "text-blue-600 hover:text-blue-900",
                       title: "Edit",
                     },

@@ -97,7 +97,7 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
                       : []),
                     {
                       icon: <FaEdit />,
-                      onClick: () => {}, // Add edit functionality
+                      onClick: () => {},
                       className: "text-blue-600 hover:text-blue-800",
                       title: "Edit",
                     },

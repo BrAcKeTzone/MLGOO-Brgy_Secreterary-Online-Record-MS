@@ -1,4 +1,3 @@
-// src/routes/AppRouter.jsx
 import React, { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
 
@@ -40,7 +39,6 @@ const AppRouter = () => {
     initializeAuth();
   }, []);
 
-  // Show loading screen only during initial auth check
   if (loading) {
     return <LoadingScreen />;
   }

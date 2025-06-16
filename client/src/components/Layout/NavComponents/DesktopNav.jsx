@@ -1,4 +1,3 @@
-// filepath: d:\Projects\MyWebProjects\MLGOO and Barangay Secretaries Online Record Management System\client\src\components\Layout\NavComponents\DesktopNav.jsx
 import React from "react";
 import NavLink from "./NavLink";
 
