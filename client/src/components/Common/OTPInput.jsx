@@ -48,21 +48,29 @@ const OTPInput = ({ value, onChange, length = 6 }) => {
   };
 
   return (
-    <div className="flex gap-2">
-      {[...Array(length)].map((_, index) => (
-        <input
-          key={index}
-          type="text"
-          maxLength={1}
-          ref={(el) => (inputRefs.current[index] = el)}
-          value={otp[index] || ""}
-          onChange={(e) => handleChange(index, e)}
-          onKeyDown={(e) => handleKeyDown(index, e)}
-          onPaste={handlePaste}
-          className="w-12 h-12 text-center text-xl font-semibold rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-          required
-        />
-      ))}
+    <div className="flex flex-wrap justify-center w-full max-w-md mx-auto">
+      <div className="flex gap-2 sm:gap-3 md:gap-1">
+        {[...Array(length)].map((_, index) => (
+          <input
+            key={index}
+            type="text"
+            maxLength={1}
+            ref={(el) => (inputRefs.current[index] = el)}
+            value={otp[index] || ""}
+            onChange={(e) => handleChange(index, e)}
+            onKeyDown={(e) => handleKeyDown(index, e)}
+            onPaste={handlePaste}
+            className="w-[35px] h-[35px] sm:w-[45px] sm:h-[45px] md:w-[50px] md:h-[50px]
+                       text-center text-sm sm:text-base md:text-lg font-semibold
+                       rounded-lg border border-gray-300
+                       focus:border-blue-500 focus:ring-2 focus:ring-blue-200
+                       transition-colors outline-none"
+            inputMode="numeric"
+            pattern="\d*"
+            required
+          />
+        ))}
+      </div>
     </div>
   );
 };
