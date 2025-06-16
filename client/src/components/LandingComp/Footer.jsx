@@ -1,6 +1,11 @@
 import React, { useState } from "react";
-import { FaFacebook, FaEnvelope, FaShieldAlt, FaFileContract } from "react-icons/fa";
-import Modal from "./ModalPPandTOS";
+import {
+  FaFacebook,
+  FaEnvelope,
+  FaShieldAlt,
+  FaFileContract,
+} from "react-icons/fa";
+import Modal from "../Common/ModalPPandTOS";
 
 const Footer = () => {
   const [isModalOpen, setModalOpen] = useState(false);

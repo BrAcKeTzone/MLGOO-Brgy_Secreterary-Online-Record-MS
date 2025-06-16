@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import FormInput from "../../Common/FormInput";
 import PasswordInput from "../../Common/PasswordInput";
 import ErrorMessage from "../../Common/ErrorMessage";
 import SubmitButton from "../../Common/SubmitButton";
 import ImageUploadInput from "../../Common/ImageUploadInput";
-import Modal from "../../LandingComp/ModalPPandTOS";
+import Modal from "../../Common/ModalPPandTOS";
 
 const AccountDetailsStep = ({
   form,
@@ -23,10 +22,7 @@ const AccountDetailsStep = ({
   });
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null);
-  const [acceptedPolicies, setAcceptedPolicies] = useState({
-    privacy: false,
-    terms: false,
-  });
+  const [acceptedPolicies, setAcceptedPolicies] = useState(false);
 
   const handleImageChange = (e) => {
     const { name, files } = e.target;
@@ -54,36 +50,18 @@ const AccountDetailsStep = ({
     setModalType(null);
   };
 
-  const handlePolicyChange = (type) => {
-    setAcceptedPolicies((prev) => ({
-      ...prev,
-      [type]: !prev[type],
-    }));
-  };
-
   const isFormValid =
     form.password &&
     form.confirmPassword &&
-    form.dateOfBirth &&
     form.nationalIdFront &&
     form.nationalIdBack &&
-    acceptedPolicies.privacy &&
-    acceptedPolicies.terms;
+    acceptedPolicies;
 
   return (
     <form
       onSubmit={handleSubmit}
       className="max-w-md mx-auto space-y-6 bg-white p-8 rounded-lg shadow-md"
     >
-      <FormInput
-        label="Date of Birth"
-        type="date"
-        name="dateOfBirth"
-        value={form.dateOfBirth}
-        onChange={handleChange}
-        required
-      />
-
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-700">ID Verification</h3>
         <p className="text-sm text-gray-500 mb-4">
@@ -92,7 +70,7 @@ const AccountDetailsStep = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ImageUploadInput
-            label="National ID (Front)"
+            label="Valid ID (Front)"
             name="nationalIdFront"
             onChange={handleImageChange}
             preview={previews.nationalIdFront}
@@ -100,7 +78,7 @@ const AccountDetailsStep = ({
           />
 
           <ImageUploadInput
-            label="National ID (Back)"
+            label="Valid ID (Back)"
             name="nationalIdBack"
             onChange={handleImageChange}
             preview={previews.nationalIdBack}
@@ -137,16 +115,16 @@ const AccountDetailsStep = ({
         <div className="flex items-start">
           <div className="flex items-center h-5">
             <input
-              id="privacy"
+              id="policies"
               type="checkbox"
-              checked={acceptedPolicies.privacy}
-              onChange={() => handlePolicyChange("privacy")}
+              checked={acceptedPolicies}
+              onChange={() => setAcceptedPolicies((prev) => !prev)}
               className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300"
               required
             />
           </div>
           <div className="ml-3 text-sm">
-            <label htmlFor="privacy" className="font-medium text-gray-900">
+            <label htmlFor="policies" className="font-medium text-gray-900">
               I accept the{" "}
               <button
                 type="button"
@@ -154,25 +132,8 @@ const AccountDetailsStep = ({
                 className="text-blue-600 hover:underline"
               >
                 Privacy Policy
-              </button>
-            </label>
-          </div>
-        </div>
-
-        <div className="flex items-start">
-          <div className="flex items-center h-5">
-            <input
-              id="terms"
-              type="checkbox"
-              checked={acceptedPolicies.terms}
-              onChange={() => handlePolicyChange("terms")}
-              className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300"
-              required
-            />
-          </div>
-          <div className="ml-3 text-sm">
-            <label htmlFor="terms" className="font-medium text-gray-900">
-              I agree to the{" "}
+              </button>{" "}
+              and{" "}
               <button
                 type="button"
                 onClick={() => openModal("terms")}

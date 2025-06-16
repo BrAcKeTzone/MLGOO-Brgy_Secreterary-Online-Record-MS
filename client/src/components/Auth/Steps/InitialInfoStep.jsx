@@ -26,6 +26,7 @@ const InitialInfoStep = ({
     form.role &&
     form.lastName &&
     form.firstName &&
+    form.dateOfBirth &&
     (form.role === "role002" || (form.role === "role001" && form.assignedBrgy));
 
   const isBarangaySecretary = form.role === "role001";
@@ -87,6 +88,15 @@ const InitialInfoStep = ({
           placeholder="Enter first name"
         />
       </div>
+
+      <FormInput
+        label="Date of Birth"
+        type="date"
+        name="dateOfBirth"
+        value={form.dateOfBirth}
+        onChange={handleChange}
+        required
+      />
 
       <ErrorMessage error={error} />
 
