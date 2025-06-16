@@ -1,14 +1,29 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
+import tabinaLogo from "../../assets/tabina.png"; // Verify this path
 
 const Mission = () => {
   return (
-    <div className="py-20 bg-gradient-to-br from-blue-900 to-indigo-900 text-white relative overflow-hidden">
-      <div 
+    <div className="relative py-20 bg-gradient-to-br from-blue-900 to-indigo-900 text-white overflow-hidden">
+      <div
         className="absolute inset-0 opacity-10"
-        style={{ backgroundSize: '30px' }}
+        style={{ backgroundSize: "30px" }}
       ></div>
-      <div className="container mx-auto px-6 relative z-10">
+
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          backgroundImage: `url(${tabinaLogo})`,
+          backgroundPosition: "center",
+          backgroundSize: "50%",
+          backgroundRepeat: "no-repeat",
+          opacity: 0.15,
+          filter: "brightness(150%)",
+        }}
+      ></div>
+
+      {/* Content Container */}
+      <div className="container relative z-20 mx-auto px-6">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -17,11 +32,11 @@ const Mission = () => {
         >
           <h2 className="text-4xl font-bold mb-8">Our Mission</h2>
           <p className="text-xl leading-relaxed text-blue-100">
-            To revolutionize local governance by providing an efficient,
-            accessible, and user-friendly digital platform that streamlines
-            document management between barangay secretaries and MLGOO staff,
-            ultimately contributing to better public service delivery in
-            Tabina, Zamboanga del Sur.
+            Empowering local communities through seamless governance by
+            providing an efficient and accessible digital platform that
+            strengthens collaboration between barangay secretaries and MLGOO
+            staff, fostering enhanced public service and community development
+            in Tabina, Zamboanga del Sur.
           </p>
         </motion.div>
       </div>

@@ -1,13 +1,14 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { FaArrowRight } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { motion } from "framer-motion";
+import { FaArrowRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import heroImage from "../../assets/logo1.png"; // Import your image
 
 const Hero = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -18,6 +19,15 @@ const Hero = () => {
         style={{
           backgroundImage: "url('path/to/pattern.svg')",
           opacity: 0.1,
+        }}
+      ></div>
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          backgroundImage: `url(${heroImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.2,
         }}
       ></div>
       <div className="container mx-auto px-6 text-center relative z-10">
@@ -46,7 +56,11 @@ const Hero = () => {
               <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
             </button>
             <button
-              onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
+              onClick={() =>
+                document
+                  .getElementById("features")
+                  .scrollIntoView({ behavior: "smooth" })
+              }
               className="w-full sm:w-auto bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition duration-300 border border-white/30"
             >
               Learn More
