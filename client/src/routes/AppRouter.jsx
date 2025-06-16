@@ -2,11 +2,12 @@
 import React, { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
 
-import Home from "../pages/Home";
+import Home from "../pages/BrgyDashboard";
+import Landing from "../pages/Landing";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import ForgotPass from "../pages/ForgotPass";
-import Dashboard from "../pages/Dashboard";
+import Dashboard from "../pages/AdminDashboard";
 import useAuthStore from "../store/authStore";
 
 import SubmitReport from "../pages/SubmitReport";
@@ -47,22 +48,23 @@ const AppRouter = () => {
   return (
     <Routes>
       {/* Public routes */}
+      <Route path="/" element={<Landing />} />
       <Route
         path="/login"
-        element={user ? <Navigate to="/" replace /> : <Login />}
+        element={user ? <Navigate to="/home" replace /> : <Login />}
       />
       <Route
         path="/signup"
-        element={user ? <Navigate to="/" replace /> : <Signup />}
+        element={user ? <Navigate to="/home" replace /> : <Signup />}
       />
       <Route
         path="/forgot-password"
-        element={user ? <Navigate to="/" replace /> : <ForgotPass />}
+        element={user ? <Navigate to="/home" replace /> : <ForgotPass />}
       />
 
       {/* Protected Routes */}
       <Route
-        path="/"
+        path="/home"
         element={
           <ProtectedRoute
             condition={!!user}

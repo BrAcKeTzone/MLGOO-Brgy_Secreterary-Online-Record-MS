@@ -3,7 +3,7 @@ export const optionsRoles = [
     _id: "role001", 
     name: "Barangay Secretary",
     routes: [
-      { path: "/", name: "Home" },
+      { path: "/home", name: "Dashboard" },
       { path: "/submit-report", name: "Submit Report" },
       { path: "/my-reports", name: "My Reports" },
       { path: "/notifications", name: "Notifications" },

@@ -4,6 +4,9 @@ import NavLink from "./NavLink";
 
 const DesktopNav = ({ user, navItems, handleLogout }) => (
   <div className="hidden md:flex md:items-center md:space-x-6">
+    <NavLink to="/" className="transition-colors duration-200">
+      Home
+    </NavLink>
     {user ? (
       <>
         {navItems.map((item) => (
@@ -23,9 +26,11 @@ const DesktopNav = ({ user, navItems, handleLogout }) => (
         </button>
       </>
     ) : (
-      <NavLink to="/login" className="transition-colors duration-200">
-        Login
-      </NavLink>
+      <>
+        <NavLink to="/login" className="transition-colors duration-200">
+          Login
+        </NavLink>
+      </>
     )}
   </div>
 );
