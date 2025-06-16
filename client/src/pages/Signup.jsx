@@ -1,4 +1,3 @@
-// src/pages/Signup.jsx
 import React from "react";
 import SignupForm from "../components/Auth/SignupForm";
 

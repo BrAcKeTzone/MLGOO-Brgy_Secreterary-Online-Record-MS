@@ -4,6 +4,7 @@ import PasswordInput from "../../Common/PasswordInput";
 import ErrorMessage from "../../Common/ErrorMessage";
 import SubmitButton from "../../Common/SubmitButton";
 import ImageUploadInput from "../../Common/ImageUploadInput";
+import Modal from "../../LandingComp/ModalPPandTOS";
 
 const AccountDetailsStep = ({
   form,
@@ -19,6 +20,12 @@ const AccountDetailsStep = ({
   const [previews, setPreviews] = useState({
     nationalIdFront: null,
     nationalIdBack: null,
+  });
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState(null);
+  const [acceptedPolicies, setAcceptedPolicies] = useState({
+    privacy: false,
+    terms: false,
   });
 
   const handleImageChange = (e) => {
@@ -37,12 +44,31 @@ const AccountDetailsStep = ({
     }
   };
 
+  const openModal = (type) => {
+    setModalType(type);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalType(null);
+  };
+
+  const handlePolicyChange = (type) => {
+    setAcceptedPolicies((prev) => ({
+      ...prev,
+      [type]: !prev[type],
+    }));
+  };
+
   const isFormValid =
     form.password &&
     form.confirmPassword &&
     form.dateOfBirth &&
     form.nationalIdFront &&
-    form.nationalIdBack;
+    form.nationalIdBack &&
+    acceptedPolicies.privacy &&
+    acceptedPolicies.terms;
 
   return (
     <form
@@ -107,6 +133,58 @@ const AccountDetailsStep = ({
         showStrength={false}
       />
 
+      <div className="space-y-4">
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              id="privacy"
+              type="checkbox"
+              checked={acceptedPolicies.privacy}
+              onChange={() => handlePolicyChange("privacy")}
+              className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300"
+              required
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="privacy" className="font-medium text-gray-900">
+              I accept the{" "}
+              <button
+                type="button"
+                onClick={() => openModal("privacy")}
+                className="text-blue-600 hover:underline"
+              >
+                Privacy Policy
+              </button>
+            </label>
+          </div>
+        </div>
+
+        <div className="flex items-start">
+          <div className="flex items-center h-5">
+            <input
+              id="terms"
+              type="checkbox"
+              checked={acceptedPolicies.terms}
+              onChange={() => handlePolicyChange("terms")}
+              className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300"
+              required
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="terms" className="font-medium text-gray-900">
+              I agree to the{" "}
+              <button
+                type="button"
+                onClick={() => openModal("terms")}
+                className="text-blue-600 hover:underline"
+              >
+                Terms of Service
+              </button>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <ErrorMessage error={error || passwordError} />
 
       <div className="flex gap-4">
@@ -124,6 +202,8 @@ const AccountDetailsStep = ({
           text="Create Account"
         />
       </div>
+
+      <Modal isOpen={isModalOpen} onClose={closeModal} type={modalType} />
     </form>
   );
 };
