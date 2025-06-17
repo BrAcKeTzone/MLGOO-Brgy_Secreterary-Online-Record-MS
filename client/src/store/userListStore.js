@@ -11,7 +11,8 @@ const useUserListStore = create((set, get) => ({
   filters: {
     search: "",
     role: "all",
-    status: "all"
+    status: "all",
+    barangay: "all" 
   },
 
   fetchUsers: async () => {
@@ -51,6 +52,13 @@ const useUserListStore = create((set, get) => ({
     // Apply role filter
     if (filters.role !== 'all') {
       filtered = filtered.filter(user => user.role === filters.role);
+    }
+
+    // Apply barangay filter
+    if (filters.barangay !== 'all') {
+      filtered = filtered.filter(user => 
+        user.role === 'role001' && user.assignedBrgy === filters.barangay
+      );
     }
 
     // Apply status filter

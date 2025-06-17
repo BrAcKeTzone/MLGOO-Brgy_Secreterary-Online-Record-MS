@@ -1,8 +1,11 @@
 import React from "react";
 import { FaCheck, FaTimes, FaEdit, FaTrash, FaPowerOff } from "react-icons/fa";
 import TableActions from "../Common/TableActions";
+import useBrgyStore from "../../store/brgyStore";
 
 const UserTable = ({ users, onStatusUpdate, onDelete }) => {
+  const { barangays } = useBrgyStore();
+
   const getStatusColor = (status) => {
     switch (status) {
       case "Approved":
@@ -16,6 +19,12 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
     }
   };
 
+  const getBarangayName = (brgyId) => {
+    if (!brgyId) return "N/A";
+    const barangay = barangays.find((b) => b._id === brgyId);
+    return barangay ? barangay.name : brgyId;
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white rounded-lg shadow">
@@ -24,6 +33,7 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
             <th className="p-4 text-left">Name</th>
             <th className="p-4 text-left">Email</th>
             <th className="p-4 text-left">Role</th>
+            <th className="p-4 text-left">Barangay</th>
             <th className="p-4 text-left">Status</th>
             <th className="p-4 text-left">Actions</th>
           </tr>
@@ -37,6 +47,11 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
               <td className="p-4">{user.email}</td>
               <td className="p-4">
                 {user.role === "role001" ? "Barangay Secretary" : "MLGOO Staff"}
+              </td>
+              <td className="p-4">
+                {user.role === "role001"
+                  ? getBarangayName(user.assignedBrgy)
+                  : "N/A"}
               </td>
               <td className={`p-4 ${getStatusColor(user.creationStatus)}`}>
                 {user.creationStatus}
