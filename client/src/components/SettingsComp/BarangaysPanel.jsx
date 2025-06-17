@@ -4,6 +4,7 @@ import FormInput from "../Common/FormInput";
 
 const BarangaysPanel = ({ barangays, onUpdate }) => {
   const [editingBarangay, setEditingBarangay] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
     _id: "",
     name: "",
@@ -15,6 +16,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
       editingBarangay?._id ? { ...editingBarangay, ...formData } : formData
     );
     setEditingBarangay(null);
+    setIsAdding(false);
     setFormData({ _id: "", name: "" });
   };
 
@@ -29,16 +31,60 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
         <h2 className="text-xl font-semibold">Barangay Management</h2>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
-          onClick={() => setEditingBarangay({})}
+          onClick={() => setIsAdding(true)}
+          disabled={isAdding}
         >
-          <FaPlus />{" "}
-          <span className="hidden md:inline-block md:text-sm">
-            Add Barangay
-          </span>
+          <FaPlus />
+          <span className="hidden md:inline-block md:text-sm">Add Barangay</span>
         </button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
+        {/* Add New Barangay Form */}
+        {isAdding && (
+          <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4">
+                <FormInput
+                  label="Barangay ID"
+                  name="_id"
+                  value={formData._id}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., brgy001"
+                />
+                <FormInput
+                  label="Barangay Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter barangay name"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAdding(false);
+                    setFormData({ _id: "", name: "" });
+                  }}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+                <button
+                  type="submit"
+                  className="text-green-600 hover:text-green-900"
+                >
+                  <FaSave className="w-5 h-5" />
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Existing Barangays */}
         {barangays.map((barangay) => (
           <div key={barangay._id} className="bg-gray-50 p-4 rounded-lg">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -114,48 +160,6 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
           </div>
         ))}
       </div>
-
-      {/* Add New Barangay Modal */}
-      {editingBarangay && !editingBarangay._id && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Add New Barangay</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <FormInput
-                label="Barangay ID"
-                name="_id"
-                value={formData._id}
-                onChange={handleChange}
-                required
-                placeholder="e.g., brgy001"
-              />
-              <FormInput
-                label="Barangay Name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                placeholder="Enter barangay name"
-              />
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingBarangay(null)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

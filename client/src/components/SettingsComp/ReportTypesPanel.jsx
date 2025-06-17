@@ -4,6 +4,7 @@ import FormInput from "../Common/FormInput";
 
 const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
   const [editingType, setEditingType] = useState(null);
+  const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
     _id: "",
     name: "",
@@ -14,6 +15,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
     e.preventDefault();
     onUpdate(editingType?._id ? { ...editingType, ...formData } : formData);
     setEditingType(null);
+    setIsAdding(false);
     setFormData({ _id: "", name: "", shortName: "" });
   };
 
@@ -28,17 +30,68 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
         <h2 className="text-xl font-semibold">Report Types</h2>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
-          onClick={() => setEditingType({})}
+          onClick={() => setIsAdding(true)}
+          disabled={isAdding}
         >
-          <FaPlus />{" "}
-          <span className="hidden md:inline-block md:text-sm">
-            {" "}
-            Report Type
-          </span>
+          <FaPlus />
+          <span className="hidden md:inline-block md:text-sm">Report Type</span>
         </button>
       </div>
 
       <div className="grid gap-4">
+        {/* Add New Report Type Form */}
+        {isAdding && (
+          <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <FormInput
+                  label="ID"
+                  name="_id"
+                  value={formData._id}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., KP, MBCRS"
+                />
+                <FormInput
+                  label="Full Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter full report name"
+                />
+                <FormInput
+                  label="Short Name"
+                  name="shortName"
+                  value={formData.shortName}
+                  onChange={handleChange}
+                  required
+                  placeholder="Enter short name"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAdding(false);
+                    setFormData({ _id: "", name: "", shortName: "" });
+                  }}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+                <button
+                  type="submit"
+                  className="text-green-600 hover:text-green-900"
+                >
+                  <FaSave className="w-5 h-5" />
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Existing Report Types */}
         {reportTypes.map((type) => (
           <div key={type._id} className="bg-gray-50 p-4 rounded-lg">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -123,56 +176,6 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
           </div>
         ))}
       </div>
-
-      {/* Add New Report Type Modal */}
-      {editingType && !editingType._id && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Add New Report Type</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <FormInput
-                label="ID"
-                name="_id"
-                value={formData._id}
-                onChange={handleChange}
-                required
-                placeholder="e.g., KP, MBCRS"
-              />
-              <FormInput
-                label="Full Name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                placeholder="Enter full report name"
-              />
-              <FormInput
-                label="Short Name"
-                name="shortName"
-                value={formData.shortName}
-                onChange={handleChange}
-                required
-                placeholder="Enter short name"
-              />
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setEditingType(null)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
