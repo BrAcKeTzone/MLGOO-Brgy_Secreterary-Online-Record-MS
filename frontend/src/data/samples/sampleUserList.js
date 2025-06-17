@@ -1,12 +1,12 @@
 export const sampleUserList = [
+  
   {
     _id: "user001",
-    email: "myrnalyn.gorgonio@brgy.gov.ph",
+    email: "gorgonio.myrnalyn@brgy.gov.ph",
     firstName: "Myrnalyn",
     lastName: "Gorgonio",
-    middleInitial: "V",
-    role: "role001", // Barangay Secretary
-    assignedBrgy: "brgy001", // Abong-Abong
+    role: "role001", // Barangay Secretary - Abong-Abong
+    assignedBrgy: "brgy001",
     dateOfBirth: "1990-01-01",
     creationStatus: "Approved",
     activeStatus: "Active",
@@ -15,214 +15,174 @@ export const sampleUserList = [
   },
   {
     _id: "user002",
-    email: "khent.lomonggo@brgy.gov.ph",
-    firstName: "Khent",
+    email: "lomonggo.khent@brgy.gov.ph",
+    firstName: "Khent Umar",
     lastName: "Lomonggo",
-    middleInitial: "E",
-    role: "role001",
-    assignedBrgy: "brgy002", // Baganian
-    dateOfBirth: "1990-01-01",
+    role: "role001", // Barangay Secretary - Baganian
+    assignedBrgy: "brgy002",
+    dateOfBirth: "1988-05-15",
     creationStatus: "Approved",
     activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    createdAt: "2025-01-02T00:00:00.000Z",
+    updatedAt: "2025-01-02T00:00:00.000Z"
   },
   {
     _id: "user003",
-    email: "noeme.imboy@brgy.gov.ph",
-    firstName: "Noeme",
-    lastName: "Imboy",
-    middleInitial: "E",
+    email: "pedro.garcia@brgy.gov.ph",
+    firstName: "Pedro",
+    lastName: "Garcia",
     role: "role001",
-    assignedBrgy: "brgy003", // Baya-Baya
-    dateOfBirth: "1990-01-01",
-    creationStatus: "Approved",
-    activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    assignedBrgy: "brgy003", // San Vicente
+    dateOfBirth: "1992-08-23",
+    creationStatus: "Pending",
+    activeStatus: null,
+    createdAt: "2025-01-03T00:00:00.000Z",
+    updatedAt: "2025-01-03T00:00:00.000Z"
   },
   {
     _id: "user004",
-    email: "lesliejean.anngot@brgy.gov.ph",
-    firstName: "Leslie Jean",
-    lastName: "Anngot",
-    middleInitial: "P",
+    email: "ana.reyes@brgy.gov.ph",
+    firstName: "Ana",
+    lastName: "Reyes",
     role: "role001",
-    assignedBrgy: "brgy004", // Capisan
-    dateOfBirth: "1990-01-01",
-    creationStatus: "Approved",
-    activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    assignedBrgy: "brgy004", // San Miguel
+    dateOfBirth: "1995-03-12",
+    creationStatus: "Rejected",
+    activeStatus: null,
+    createdAt: "2025-01-04T00:00:00.000Z",
+    updatedAt: "2025-01-04T00:00:00.000Z"
   },
   {
     _id: "user005",
-    email: "emedita.bantay@brgy.gov.ph",
-    firstName: "Emedita",
-    lastName: "Bantay",
-    middleInitial: "P",
+    email: "carlo.cruz@brgy.gov.ph",
+    firstName: "Carlo",
+    lastName: "Cruz",
     role: "role001",
-    assignedBrgy: "brgy005", // Concepcion
-    dateOfBirth: "1990-01-01",
+    assignedBrgy: "brgy005", // Santo Niño
+    dateOfBirth: "1987-11-30",
     creationStatus: "Approved",
     activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    createdAt: "2025-01-05T00:00:00.000Z",
+    updatedAt: "2025-01-05T00:00:00.000Z"
   },
   {
     _id: "user006",
-    email: "persida.padilla@brgy.gov.ph",
+    email: "padilla.persida@brgy.gov.ph",
     firstName: "Persida",
     lastName: "Padilla",
-    middleInitial: "B",
-    role: "role001",
-    assignedBrgy: "brgy006", // Culabay
-    dateOfBirth: "1990-01-01",
+    role: "role001", // Barangay Secretary - Culabay
+    assignedBrgy: "brgy006",
+    dateOfBirth: "1993-07-18",
     creationStatus: "Approved",
     activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    createdAt: "2025-01-06T00:00:00.000Z",
+    updatedAt: "2025-01-06T00:00:00.000Z"
   },
   {
     _id: "user007",
-    email: "judith.ababol@brgy.gov.ph",
-    firstName: "Judith",
-    lastName: "Ababol",
-    middleInitial: "L",
+    email: "roberto.tan@brgy.gov.ph",
+    firstName: "Roberto",
+    lastName: "Tan",
     role: "role001",
-    assignedBrgy: "brgy007", // Dona Josefina
-    dateOfBirth: "1990-01-01",
+    assignedBrgy: "brgy007", // San Pedro
+    dateOfBirth: "1991-04-25",
     creationStatus: "Approved",
-    activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    activeStatus: "Deactivated",
+    createdAt: "2025-01-07T00:00:00.000Z",
+    updatedAt: "2025-01-07T00:00:00.000Z"
   },
   {
     _id: "user008",
-    email: "marihe.cursame@brgy.gov.ph",
-    firstName: "Marihe",
-    lastName: "Cursame",
-    middleInitial: "C",
+    email: "sofia.ramos@brgy.gov.ph",
+    firstName: "Sofia",
+    lastName: "Ramos",
     role: "role001",
-    assignedBrgy: "brgy008", // Lumbia
-    dateOfBirth: "1990-01-01",
+    assignedBrgy: "brgy008", // San Pablo
+    dateOfBirth: "1989-09-08",
+    creationStatus: "Rejected",
+    activeStatus: null,
+    createdAt: "2025-01-08T00:00:00.000Z",
+    updatedAt: "2025-01-08T00:00:00.000Z"
+  },
+  {
+    _id: "admin001",
+    email: "mlgoo@dilg.gov.ph",
+    firstName: "Herlyn",
+    lastName: "Aranjuez",
+    role: "role002", // MLGOO Staff
+    dateOfBirth: "1985-05-15",
     creationStatus: "Approved",
     activeStatus: "Active",
     createdAt: "2025-01-01T00:00:00.000Z",
     updatedAt: "2025-01-01T00:00:00.000Z"
   },
   {
-    _id: "user009",
-    email: "jessie.malicay@brgy.gov.ph",
-    firstName: "Jessie",
-    lastName: "Malicay",
-    middleInitial: "P",
-    role: "role001",
-    assignedBrgy: "brgy009", // Mabuhay
-    dateOfBirth: "1990-01-01",
+    _id: "admin002",
+    email: "raymond.castro@dilg.gov.ph",
+    firstName: "Raymond",
+    lastName: "Castro",
+    role: "role002", // MLGOO Staff
+    dateOfBirth: "1983-08-20",
     creationStatus: "Approved",
     activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    createdAt: "2025-01-09T00:00:00.000Z",
+    updatedAt: "2025-01-09T00:00:00.000Z"
   },
   {
-    _id: "user010",
-    email: "janice.catugal@brgy.gov.ph",
-    firstName: "Janice",
-    lastName: "Catugal",
-    middleInitial: "S",
-    role: "role001",
-    assignedBrgy: "brgy010", // Malim
-    dateOfBirth: "1990-01-01",
+    _id: "admin003",
+    email: "jennifer.lim@dilg.gov.ph",
+    firstName: "Jennifer",
+    lastName: "Lim",
+    role: "role002", // MLGOO Staff
+    dateOfBirth: "1988-03-12",
     creationStatus: "Approved",
     activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    createdAt: "2025-01-10T00:00:00.000Z",
+    updatedAt: "2025-01-10T00:00:00.000Z"
   },
   {
-    _id: "user011",
-    email: "charlita.umantod@brgy.gov.ph",
-    firstName: "Charlita",
-    lastName: "Umantod",
-    middleInitial: "E",
-    role: "role001",
-    assignedBrgy: "brgy011", // Manicaan
-    dateOfBirth: "1990-01-01",
-    creationStatus: "Approved",
-    activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
-  },
-  {
-    _id: "user012",
-    email: "mae.yabo@brgy.gov.ph",
-    firstName: "Mae",
-    lastName: "Yabo",
-    middleInitial: "M",
-    role: "role001",
-    assignedBrgy: "brgy012", // New Oroquieta
-    dateOfBirth: "1990-01-01",
-    creationStatus: "Approved",
-    activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
-  },
-  {
-    _id: "user013",
-    email: "rosalinda.casinto@brgy.gov.ph",
-    firstName: "Rosalinda",
-    lastName: "Casinto",
-    middleInitial: "T",
-    role: "role001",
-    assignedBrgy: "brgy013", // Poblacion
-    dateOfBirth: "1990-01-01",
-    creationStatus: "Approved",
-    activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
-  },
-  {
-    _id: "user014",
-    email: "liezel.pugoy@brgy.gov.ph",
-    firstName: "Liezel",
-    lastName: "Pugoy",
-    middleInitial: "P",
-    role: "role001",
-    assignedBrgy: "brgy014", // San Francisco
-    dateOfBirth: "1990-01-01",
-    creationStatus: "Approved",
-    activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
-  },
-  {
-    _id: "user015",
-    email: "jeffrey.bontong@brgy.gov.ph",
-    firstName: "Jeffrey",
-    lastName: "Bontong",
-    middleInitial: "P",
-    role: "role001",
-    assignedBrgy: "brgy015", // Tultolan
-    dateOfBirth: "1990-01-01",
-    creationStatus: "Approved",
-    activeStatus: "Active",
-    createdAt: "2025-01-01T00:00:00.000Z",
-    updatedAt: "2025-01-01T00:00:00.000Z"
+    _id: "admin004",
+    email: "michael.santos@dilg.gov.ph",
+    firstName: "Michael",
+    lastName: "Santos",
+    role: "role002", // MLGOO Staff
+    dateOfBirth: "1986-11-25",
+    creationStatus: "Pending",
+    activeStatus: null,
+    createdAt: "2025-01-11T00:00:00.000Z",
+    updatedAt: "2025-01-11T00:00:00.000Z"
   }
 ];
+
 
 // Sample user credentials for testing
 export const sampleUserCredentials = [
   {
-    email: "myrnalyn.gorgonio@brgy.gov.ph",
-    password: "Password123!"
+    email: "gorgonio.myrnalyn@brgy.gov.ph",
+    password: "SecurePass123!"
   },
   {
-    email: "khent.lomonggo@brgy.gov.ph",
-    password: "Password123!"
+    email: "lomonggo.khent@brgy.gov.ph",
+    password: "SecurePass123!"
+  },
+  {
+    email: "carlo.cruz@brgy.gov.ph",
+    password: "CarloCruz456!"
   },
   {
     email: "mlgoo@dilg.gov.ph",
-    password: "AdminPass123!"
+    password: "ManiwangJP682"
+  },
+  {
+    email: "raymond.castro@dilg.gov.ph",
+    password: "RaymondCastro123!"
+  },
+  {
+    email: "jennifer.lim@dilg.gov.ph",
+    password: "JenniferLim456!"
+  },
+  {
+    email: "padilla.persida@brgy.gov.ph",
+    password: "SecurePass123!"
   }
 ];

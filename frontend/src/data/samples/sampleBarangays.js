@@ -15,3 +15,5 @@ export const sampleBarangays = [
   { _id: "brgy014", name: "San Francisco" },
   { _id: "brgy015", name: "Tultolan" }
 ];
+
+// Brgys in Tabina, ZDS
