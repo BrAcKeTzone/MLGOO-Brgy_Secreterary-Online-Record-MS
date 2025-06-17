@@ -17,6 +17,7 @@ import Profile from "../pages/Profile";
 import ManageUsers from "../pages/ManageUsers";
 import ManageDocuments from "../pages/ManageDocuments";
 import Logs from "../pages/Logs";
+import Settings from "../pages/Settings";
 
 import LoadingScreen from "../components/Common/LoadingScreen";
 
@@ -158,6 +159,18 @@ const AppRouter = () => {
             location={location.pathname}
           >
             <Logs />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute
+            condition={!!user && isMLGOOStaff}
+            redirectTo="/login"
+            location={location.pathname}
+          >
+            <Settings />
           </ProtectedRoute>
         }
       />

@@ -29,7 +29,7 @@ const BrgyNotifications = () => {
   };
 
   if (loading) {
-    return <LoadingScreen />;
+    return <LoadingScreen message="Loading notifications..." />;
   }
 
   if (error) {
