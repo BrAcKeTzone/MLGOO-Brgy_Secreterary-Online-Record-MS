@@ -1,14 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import FormTextbox from "../Common/FormTextbox";
+import useSettingsStore from "../../store/SettingsStore";
+import LoadingScreen from "../Common/LoadingScreen";
 
-const TermsPanel = ({ terms, onUpdate }) => {
+const TermsPanel = () => {
+  const { termsOfService, loading, error, fetchTermsOfService, updateTermsOfService } = useSettingsStore();
   const [editingSection, setEditingSection] = useState(null);
   const [formData, setFormData] = useState({});
 
+  useEffect(() => {
+    fetchTermsOfService();
+  }, [fetchTermsOfService]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onUpdate({ ...terms, [editingSection]: formData[editingSection] });
+    await updateTermsOfService({ ...termsOfService, [editingSection]: formData[editingSection] });
     setEditingSection(null);
     setFormData({});
   };
@@ -18,12 +25,15 @@ const TermsPanel = ({ terms, onUpdate }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  if (loading) return <LoadingScreen message="Loading Terms of Service..." />;
+  if (error) return <div className="text-red-500">Error: {error}</div>;
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Terms of Service Settings</h2>
 
       <div className="space-y-6">
-        {Object.entries(terms).map(([key, value]) => (
+        {Object.entries(termsOfService).map(([key, value]) => (
           <div key={key} className="bg-gray-50 p-4 rounded-lg">
             <form onSubmit={handleSubmit}>
               <FormTextbox

@@ -7,7 +7,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
   const [formData, setFormData] = useState({
     _id: "",
     name: "",
-    shortName: ""
+    shortName: "",
   });
 
   const handleSubmit = (e) => {
@@ -19,7 +19,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -30,22 +30,25 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
           onClick={() => setEditingType({})}
         >
-          <FaPlus /> Add Report Type
+          <FaPlus />{" "}
+          <span className="hidden md:inline-block md:text-sm">
+            {" "}
+            Report Type
+          </span>
         </button>
       </div>
 
       <div className="grid gap-4">
         {reportTypes.map((type) => (
           <div key={type._id} className="bg-gray-50 p-4 rounded-lg">
-            <form 
-              onSubmit={handleSubmit}
-              className="space-y-4"
-            >
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-3 gap-4">
                 <FormInput
                   label="ID"
                   name="_id"
-                  value={editingType?._id === type._id ? formData._id : type._id}
+                  value={
+                    editingType?._id === type._id ? formData._id : type._id
+                  }
                   onChange={handleChange}
                   disabled={editingType?._id !== type._id}
                   required
@@ -53,7 +56,9 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                 <FormInput
                   label="Full Name"
                   name="name"
-                  value={editingType?._id === type._id ? formData.name : type.name}
+                  value={
+                    editingType?._id === type._id ? formData.name : type.name
+                  }
                   onChange={handleChange}
                   disabled={editingType?._id !== type._id}
                   required
@@ -61,7 +66,11 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                 <FormInput
                   label="Short Name"
                   name="shortName"
-                  value={editingType?._id === type._id ? formData.shortName : type.shortName}
+                  value={
+                    editingType?._id === type._id
+                      ? formData.shortName
+                      : type.shortName
+                  }
                   onChange={handleChange}
                   disabled={editingType?._id !== type._id}
                   required
@@ -94,14 +103,14 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                         setFormData({
                           _id: type._id,
                           name: type.name,
-                          shortName: type.shortName
+                          shortName: type.shortName,
                         });
                       }}
                       className="text-blue-600 hover:text-blue-900"
                     >
                       <FaEdit className="w-5 h-5" />
                     </button>
-                    <button 
+                    <button
                       type="button"
                       className="text-red-600 hover:text-red-900"
                     >

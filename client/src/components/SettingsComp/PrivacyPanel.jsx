@@ -1,14 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import FormTextbox from "../Common/FormTextbox";
+import useSettingsStore from "../../store/SettingsStore";
+import LoadingScreen from "../Common/LoadingScreen";
 
-const PrivacyPanel = ({ policy, onUpdate }) => {
+const PrivacyPanel = () => {
+  const { privacyPolicy, loading, error, fetchPrivacyPolicy, updatePrivacyPolicy } = useSettingsStore();
   const [editingSection, setEditingSection] = useState(null);
   const [formData, setFormData] = useState({});
 
+  useEffect(() => {
+    fetchPrivacyPolicy();
+  }, [fetchPrivacyPolicy]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onUpdate({ ...policy, [editingSection]: formData[editingSection] });
+    await updatePrivacyPolicy({ ...privacyPolicy, [editingSection]: formData[editingSection] });
     setEditingSection(null);
     setFormData({});
   };
@@ -18,12 +25,15 @@ const PrivacyPanel = ({ policy, onUpdate }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  if (loading) return <LoadingScreen message="Loading Privacy Policy..." />;
+  if (error) return <div className="text-red-500">Error: {error}</div>;
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Privacy Policy Settings</h2>
 
       <div className="space-y-6">
-        {Object.entries(policy).map(([key, value]) => (
+        {Object.entries(privacyPolicy).map(([key, value]) => (
           <div key={key} className="bg-gray-50 p-4 rounded-lg">
             <form onSubmit={handleSubmit}>
               <FormTextbox

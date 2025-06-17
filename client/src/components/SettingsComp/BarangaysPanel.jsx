@@ -6,15 +6,13 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
   const [editingBarangay, setEditingBarangay] = useState(null);
   const [formData, setFormData] = useState({
     _id: "",
-    name: ""
+    name: "",
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     onUpdate(
-      editingBarangay?._id 
-        ? { ...editingBarangay, ...formData } 
-        : formData
+      editingBarangay?._id ? { ...editingBarangay, ...formData } : formData
     );
     setEditingBarangay(null);
     setFormData({ _id: "", name: "" });
@@ -22,7 +20,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -33,7 +31,10 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
           onClick={() => setEditingBarangay({})}
         >
-          <FaPlus /> Add Barangay
+          <FaPlus />{" "}
+          <span className="hidden md:inline-block md:text-sm">
+            Add Barangay
+          </span>
         </button>
       </div>
 
@@ -45,7 +46,11 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                 <FormInput
                   label="Barangay ID"
                   name="_id"
-                  value={editingBarangay?._id === barangay._id ? formData._id : barangay._id}
+                  value={
+                    editingBarangay?._id === barangay._id
+                      ? formData._id
+                      : barangay._id
+                  }
                   onChange={handleChange}
                   disabled={editingBarangay?._id !== barangay._id}
                   required
@@ -53,7 +58,11 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                 <FormInput
                   label="Barangay Name"
                   name="name"
-                  value={editingBarangay?._id === barangay._id ? formData.name : barangay.name}
+                  value={
+                    editingBarangay?._id === barangay._id
+                      ? formData.name
+                      : barangay.name
+                  }
                   onChange={handleChange}
                   disabled={editingBarangay?._id !== barangay._id}
                   required
@@ -85,14 +94,14 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                         setEditingBarangay(barangay);
                         setFormData({
                           _id: barangay._id,
-                          name: barangay.name
+                          name: barangay.name,
                         });
                       }}
                       className="text-blue-600 hover:text-blue-900"
                     >
                       <FaEdit className="w-5 h-5" />
                     </button>
-                    <button 
+                    <button
                       type="button"
                       className="text-red-600 hover:text-red-900"
                     >
