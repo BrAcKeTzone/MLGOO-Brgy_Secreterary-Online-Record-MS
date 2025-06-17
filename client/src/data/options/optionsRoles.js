@@ -19,7 +19,8 @@ export const optionsRoles = [
       { path: "/manage-documents", name: "Manage Documents" },
       { path: "/notifications", name: "Notifications" },
       { path: "/logs", name: "Logs" },
-      { path: "/profile", name: "Profile" }
+      { path: "/profile", name: "Profile" },
+      { path: "/settings", name: "Settings" }
     ]
   }
 ];
