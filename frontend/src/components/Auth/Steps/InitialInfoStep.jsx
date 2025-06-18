@@ -27,9 +27,10 @@ const InitialInfoStep = ({
     form.lastName &&
     form.firstName &&
     form.dateOfBirth &&
-    (form.role === "role002" || (form.role === "role001" && form.assignedBrgy));
+    (form.role === "MLGOO_STAFF" ||
+      (form.role === "BARANGAY_SECRETARY" && form.assignedBrgy));
 
-  const isBarangaySecretary = form.role === "role001";
+  const isBarangaySecretary = form.role === "BARANGAY_SECRETARY";
 
   return (
     <form

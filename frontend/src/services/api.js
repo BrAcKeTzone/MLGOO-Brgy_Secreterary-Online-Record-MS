@@ -27,8 +27,35 @@ export const authAPI = {
   verifyOTP: (email, otp) => 
     api.post('/auth/verify-otp', { email, otp }),
   
-  signup: (data) => 
-    api.post('/auth/signup', data),
+  checkEmail: (email) => 
+    api.post('/auth/check-email', { email }),
+
+  requestPasswordReset: (email) => 
+    api.post('/auth/request-password-reset', { email }),
+  
+  verifyPasswordResetOtp: (email, otp) => 
+    api.post('/auth/verify-password-reset-otp', { email, otp }),
+  
+  resetPassword: (email, newPassword) => 
+    api.post('/auth/reset-password', { email, newPassword }),
+  
+  signup: (formData) => {
+    const data = {
+      email: formData.email,
+      password: formData.password,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      dateOfBirth: formData.dateOfBirth,
+      role: formData.role,
+      validIDFrontUrl: null, // Will be updated after file upload
+      validIDFrontPublicId: null,
+      validIDBackUrl: null,
+      validIDBackPublicId: null
+    };
+    return api.post('/auth/signup', data);
+  },
+  
+  getCurrentUser: () => api.get('/auth/me')
 };
 
 // Barangay API endpoints

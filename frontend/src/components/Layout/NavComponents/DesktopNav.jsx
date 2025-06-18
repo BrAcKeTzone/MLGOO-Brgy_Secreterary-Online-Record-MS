@@ -27,7 +27,7 @@ const DesktopNav = ({ user, navItems, handleLogout }) => (
     ) : (
       <>
         <NavLink to="/login" className="transition-colors duration-200">
-          Login
+          Auth
         </NavLink>
       </>
     )}

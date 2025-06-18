@@ -55,7 +55,8 @@ const AccountDetailsStep = ({
     form.confirmPassword &&
     form.nationalIdFront &&
     form.nationalIdBack &&
-    acceptedPolicies;
+    acceptedPolicies &&
+    !passwordError;
 
   return (
     <form

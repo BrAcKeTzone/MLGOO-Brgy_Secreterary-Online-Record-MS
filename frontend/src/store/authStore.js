@@ -1,78 +1,87 @@
 import { create } from "zustand";
 import { authAPI } from "../services/api";
-import { sampleUser, sampleUserCredentials } from "../data/samples/sampleUser";
-import { sampleAdmin, sampleAdminCredentials } from "../data/samples/sampleAdmin";
-
-
-const apiURL = import.meta.env.VITE_API_URL_DEV;
 
 const useAuthStore = create((set) => ({
   user: null,
-  token: null,
-  loading: false,  // Changed initial loading state to false
+  token: localStorage.getItem('token'), // Initialize token from localStorage
+  loading: true,
   error: null,
+  initialized: false,
 
-  initializeAuth: () => {
-    set({ loading: true });  // Set loading when starting initialization
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Mock user restoration based on token
-      if (token.includes('admin001')) {
-        set({ user: sampleAdmin, token, loading: false });
-      } else {
-        set({ user: sampleUser, token, loading: false });
+  initializeAuth: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        set({ loading: false, initialized: true });
+        return;
       }
-    } else {
-      set({ loading: false });
+
+      // Make sure token is included in the request
+      const { data } = await authAPI.getCurrentUser(token);
+      
+      set({ 
+        user: data.user, 
+        token,
+        loading: false,
+        initialized: true,
+        error: null
+      });
+    } catch (err) {
+      console.error('Auth initialization error:', err);
+      localStorage.removeItem('token');
+      set({ 
+        user: null, 
+        token: null, 
+        loading: false,
+        initialized: true,
+        error: null
+      });
     }
   },
 
   login: async (email, password) => {
     set({ loading: true, error: null });
     try {
-      console.log("LOGIN: Email:", email, "Password:", password)
-      // const { data } = await authAPI.login(email, password);
-      // set({ user: data.user, token: data.token, loading: false });
-      // localStorage.setItem('token', data.token);
+      const { data } = await authAPI.login(email, password);
       
-      // Mock authentication logic
-      let mockUser = null;
-      if (email === sampleUserCredentials.email && password === sampleUserCredentials.password) {
-        mockUser = sampleUser;
-      } else if (email === sampleAdminCredentials.email && password === sampleAdminCredentials.password) {
-        mockUser = sampleAdmin;
-      }
-
-      if (!mockUser) {
-        throw new Error("Invalid credentials");
-      }
-
-      const mockData = {
-        user: mockUser,
-        token: `mock-jwt-token-${mockUser._id}`
-      };
-
+      // Remove success check since backend doesn't return a success flag
       set({ 
-        user: mockData.user, 
-        token: mockData.token, 
-        loading: false 
-      });
-      localStorage.setItem('token', mockData.token);
-    } catch (err) {
-      set({
-        error: err.response?.data?.message || "Login failed",
+        user: data.user, 
+        token: data.token, 
         loading: false,
+        error: null,
+        initialized: true
       });
+      
+      localStorage.setItem('token', data.token);
+      return data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Invalid credentials";
+      set({
+        user: null,
+        token: null,
+        error: errorMessage,
+        loading: false,
+        initialized: true
+      });
+      throw new Error(errorMessage);
     }
   },
 
   requestOTP: async (email) => {
     set({ loading: true, error: null });
     try {
-      console.log("REQUEST OTP: Email:", email);
-      // const { data } = await authAPI.requestOTP(email);
-      set({ loading: false });
-      // return data;
+      const { data } = await authAPI.checkEmail(email);
+      set({ 
+        loading: false,
+        error: null
+      });
+      return {
+        success: true,
+        email: data.email,
+        message: data.message
+      };
     } catch (err) {
       set({
         error: err.response?.data?.message || "Failed to send OTP",
@@ -82,14 +91,19 @@ const useAuthStore = create((set) => ({
     }
   },
 
-  verifyOTP: async (email, otp, purpose) => {
+  verifyOTP: async (email, otp) => {
     set({ loading: true, error: null });
     try {
-      console.log("API URL:", apiURL);
-      console.log("VERIFY OTP: Email:", email, "OTP:", otp, "Purpose:", purpose);
-      // const { data } = await authAPI.verifyOTP(email, otp);
-      set({ loading: false });
-      // return data;
+      const { data } = await authAPI.verifyEmailOtp(email, otp);
+      set({ 
+        loading: false,
+        error: null
+      });
+      return {
+        success: true,
+        verified: data.verified,
+        message: data.message
+      };
     } catch (err) {
       set({
         error: err.response?.data?.message || "Invalid OTP",
@@ -99,34 +113,60 @@ const useAuthStore = create((set) => ({
     }
   },
 
-  signup: async (data) => {
+  signup: async (formData) => {
     set({ loading: true, error: null });
     try {
-      console.log("API URL:", apiURL);
-      console.log("SIGNUP: Data:", data);
-      // const response = await authAPI.signup(data);
+      const { data } = await authAPI.signup(formData);
       set({ 
-        user: response.data.user, 
-        token: response.data.token, 
-        loading: false 
+        loading: false,
+        successMessage: 'Account created successfully! Please wait for admin approval.' 
       });
-      localStorage.setItem('token', response.data.token);
+      return data;
     } catch (err) {
       set({
         error: err.response?.data?.message || "Signup failed",
         loading: false,
       });
+      throw err;
+    }
+  },
+
+  requestPasswordReset: async (email) => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await authAPI.requestPasswordReset(email);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || "Failed to send reset code",
+        loading: false,
+      });
+      throw err;
+    }
+  },
+
+  verifyPasswordResetOtp: async (email, otp) => {
+    set({ loading: true, error: null });
+    try {
+      const { data } = await authAPI.verifyPasswordResetOtp(email, otp);
+      set({ loading: false });
+      return data;
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || "Invalid verification code",
+        loading: false,
+      });
+      throw err;
     }
   },
 
   resetPassword: async (email, newPassword) => {
     set({ loading: true, error: null });
     try {
-      console.log("API URL:", apiURL);
-      console.log("RESET PASSWORD: Email:", email);
-      // const { data } = await authAPI.resetPassword(email, newPassword);
+      const { data } = await authAPI.resetPassword(email, newPassword);
       set({ loading: false });
-      return true; // Return success status
+      return data;
     } catch (err) {
       set({
         error: err.response?.data?.message || "Failed to reset password",

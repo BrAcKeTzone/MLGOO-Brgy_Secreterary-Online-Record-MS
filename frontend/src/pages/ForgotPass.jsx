@@ -8,8 +8,13 @@ import PasswordInput from "../components/Common/PasswordInput";
 import useAuthStore from "../store/authStore";
 
 const ForgotPass = () => {
-  const { requestOTP, verifyOTP, resetPassword, loading, error } =
-    useAuthStore();
+  const {
+    requestPasswordReset,
+    verifyPasswordResetOtp,
+    resetPassword,
+    loading,
+    error,
+  } = useAuthStore();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     email: "",
@@ -41,25 +46,27 @@ const ForgotPass = () => {
   const handleRequestOTP = async (e) => {
     e.preventDefault();
     try {
-      await requestOTP(form.email);
+      await requestPasswordReset(form.email);
       setStep(2);
     } catch (error) {
-      console.error("Error requesting OTP:", error);
+      console.error("Error requesting reset code:", error);
     }
   };
 
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     try {
-      await verifyOTP(form.email, form.otp, "reset_password");
+      await verifyPasswordResetOtp(form.email, form.otp);
       setStep(3);
     } catch (error) {
-      console.error("Error verifying OTP:", error);
+      console.error("Error verifying code:", error);
     }
   };
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
+    if (passwordError) return;
+
     try {
       await resetPassword(form.email, form.password);
       setStep(4);
@@ -168,7 +175,7 @@ const ForgotPass = () => {
             togglePassword={() => setShowPassword(!showPassword)}
             required
             placeholder="Confirm your new password"
-            error={passwordError}
+            showStrength={false}
           />
 
           <ErrorMessage error={error || passwordError} />

@@ -55,7 +55,7 @@ const MobileNav = ({ isOpen, user, navItems, handleToggle, handleLogout }) => {
                 className="block px-3 py-2 rounded-md hover:bg-gray-800"
                 onClick={() => handleToggle(false)}
               >
-                Login
+                Auth
               </NavLink>
             </>
           )}

@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import useAuthStore from "../store/authStore";
 
 import Home from "../pages/BrgyDashboard";
 import Landing from "../pages/Landing";
@@ -7,7 +8,6 @@ import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import ForgotPass from "../pages/ForgotPass";
 import Dashboard from "../pages/AdminDashboard";
-import useAuthStore from "../store/authStore";
 
 import SubmitReport from "../pages/SubmitReport";
 import MyReports from "../pages/MyReports";
@@ -22,32 +22,42 @@ import Settings from "../pages/Settings";
 import LoadingScreen from "../components/Common/LoadingScreen";
 
 // Higher-Order Component for Protected Routes
-const ProtectedRoute = ({ children, redirectTo, condition, location }) => {
-  return condition ? (
-    children
-  ) : (
-    <Navigate to={redirectTo} state={{ from: location }} replace />
-  );
+const ProtectedRoute = ({ children, redirectTo, condition }) => {
+  const { initialized } = useAuthStore();
+
+  // Don't render anything while auth is initializing
+  if (!initialized) {
+    return <LoadingScreen />;
+  }
+
+  return condition ? children : <Navigate to={redirectTo} replace />;
 };
 
 const AppRouter = () => {
-  const { user, loading, initializeAuth } = useAuthStore();
-  const isBarangaySecretary = user?.role === "role001";
-  const isMLGOOStaff = user?.role === "role002";
+  const { user, loading, initialized, initializeAuth } = useAuthStore();
   const location = useLocation();
 
   useEffect(() => {
-    initializeAuth();
-  }, []);
+    if (!initialized) {
+      initializeAuth();
+    }
+  }, [initialized]); // Keep initialized in dependencies
 
-  if (loading) {
+  // Only show loading screen during initial auth check
+  if (!initialized) {
     return <LoadingScreen />;
   }
+
+  const isBarangaySecretary = user?.role === "BARANGAY_SECRETARY";
+  const isMLGOOStaff = user?.role === "MLGOO_STAFF";
 
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Landing />} />
+      <Route
+        path="/"
+        element={user ? <Navigate to="/home" replace /> : <Landing />}
+      />
       <Route
         path="/login"
         element={user ? <Navigate to="/home" replace /> : <Login />}

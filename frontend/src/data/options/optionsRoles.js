@@ -1,6 +1,6 @@
 export const optionsRoles = [
   { 
-    _id: "role001", 
+    _id: "BARANGAY_SECRETARY", 
     name: "Barangay Secretary",
     routes: [
       { path: "/home", name: "Dashboard" },
@@ -11,7 +11,7 @@ export const optionsRoles = [
     ]
   },
   { 
-    _id: "role002", 
+    _id: "MLGOO_STAFF", 
     name: "MLGOO Staff",
     routes: [
       { path: "/dashboard", name: "Dashboard" },

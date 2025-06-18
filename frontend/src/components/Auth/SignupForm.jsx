@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import InitialInfoStep from "./Steps/InitialInfoStep";
 import OTPVerificationStep from "./Steps/OTPVerificationStep";
 import AccountDetailsStep from "./Steps/AccountDetailsStep";
+import SignupSuccessModal from "./Modals/SignupSuccessModal";
 import { validatePassword } from "../../utils/passwordUtils";
 
 const SignupForm = () => {
+  const navigate = useNavigate();
   const { requestOTP, verifyOTP, signup, loading, error } = useAuthStore();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -23,6 +26,7 @@ const SignupForm = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -58,7 +62,7 @@ const SignupForm = () => {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     try {
-      await verifyOTP(form.email, form.otp, "account_creation");
+      await verifyOTP(form.email, form.otp);
       setStep(3);
     } catch (error) {
       console.error("Error verifying OTP:", error);
@@ -79,43 +83,59 @@ const SignupForm = () => {
       return;
     }
 
-    await signup(form);
+    try {
+      await signup(form);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error creating account:", error);
+    }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    navigate("/login");
   };
 
   return (
     <>
-      {step === 1 && (
-        <InitialInfoStep
-          form={form}
-          loading={loading}
-          error={error}
-          handleChange={handleChange}
-          handleSubmit={handleRequestOTP}
-        />
-      )}
-      {step === 2 && (
-        <OTPVerificationStep
-          email={form.email}
-          otp={form.otp}
-          loading={loading}
-          error={error}
-          handleChange={handleChange}
-          handleSubmit={handleVerifyOTP}
-          handleBack={() => setStep(1)}
-        />
-      )}
-      {step === 3 && (
-        <AccountDetailsStep
-          form={form}
-          loading={loading}
-          error={error}
-          passwordError={passwordError}
-          showPassword={showPassword}
-          handleChange={handleChange}
-          handleSubmit={handleSubmit}
-          handleBack={() => setStep(2)}
-          togglePassword={() => setShowPassword(!showPassword)}
-        />
+      {showSuccessModal ? (
+        <SignupSuccessModal onClose={handleSuccessModalClose} />
+      ) : (
+        <>
+          {step === 1 && (
+            <InitialInfoStep
+              form={form}
+              loading={loading}
+              error={error}
+              handleChange={handleChange}
+              handleSubmit={handleRequestOTP}
+            />
+          )}
+          {step === 2 && (
+            <OTPVerificationStep
+              email={form.email}
+              otp={form.otp}
+              loading={loading}
+              error={error}
+              handleChange={handleChange}
+              handleSubmit={handleVerifyOTP}
+              handleBack={() => setStep(1)}
+            />
+          )}
+          {step === 3 && (
+            <AccountDetailsStep
+              form={form}
+              loading={loading}
+              error={error}
+              passwordError={passwordError}
+              showPassword={showPassword}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              handleBack={() => setStep(2)}
+              togglePassword={() => setShowPassword(!showPassword)}
+            />
+          )}
+        </>
       )}
     </>
   );

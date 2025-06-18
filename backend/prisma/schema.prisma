@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MLGOO_STAFF
+  BARANGAY_SECRETARY
+}
+
+enum AccountStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ActiveStatus {
+  ACTIVE
+  DEACTIVATED
+}
+
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OTPType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model User {
+  id                   Int            @id @default(autoincrement())
+  email                String         @unique
+  password             String
+  firstName            String
+  lastName             String
+  role                 Role
+  dateOfBirth          DateTime
+  creationStatus       AccountStatus
+  activeStatus         ActiveStatus?
+  assignedBrgy         Barangay?      @relation(fields: [barangayId], references: [id])
+  barangayId           Int?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  reports              Report[]
+  notifications        Notification[]
+  logs                 Log[]
+  validIDFrontUrl      String?
+  validIDFrontPublicId String?
+  validIDBackUrl       String?
+  validIDBackPublicId  String?
+}
+
+model Barangay {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  users   User[]
+  reports Report[]
+}
+
+model Report {
+  id            Int          @id @default(autoincrement())
+  reportType    String // KP, MBCRS, MAR, etc.
+  reportName    String
+  status        ReportStatus @default(PENDING)
+  submittedDate DateTime     @default(now())
+  barangay      Barangay     @relation(fields: [barangayId], references: [id])
+  barangayId    Int
+  submittedBy   User         @relation(fields: [userId], references: [id])
+  userId        Int
+  fileName      String
+  fileSize      Int
+  comments      String?
+  updatedAt     DateTime?
+}
+
+model Notification {
+  id       Int      @id @default(autoincrement())
+  title    String
+  message  String   @db.Text
+  type     String // reminder, system, success, alert, info, event
+  priority String // high, medium, normal
+  sentTo   User[]
+  dateSent DateTime @default(now())
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  action    String // From optionsLogActionTypes
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  timestamp DateTime @default(now())
+  details   String   @db.Text
+}
+
+model OTP {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  type      OTPType
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+}
