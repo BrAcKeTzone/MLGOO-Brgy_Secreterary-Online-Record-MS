@@ -133,6 +133,22 @@ exports.signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Check if this is the first MLGOO_STAFF
+    let creationStatus = 'PENDING';
+    let activeStatus = null;
+
+    if (role === 'MLGOO_STAFF') {
+      const existingMLGOOStaff = await prisma.user.findFirst({
+        where: { role: 'MLGOO_STAFF' }
+      });
+
+      if (!existingMLGOOStaff) {
+        // This is the first MLGOO_STAFF user
+        creationStatus = 'APPROVED';
+        activeStatus = 'ACTIVE';
+      }
+    }
+
     const user = await prisma.user.create({
       data: {
         email,
@@ -141,8 +157,8 @@ exports.signup = async (req, res) => {
         lastName,
         dateOfBirth: new Date(dateOfBirth),
         role,
-        creationStatus: 'PENDING',
-        activeStatus: null,
+        creationStatus,
+        activeStatus,
         validIDFrontUrl,
         validIDFrontPublicId,
         validIDBackUrl,
@@ -150,16 +166,33 @@ exports.signup = async (req, res) => {
       }
     });
 
-    // Send welcome email with pending status notification
-    await sendWelcomeEmail(email, `${firstName} ${lastName}`, role);
+    // Send welcome email with appropriate status notification
+    if (creationStatus === 'APPROVED') {
+      // Send different welcome email for first MLGOO_STAFF
+      await sendWelcomeEmail(email, `${firstName} ${lastName}`, role, true);
+    } else {
+      await sendWelcomeEmail(email, `${firstName} ${lastName}`, role);
+    }
 
     res.status(201).json({ 
-      message: 'Account created successfully. Please wait for admin approval.',
+      message: creationStatus === 'APPROVED' 
+        ? 'Account created successfully. You can now log in.'
+        : 'Account created successfully. Please wait for admin approval.',
       user: {
         id: user.id,
         email: user.email,
         role: user.role,
-        creationStatus: user.creationStatus
+        creationStatus: user.creationStatus,
+        activeStatus: user.activeStatus
+      }
+    });
+
+    // After successful user creation, cleanup used OTPs
+    await prisma.oTP.deleteMany({
+      where: {
+        email,
+        type: 'EMAIL_VERIFICATION',
+        used: true
       }
     });
   } catch (error) {

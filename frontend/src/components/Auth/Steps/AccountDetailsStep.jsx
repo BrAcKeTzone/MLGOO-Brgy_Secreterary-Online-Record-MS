@@ -108,7 +108,6 @@ const AccountDetailsStep = ({
         togglePassword={togglePassword}
         required
         placeholder="Confirm your password"
-        error={passwordError}
         showStrength={false}
       />
 

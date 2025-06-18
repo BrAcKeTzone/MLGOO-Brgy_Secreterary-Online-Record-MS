@@ -24,8 +24,8 @@ export const authAPI = {
   requestOTP: (email) => 
     api.post('/auth/request-otp', { email }),
   
-  verifyOTP: (email, otp) => 
-    api.post('/auth/verify-otp', { email, otp }),
+  verifyEmailOtp: (email, otp) => 
+    api.post('/auth/verify-email-otp', { email, otp }),
   
   checkEmail: (email) => 
     api.post('/auth/check-email', { email }),
