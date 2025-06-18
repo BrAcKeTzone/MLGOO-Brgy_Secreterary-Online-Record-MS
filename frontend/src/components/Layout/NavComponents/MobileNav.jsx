@@ -18,13 +18,6 @@ const MobileNav = ({ isOpen, user, navItems, handleToggle, handleLogout }) => {
           <MenuButton isOpen={true} onClick={handleToggle} />
         </div>
         <div className="flex flex-col px-4 py-4 space-y-2">
-          <NavLink
-            to="/"
-            className="block px-3 py-2 rounded-md hover:bg-gray-800"
-            onClick={() => handleToggle(false)}
-          >
-            Home
-          </NavLink>
           {user ? (
             <>
               {navItems.map((item) => (
