@@ -99,4 +99,12 @@ export const logsAPI = {
   searchLogs: (filters) => api.post('/logs/search', filters),
 };
 
+export const profileAPI = {
+  getProfile: () => 
+    api.get('/profile'),
+  
+  changePassword: (currentPassword, newPassword) => 
+    api.post('/profile/change-password', { currentPassword, newPassword })
+};
+
 export default api;

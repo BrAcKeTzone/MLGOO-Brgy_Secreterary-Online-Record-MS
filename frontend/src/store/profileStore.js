@@ -1,22 +1,16 @@
 import { create } from "zustand";
-import { sampleAdmin } from "../data/samples/sampleAdmin";
-import { sampleUser } from "../data/samples/sampleUser";
+import { profileAPI } from "../services/api";
 
-const SIMULATED_DELAY = 1500;
-
-const useProfileStore = create((set, get) => ({
+const useProfileStore = create((set) => ({
   profileData: null,
   loading: false,
   error: null,
 
-  fetchProfile: async (userId) => {
+  fetchProfile: async () => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
-      
-      // Simulate fetching profile data
-      const profile = userId.includes('admin') ? sampleAdmin : sampleUser;
-      set({ profileData: profile, loading: false });
+      const { data } = await profileAPI.getProfile();
+      set({ profileData: data.profile, loading: false });
     } catch (err) {
       set({
         error: err.response?.data?.message || "Failed to fetch profile",
@@ -25,29 +19,12 @@ const useProfileStore = create((set, get) => ({
     }
   },
 
-  updateProfile: async (data) => {
-    set({ loading: true, error: null });
-    try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
-      
-      set(state => ({
-        profileData: { ...state.profileData, ...data },
-        loading: false
-      }));
-    } catch (err) {
-      set({
-        error: err.response?.data?.message || "Failed to update profile",
-        loading: false
-      });
-      throw err;
-    }
-  },
-
   changePassword: async (currentPassword, newPassword) => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
+      const { data } = await profileAPI.changePassword(currentPassword, newPassword);
       set({ loading: false });
+      return data;
     } catch (err) {
       set({
         error: err.response?.data?.message || "Failed to change password",
