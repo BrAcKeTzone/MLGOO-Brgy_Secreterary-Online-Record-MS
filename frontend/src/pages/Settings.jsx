@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { FaFileAlt, FaBuilding, FaShieldAlt, FaGavel } from "react-icons/fa";
-import useSettingsStore from "../store/SettingsStore";
 import ReportTypesPanel from "../components/SettingsComp/ReportTypesPanel";
 import BarangaysPanel from "../components/SettingsComp/BarangaysPanel";
 import PrivacyPanel from "../components/SettingsComp/PrivacyPanel";
 import TermsPanel from "../components/SettingsComp/TermsPanel";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
+import useSettingsStore from "../store/settingsStore";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("reports");

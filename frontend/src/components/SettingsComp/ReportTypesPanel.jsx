@@ -1,22 +1,32 @@
 import React, { useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaSave, FaTimes } from "react-icons/fa";
 import FormInput from "../Common/FormInput";
+import useSettingsStore from "../../store/settingsStore";
 
 const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
+  const createReportType = useSettingsStore((state) => state.createReportType);
+  const deleteReportType = useSettingsStore((state) => state.deleteReportType);
   const [editingType, setEditingType] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
-    _id: "",
+    id: "",
     name: "",
     shortName: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onUpdate(editingType?._id ? { ...editingType, ...formData } : formData);
-    setEditingType(null);
-    setIsAdding(false);
-    setFormData({ _id: "", name: "", shortName: "" });
+    if (isAdding) {
+      // Add new report type
+      await createReportType({ name: formData.name, shortName: formData.shortName });
+      setIsAdding(false);
+      setFormData({ id: "", name: "", shortName: "" });
+    } else {
+      // Update existing report type
+      onUpdate(formData.id, { name: formData.name, shortName: formData.shortName });
+      setEditingType(null);
+      setFormData({ id: "", name: "", shortName: "" });
+    }
   };
 
   const handleChange = (e) => {
@@ -45,14 +55,6 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-3 gap-4">
                 <FormInput
-                  label="ID"
-                  name="_id"
-                  value={formData._id}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g., KP, MBCRS"
-                />
-                <FormInput
                   label="Full Name"
                   name="name"
                   value={formData.name}
@@ -74,7 +76,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                   type="button"
                   onClick={() => {
                     setIsAdding(false);
-                    setFormData({ _id: "", name: "", shortName: "" });
+                    setFormData({ id: "", name: "", shortName: "" });
                   }}
                   className="text-gray-600 hover:text-gray-900"
                 >
@@ -93,45 +95,35 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
 
         {/* Existing Report Types */}
         {reportTypes.map((type) => (
-          <div key={type._id} className="bg-gray-50 p-4 rounded-lg">
+          <div key={type.id} className="bg-gray-50 p-4 rounded-lg">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-3 gap-4">
-                <FormInput
-                  label="ID"
-                  name="_id"
-                  value={
-                    editingType?._id === type._id ? formData._id : type._id
-                  }
-                  onChange={handleChange}
-                  disabled={editingType?._id !== type._id}
-                  required
-                />
                 <FormInput
                   label="Full Name"
                   name="name"
                   value={
-                    editingType?._id === type._id ? formData.name : type.name
+                    editingType?.id === type.id ? formData.name : type.name
                   }
                   onChange={handleChange}
-                  disabled={editingType?._id !== type._id}
+                  disabled={editingType?.id !== type.id}
                   required
                 />
                 <FormInput
                   label="Short Name"
                   name="shortName"
                   value={
-                    editingType?._id === type._id
+                    editingType?.id === type.id
                       ? formData.shortName
                       : type.shortName
                   }
                   onChange={handleChange}
-                  disabled={editingType?._id !== type._id}
+                  disabled={editingType?.id !== type.id}
                   required
                 />
               </div>
 
               <div className="flex justify-end gap-2">
-                {editingType?._id === type._id ? (
+                {editingType?.id === type.id ? (
                   <>
                     <button
                       type="button"
@@ -154,7 +146,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                       onClick={() => {
                         setEditingType(type);
                         setFormData({
-                          _id: type._id,
+                          id: type.id,
                           name: type.name,
                           shortName: type.shortName,
                         });
@@ -166,6 +158,11 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                     <button
                       type="button"
                       className="text-red-600 hover:text-red-900"
+                      onClick={async () => {
+                        if (window.confirm("Are you sure you want to delete this report type?")) {
+                          await deleteReportType(type.id);
+                        }
+                      }}
                     >
                       <FaTrash className="w-5 h-5" />
                     </button>

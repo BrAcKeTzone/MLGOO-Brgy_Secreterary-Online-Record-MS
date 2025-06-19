@@ -1,23 +1,31 @@
 import React, { useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaSave, FaTimes } from "react-icons/fa";
 import FormInput from "../Common/FormInput";
+import useSettingsStore from "../../store/settingsStore";
 
 const BarangaysPanel = ({ barangays, onUpdate }) => {
+  const createBarangay = useSettingsStore((state) => state.createBarangay);
+  const deleteBarangay = useSettingsStore((state) => state.deleteBarangay);
   const [editingBarangay, setEditingBarangay] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
-    _id: "",
+    id: "",
     name: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onUpdate(
-      editingBarangay?._id ? { ...editingBarangay, ...formData } : formData
-    );
-    setEditingBarangay(null);
-    setIsAdding(false);
-    setFormData({ _id: "", name: "" });
+    if (isAdding) {
+      // Add new barangay
+      await createBarangay({ name: formData.name });
+      setIsAdding(false);
+      setFormData({ id: "", name: "" });
+    } else {
+      // Update existing barangay
+      onUpdate(formData.id, { name: formData.name });
+      setEditingBarangay(null);
+      setFormData({ id: "", name: "" });
+    }
   };
 
   const handleChange = (e) => {
@@ -35,7 +43,9 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
           disabled={isAdding}
         >
           <FaPlus />
-          <span className="hidden md:inline-block md:text-sm">Add Barangay</span>
+          <span className="hidden md:inline-block md:text-sm">
+            Add Barangay
+          </span>
         </button>
       </div>
 
@@ -45,14 +55,6 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
           <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4">
-                <FormInput
-                  label="Barangay ID"
-                  name="_id"
-                  value={formData._id}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g., brgy001"
-                />
                 <FormInput
                   label="Barangay Name"
                   name="name"
@@ -67,7 +69,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                   type="button"
                   onClick={() => {
                     setIsAdding(false);
-                    setFormData({ _id: "", name: "" });
+                    setFormData({ id: "", name: "" });
                   }}
                   className="text-gray-600 hover:text-gray-900"
                 >
@@ -86,37 +88,25 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
 
         {/* Existing Barangays */}
         {barangays.map((barangay) => (
-          <div key={barangay._id} className="bg-gray-50 p-4 rounded-lg">
+          <div key={barangay.id} className="bg-gray-50 p-4 rounded-lg">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4">
-                <FormInput
-                  label="Barangay ID"
-                  name="_id"
-                  value={
-                    editingBarangay?._id === barangay._id
-                      ? formData._id
-                      : barangay._id
-                  }
-                  onChange={handleChange}
-                  disabled={editingBarangay?._id !== barangay._id}
-                  required
-                />
                 <FormInput
                   label="Barangay Name"
                   name="name"
                   value={
-                    editingBarangay?._id === barangay._id
+                    editingBarangay?.id === barangay.id
                       ? formData.name
                       : barangay.name
                   }
                   onChange={handleChange}
-                  disabled={editingBarangay?._id !== barangay._id}
+                  disabled={editingBarangay?.id !== barangay.id}
                   required
                 />
               </div>
 
               <div className="flex justify-end gap-2">
-                {editingBarangay?._id === barangay._id ? (
+                {editingBarangay?.id === barangay.id ? (
                   <>
                     <button
                       type="button"
@@ -139,7 +129,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                       onClick={() => {
                         setEditingBarangay(barangay);
                         setFormData({
-                          _id: barangay._id,
+                          id: barangay.id,
                           name: barangay.name,
                         });
                       }}
@@ -150,6 +140,15 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                     <button
                       type="button"
                       className="text-red-600 hover:text-red-900"
+                      onClick={async () => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this barangay?"
+                          )
+                        ) {
+                          await deleteBarangay(barangay.id);
+                        }
+                      }}
                     >
                       <FaTrash className="w-5 h-5" />
                     </button>

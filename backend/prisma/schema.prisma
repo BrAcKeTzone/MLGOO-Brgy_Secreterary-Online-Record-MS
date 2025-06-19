@@ -108,3 +108,21 @@ model OTP {
   createdAt DateTime @default(now())
   used      Boolean  @default(false)
 }
+
+model ReportType {
+  id        Int    @id @default(autoincrement())
+  name      String
+  shortName String
+}
+
+model PrivacyPolicy {
+  id      Int    @id @default(autoincrement())
+  section String
+  content String
+}
+
+model TermsOfService {
+  id      Int    @id @default(autoincrement())
+  section String
+  content String
+}

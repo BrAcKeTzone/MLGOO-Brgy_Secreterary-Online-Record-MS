@@ -107,4 +107,23 @@ export const profileAPI = {
     api.post('/profile/change-password', { currentPassword, newPassword })
 };
 
+export const settingsAPI = {
+  fetchBarangays: () => api.get('/settings/barangays'),
+  updateBarangay: (id, updates) => api.put(`/settings/barangays/${id}`, updates),
+  createBarangay: (barangay) => api.post('/settings/barangays', barangay),
+  deleteBarangay: (id) => api.delete(`/settings/barangays/${id}`),
+
+
+  fetchReportTypes: () => api.get('/settings/report-types'),
+  updateReportType: (id, updates) => api.put(`/settings/report-types/${id}`, updates),
+  createReportType: (reportType) => api.post('/settings/report-types', reportType),
+  deleteReportType: (id) => api.delete(`/settings/report-types/${id}`),
+
+  fetchPrivacyPolicy: () => api.get('/settings/privacy-policy'),
+  updatePrivacyPolicy: (updates) => api.put('/settings/privacy-policy', { updates }),
+
+  fetchTermsOfService: () => api.get('/settings/terms-of-service'),
+  updateTermsOfService: (updates) => api.put('/settings/terms-of-service', { updates }),
+};
+
 export default api;
