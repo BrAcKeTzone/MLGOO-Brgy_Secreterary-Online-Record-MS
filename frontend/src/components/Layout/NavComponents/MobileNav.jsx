@@ -44,11 +44,11 @@ const MobileNav = ({ isOpen, user, navItems, handleToggle, handleLogout }) => {
           ) : (
             <>
               <NavLink
-                to="/login"
+                to="/"
                 className="block px-3 py-2 rounded-md hover:bg-gray-800"
                 onClick={() => handleToggle(false)}
               >
-                Auth
+                Home
               </NavLink>
             </>
           )}
