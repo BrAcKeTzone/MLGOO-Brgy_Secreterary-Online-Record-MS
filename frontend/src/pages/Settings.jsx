@@ -53,11 +53,19 @@ const Settings = () => {
         );
       case "privacy":
         return (
-          <PrivacyPanel policy={privacyPolicy} onUpdate={updatePrivacyPolicy} />
+          <PrivacyPanel
+            policy={privacyPolicy}
+            onUpdate={updatePrivacyPolicy}
+            useSettingsStore={useSettingsStore}
+          />
         );
       case "terms":
         return (
-          <TermsPanel terms={termsOfService} onUpdate={updateTermsOfService} />
+          <TermsPanel
+            terms={termsOfService}
+            onUpdate={updateTermsOfService}
+            useSettingsStore={useSettingsStore}
+          />
         );
       default:
         return null;

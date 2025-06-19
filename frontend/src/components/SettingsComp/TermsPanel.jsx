@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import FormTextbox from "../Common/FormTextbox";
-import useSettingsStore from "../../store/SettingsStore";
 import LoadingScreen from "../Common/LoadingScreen";
 
-const TermsPanel = () => {
-  const { termsOfService, loading, error, fetchTermsOfService, updateTermsOfService } = useSettingsStore();
+const TermsPanel = ({ useSettingsStore }) => {
+  const {
+    termsOfService,
+    loading,
+    error,
+    fetchTermsOfService,
+    updateTermsOfService,
+  } = useSettingsStore();
   const [editingSection, setEditingSection] = useState(null);
   const [formData, setFormData] = useState({});
 
@@ -15,7 +20,10 @@ const TermsPanel = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateTermsOfService({ ...termsOfService, [editingSection]: formData[editingSection] });
+    await updateTermsOfService({
+      ...termsOfService,
+      [editingSection]: formData[editingSection],
+    });
     setEditingSection(null);
     setFormData({});
   };

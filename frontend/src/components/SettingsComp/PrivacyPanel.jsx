@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import FormTextbox from "../Common/FormTextbox";
-import useSettingsStore from "../../store/SettingsStore";
+// import useSettingsStore from "../../store/SettingsStore";
 import LoadingScreen from "../Common/LoadingScreen";
 
-const PrivacyPanel = () => {
-  const { privacyPolicy, loading, error, fetchPrivacyPolicy, updatePrivacyPolicy } = useSettingsStore();
+const PrivacyPanel = ({ useSettingsStore }) => {
+  const {
+    privacyPolicy,
+    loading,
+    error,
+    fetchPrivacyPolicy,
+    updatePrivacyPolicy,
+  } = useSettingsStore();
   const [editingSection, setEditingSection] = useState(null);
   const [formData, setFormData] = useState({});
 
@@ -15,7 +21,10 @@ const PrivacyPanel = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updatePrivacyPolicy({ ...privacyPolicy, [editingSection]: formData[editingSection] });
+    await updatePrivacyPolicy({
+      ...privacyPolicy,
+      [editingSection]: formData[editingSection],
+    });
     setEditingSection(null);
     setFormData({});
   };
