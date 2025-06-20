@@ -17,10 +17,16 @@ router.delete('/report-types/:id', settingController.deleteReportType);
 
 // --- Privacy Policy ---
 router.get('/privacy-policy', settingController.getPrivacyPolicy);
-router.put('/privacy-policy', settingController.updatePrivacyPolicy);
+router.post('/privacy-policy', settingController.createPrivacyPolicySection);
+router.put('/privacy-policy/:id', settingController.updatePrivacyPolicySection);
+router.delete('/privacy-policy/:id', settingController.deletePrivacyPolicySection);
+router.post('/privacy-policy/reorder', settingController.reorderPrivacyPolicySections);
 
 // --- Terms of Service ---
 router.get('/terms-of-service', settingController.getTermsOfService);
-router.put('/terms-of-service', settingController.updateTermsOfService);
+router.post('/terms-of-service', settingController.createTermsOfServiceSection);
+router.put('/terms-of-service/:id', settingController.updateTermsOfServiceSection);
+router.delete('/terms-of-service/:id', settingController.deleteTermsOfServiceSection);
+router.post('/terms-of-service/reorder', settingController.reorderTermsOfServiceSections);
 
 module.exports = router;

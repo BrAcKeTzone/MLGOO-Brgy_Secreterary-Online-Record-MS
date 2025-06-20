@@ -116,13 +116,19 @@ model ReportType {
 }
 
 model PrivacyPolicy {
-  id      Int    @id @default(autoincrement())
-  section String
-  content String
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(255)
+  content   String   @db.LongText
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model TermsOfService {
-  id      Int    @id @default(autoincrement())
-  section String
-  content String
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(255)
+  content   String   @db.LongText
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

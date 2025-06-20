@@ -3,107 +3,487 @@ const prisma = new PrismaClient();
 
 // --- Barangays ---
 exports.getBarangays = async (req, res) => {
-  const barangays = await prisma.barangay.findMany();
-  res.json({ barangays });
+  try {
+    const barangays = await prisma.barangay.findMany();
+    res.json({ barangays });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch barangays', error: error.message });
+  }
 };
 
 exports.createBarangay = async (req, res) => {
-  const { name } = req.body;
-  const barangay = await prisma.barangay.create({ data: { name } });
-  res.status(201).json({ barangay });
+  try {
+    const { name } = req.body;
+    const barangay = await prisma.barangay.create({ data: { name } });
+    res.status(201).json({ barangay });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create barangay', error: error.message });
+  }
 };
 
 exports.updateBarangay = async (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
-  const barangay = await prisma.barangay.update({
-    where: { id: Number(id) },
-    data: { name }
-  });
-  res.json({ barangay });
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    const barangay = await prisma.barangay.update({
+      where: { id: Number(id) },
+      data: { name }
+    });
+    res.json({ barangay });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update barangay', error: error.message });
+  }
 };
 
 exports.deleteBarangay = async (req, res) => {
-  const { id } = req.params;
   try {
+    const { id } = req.params;
     await prisma.barangay.delete({ where: { id: Number(id) } });
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete barangay' });
+    res.status(500).json({ message: 'Failed to delete barangay', error: error.message });
   }
 };
 
 // --- Report Types ---
 exports.getReportTypes = async (req, res) => {
-  const reportTypes = await prisma.reportType.findMany();
-  res.json({ reportTypes });
+  try {
+    const reportTypes = await prisma.reportType.findMany();
+    res.json({ reportTypes });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch report types', error: error.message });
+  }
 };
 
 exports.createReportType = async (req, res) => {
-  const { name, shortName } = req.body;
-  const reportType = await prisma.reportType.create({ data: { name, shortName } });
-  res.status(201).json({ reportType });
+  try {
+    const { name, shortName } = req.body;
+    const reportType = await prisma.reportType.create({ data: { name, shortName } });
+    res.status(201).json({ reportType });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create report type', error: error.message });
+  }
 };
 
 exports.updateReportType = async (req, res) => {
-  const { id } = req.params;
-  const { name, shortName } = req.body;
-  const reportType = await prisma.reportType.update({
-    where: { id: Number(id) },
-    data: { name, shortName }
-  });
-  res.json({ reportType });
+  try {
+    const { id } = req.params;
+    const { name, shortName } = req.body;
+    const reportType = await prisma.reportType.update({
+      where: { id: Number(id) },
+      data: { name, shortName }
+    });
+    res.json({ reportType });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update report type', error: error.message });
+  }
 };
 
 exports.deleteReportType = async (req, res) => {
-  const { id } = req.params;
   try {
+    const { id } = req.params;
     await prisma.reportType.delete({ where: { id: Number(id) } });
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete report type' });
+    res.status(500).json({ message: 'Failed to delete report type', error: error.message });
   }
 };
 
 // --- Privacy Policy ---
 exports.getPrivacyPolicy = async (req, res) => {
-  const sections = await prisma.privacyPolicy.findMany();
-  res.json({ privacyPolicy: sections });
+  try {
+    const privacyPolicy = await prisma.privacyPolicy.findMany({
+      orderBy: { order: 'asc' }
+    });
+    res.json({ privacyPolicy });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch privacy policy', error: error.message });
+  }
 };
 
-exports.updatePrivacyPolicy = async (req, res) => {
-  const { updates } = req.body; // { section: content, ... }
-  // Upsert each section
-  const results = [];
-  for (const section in updates) {
-    const content = updates[section];
-    const upserted = await prisma.privacyPolicy.upsert({
-      where: { section },
-      update: { content },
-      create: { section, content }
+exports.createPrivacyPolicySection = async (req, res) => {
+  try {
+    const { title, content, order } = req.body;
+    
+    // Validate required fields
+    if (!title || !content) {
+      return res.status(400).json({ message: 'Title and content are required' });
+    }
+    
+    // Check content length
+    if (content.length > 65535) {
+      return res.status(400).json({ 
+        message: 'Content is too long. Maximum length is 65535 characters.' 
+      });
+    }
+    
+    // Handle order assignment
+    let sectionOrder = order;
+    
+    // If order is specified, check for existing entry with that order
+    if (sectionOrder !== undefined) {
+      const existingWithOrder = await prisma.privacyPolicy.findFirst({
+        where: { order: sectionOrder }
+      });
+      
+      // If another section already has this order, find the next available order
+      if (existingWithOrder) {
+        // Find all orders to determine the next available
+        const allSections = await prisma.privacyPolicy.findMany({
+          orderBy: { order: 'asc' }
+        });
+        
+        // Create a set of existing orders for quick lookup
+        const existingOrders = new Set(allSections.map(section => section.order));
+        
+        // Find the next available order number
+        while (existingOrders.has(sectionOrder)) {
+          sectionOrder++;
+        }
+      }
+    } 
+    // If no order provided, use highest order + 1
+    else {
+      const highestOrder = await prisma.privacyPolicy.findFirst({
+        orderBy: { order: 'desc' }
+      });
+      sectionOrder = highestOrder ? highestOrder.order + 1 : 1;
+    }
+    
+    const section = await prisma.privacyPolicy.create({
+      data: { 
+        title, 
+        content, 
+        order: sectionOrder,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
     });
-    results.push(upserted);
+    
+    res.status(201).json({ section });
+  } catch (error) {
+    console.error('Error creating privacy policy section:', error);
+    res.status(500).json({ message: 'Failed to create privacy policy section', error: error.message });
   }
-  res.json({ privacyPolicy: results });
+};
+
+exports.updatePrivacyPolicySection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, order } = req.body;
+    
+    // Check if section exists
+    const existingSection = await prisma.privacyPolicy.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!existingSection) {
+      return res.status(404).json({ message: 'Privacy policy section not found' });
+    }
+    
+    // Check content length if it's being updated
+    if (content && content.length > 65535) {
+      return res.status(400).json({ 
+        message: 'Content is too long. Maximum length is 65535 characters.' 
+      });
+    }
+    
+    // Handle order updates
+    let sectionOrder = order;
+    
+    // If order is being changed and specified in the request
+    if (sectionOrder !== undefined && sectionOrder !== existingSection.order) {
+      // Check if another section already has this order
+      const existingWithOrder = await prisma.privacyPolicy.findFirst({
+        where: { 
+          order: sectionOrder,
+          id: { not: Number(id) } // Exclude current section
+        }
+      });
+      
+      // If another section already has this order, find the next available order
+      if (existingWithOrder) {
+        // Find all orders to determine the next available
+        const allSections = await prisma.privacyPolicy.findMany({
+          where: { id: { not: Number(id) } }, // Exclude current section
+          orderBy: { order: 'asc' }
+        });
+        
+        // Create a set of existing orders for quick lookup
+        const existingOrders = new Set(allSections.map(section => section.order));
+        
+        // Find the next available order number
+        while (existingOrders.has(sectionOrder)) {
+          sectionOrder++;
+        }
+      }
+    }
+    
+    const section = await prisma.privacyPolicy.update({
+      where: { id: Number(id) },
+      data: { 
+        title, 
+        content,
+        order: sectionOrder,
+        updatedAt: new Date() // Ensure updatedAt is set on every update
+      }
+    });
+    
+    res.json({ section });
+  } catch (error) {
+    console.error('Error updating privacy policy section:', error);
+    res.status(500).json({ message: 'Failed to update privacy policy section', error: error.message });
+  }
+};
+
+exports.deletePrivacyPolicySection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if section exists
+    const existingSection = await prisma.privacyPolicy.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!existingSection) {
+      return res.status(404).json({ message: 'Privacy policy section not found' });
+    }
+    
+    await prisma.privacyPolicy.delete({
+      where: { id: Number(id) }
+    });
+    
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting privacy policy section:', error);
+    res.status(500).json({ message: 'Failed to delete privacy policy section', error: error.message });
+  }
 };
 
 // --- Terms of Service ---
 exports.getTermsOfService = async (req, res) => {
-  const sections = await prisma.termsOfService.findMany();
-  res.json({ termsOfService: sections });
+  try {
+    const termsOfService = await prisma.termsOfService.findMany({
+      orderBy: { order: 'asc' }
+    });
+    res.json({ termsOfService });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch terms of service', error: error.message });
+  }
 };
 
-exports.updateTermsOfService = async (req, res) => {
-  const { updates } = req.body; // { section: content, ... }
-  const results = [];
-  for (const section in updates) {
-    const content = updates[section];
-    const upserted = await prisma.termsOfService.upsert({
-      where: { section },
-      update: { content },
-      create: { section, content }
+exports.createTermsOfServiceSection = async (req, res) => {
+  try {
+    const { title, content, order } = req.body;
+    
+    // Validate required fields
+    if (!title || !content) {
+      return res.status(400).json({ message: 'Title and content are required' });
+    }
+    
+    // Check content length - the exact limit depends on your schema
+    if (content.length > 65535) {
+      return res.status(400).json({ 
+        message: 'Content is too long. Maximum length is 65535 characters.' 
+      });
+    }
+    
+    // Handle order assignment
+    let sectionOrder = order;
+    
+    // If order is specified, check for existing entry with that order
+    if (sectionOrder !== undefined) {
+      const existingWithOrder = await prisma.termsOfService.findFirst({
+        where: { order: sectionOrder }
+      });
+      
+      // If another section already has this order, find the next available order
+      if (existingWithOrder) {
+        // Find all orders to determine the next available
+        const allSections = await prisma.termsOfService.findMany({
+          orderBy: { order: 'asc' }
+        });
+        
+        // Create a set of existing orders for quick lookup
+        const existingOrders = new Set(allSections.map(section => section.order));
+        
+        // Find the next available order number
+        while (existingOrders.has(sectionOrder)) {
+          sectionOrder++;
+        }
+      }
+    } 
+    // If no order provided, use highest order + 1
+    else {
+      const highestOrder = await prisma.termsOfService.findFirst({
+        orderBy: { order: 'desc' }
+      });
+      sectionOrder = highestOrder ? highestOrder.order + 1 : 1;
+    }
+    
+    const section = await prisma.termsOfService.create({
+      data: { 
+        title, 
+        content, 
+        order: sectionOrder,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
     });
-    results.push(upserted);
+    
+    res.status(201).json({ section });
+  } catch (error) {
+    console.error('Error creating terms of service section:', error);
+    res.status(500).json({ message: 'Failed to create terms of service section', error: error.message });
   }
-  res.json({ termsOfService: results });
+};
+
+exports.updateTermsOfServiceSection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, order } = req.body;
+    
+    // Check if section exists
+    const existingSection = await prisma.termsOfService.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!existingSection) {
+      return res.status(404).json({ message: 'Terms of service section not found' });
+    }
+    
+    // Check content length if it's being updated
+    if (content && content.length > 65535) {
+      return res.status(400).json({ 
+        message: 'Content is too long. Maximum length is 65535 characters.' 
+      });
+    }
+    
+    // Handle order updates
+    let sectionOrder = order;
+    
+    // If order is being changed and specified in the request
+    if (sectionOrder !== undefined && sectionOrder !== existingSection.order) {
+      // Check if another section already has this order
+      const existingWithOrder = await prisma.termsOfService.findFirst({
+        where: { 
+          order: sectionOrder,
+          id: { not: Number(id) } // Exclude current section
+        }
+      });
+      
+      // If another section already has this order, find the next available order
+      if (existingWithOrder) {
+        // Find all orders to determine the next available
+        const allSections = await prisma.termsOfService.findMany({
+          where: { id: { not: Number(id) } }, // Exclude current section
+          orderBy: { order: 'asc' }
+        });
+        
+        // Create a set of existing orders for quick lookup
+        const existingOrders = new Set(allSections.map(section => section.order));
+        
+        // Find the next available order number
+        while (existingOrders.has(sectionOrder)) {
+          sectionOrder++;
+        }
+      }
+    }
+    
+    const section = await prisma.termsOfService.update({
+      where: { id: Number(id) },
+      data: { 
+        title, 
+        content,
+        order: sectionOrder,
+        updatedAt: new Date() // Ensure updatedAt is set on every update
+      }
+    });
+    
+    res.json({ section });
+  } catch (error) {
+    console.error('Error updating terms of service section:', error);
+    res.status(500).json({ message: 'Failed to update terms of service section', error: error.message });
+  }
+};
+
+exports.deleteTermsOfServiceSection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if section exists
+    const existingSection = await prisma.termsOfService.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!existingSection) {
+      return res.status(404).json({ message: 'Terms of service section not found' });
+    }
+    
+    await prisma.termsOfService.delete({
+      where: { id: Number(id) }
+    });
+    
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting terms of service section:', error);
+    res.status(500).json({ message: 'Failed to delete terms of service section', error: error.message });
+  }
+};
+
+// --- Reorder sections ---
+exports.reorderPrivacyPolicySections = async (req, res) => {
+  try {
+    const { sections } = req.body; // Array of { id, order }
+    
+    if (!Array.isArray(sections)) {
+      return res.status(400).json({ message: 'Sections must be an array' });
+    }
+    
+    // Update all sections in a transaction
+    const updates = await prisma.$transaction(
+      sections.map(section => 
+        prisma.privacyPolicy.update({
+          where: { id: Number(section.id) },
+          data: { 
+            order: section.order,
+            updatedAt: new Date() // Ensure updatedAt is set on reordering
+          }
+        })
+      )
+    );
+    
+    res.json({ updated: updates.length });
+  } catch (error) {
+    console.error('Error reordering privacy policy sections:', error);
+    res.status(500).json({ message: 'Failed to reorder privacy policy sections', error: error.message });
+  }
+};
+
+exports.reorderTermsOfServiceSections = async (req, res) => {
+  try {
+    const { sections } = req.body; // Array of { id, order }
+    
+    if (!Array.isArray(sections)) {
+      return res.status(400).json({ message: 'Sections must be an array' });
+    }
+    
+    // Update all sections in a transaction
+    const updates = await prisma.$transaction(
+      sections.map(section => 
+        prisma.termsOfService.update({
+          where: { id: Number(section.id) },
+          data: { 
+            order: section.order,
+            updatedAt: new Date() // Ensure updatedAt is set on reordering
+          }
+        })
+      )
+    );
+    
+    res.json({ updated: updates.length });
+  } catch (error) {
+    console.error('Error reordering terms of service sections:', error);
+    res.status(500).json({ message: 'Failed to reorder terms of service sections', error: error.message });
+  }
 };
