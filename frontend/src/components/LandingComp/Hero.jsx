@@ -1,18 +1,66 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaSignInAlt, FaUserPlus } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import heroImage from "../../assets/logo1.png";
+import ModalLogin from "./Modal/ModalLogin";
+import ModalSignup from "./Modal/ModalSignup";
+import ModalForgotPass from "./Modal/ModalForgotPass";
 
 const Hero = () => {
-  const navigate = useNavigate();
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+  const [showForgotPass, setShowForgotPass] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if the device is mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize(); // Check on initial load
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const handleLoginClick = () => {
+    setShowLogin(true);
+    setShowSignup(false);
+    setShowForgotPass(false);
+  };
+
+  const handleSignupClick = () => {
+    setShowSignup(true);
+    setShowLogin(false);
+    setShowForgotPass(false);
+  };
+
+  const handleForgotPassClick = () => {
+    setShowForgotPass(true);
+    setShowLogin(false);
+    setShowSignup(false);
+  };
+
+  const handleBackToLogin = () => {
+    setShowLogin(true);
+    setShowForgotPass(false);
+  };
+
+  const handleClose = () => {
+    setShowLogin(false);
+    setShowSignup(false);
+    setShowForgotPass(false);
+  };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-r from-blue-900 via-indigo-900 to-gray-900 text-white flex items-center">
       {/* Background overlay */}
       <div className="absolute inset-0 bg-black opacity-40"></div>
 
-      {/* Logo background - Updated to match AuthLayout */}
+      {/* Logo background */}
       <div
         className="absolute inset-0 flex items-center justify-center"
         style={{
@@ -46,7 +94,7 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
             {/* Login Button */}
             <motion.button
-              onClick={() => navigate("/login")}
+              onClick={handleLoginClick}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               className="group relative inline-flex items-center justify-center px-8 py-3 sm:py-4 overflow-hidden font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-out hover:from-blue-700 hover:to-blue-800 min-w-[160px]"
@@ -58,7 +106,7 @@ const Hero = () => {
 
             {/* Signup Button */}
             <motion.button
-              onClick={() => navigate("/signup")}
+              onClick={handleSignupClick}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               className="group relative inline-flex items-center justify-center px-8 py-3 sm:py-4 overflow-hidden font-medium text-blue-600 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-out hover:text-white min-w-[160px]"
@@ -66,11 +114,88 @@ const Hero = () => {
               <span className="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-gray-100"></span>
               <span className="absolute w-full h-full transition-all duration-300 ease-out transform translate-y-full rounded-lg bg-gradient-to-b from-blue-600 to-blue-700 group-hover:translate-y-0"></span>
               <FaUserPlus className="mr-2 text-lg relative z-10" />
-              <span className="relative z-10">Sign Up</span>
+              <span className="relative z-10">Register</span>
             </motion.button>
           </div>
         </motion.div>
       </div>
+
+      {/* Modal components with responsive positioning */}
+      <AnimatePresence>
+        {showLogin && (
+          <div
+            className={`fixed z-50 pointer-events-none ${
+              isMobile
+                ? "inset-0 flex items-center justify-center"
+                : "inset-y-0 left-0 flex items-center md:pl-6 pl-2"
+            }`}
+          >
+            <div
+              className={`pointer-events-auto ${
+                isMobile ? "w-full h-full" : "w-full max-w-md"
+              }`}
+            >
+              <ModalLogin
+                onClose={handleClose}
+                onForgotPasswordClick={handleForgotPassClick}
+                onRegisterClick={handleSignupClick}
+                isOpen={showLogin}
+                isMobile={isMobile}
+              />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSignup && (
+          <div
+            className={`fixed z-50 pointer-events-none ${
+              isMobile
+                ? "inset-0 flex items-center justify-center"
+                : "inset-y-0 right-0 flex items-center md:pr-6 pr-2"
+            }`}
+          >
+            <div
+              className={`pointer-events-auto ${
+                isMobile ? "w-full h-full" : "w-full max-w-md"
+              }`}
+            >
+              <ModalSignup
+                onClose={handleClose}
+                onLoginClick={handleLoginClick}
+                isOpen={showSignup}
+                isMobile={isMobile}
+              />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showForgotPass && (
+          <div
+            className={`fixed z-50 pointer-events-none ${
+              isMobile
+                ? "inset-0 flex items-center justify-center"
+                : "inset-0 flex items-center justify-center"
+            }`}
+          >
+            <div
+              className={`pointer-events-auto ${
+                isMobile ? "w-full h-full" : "w-full max-w-md"
+              }`}
+            >
+              <ModalForgotPass
+                onClose={handleClose}
+                onBackToLogin={handleBackToLogin}
+                isOpen={showForgotPass}
+                isMobile={isMobile}
+              />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

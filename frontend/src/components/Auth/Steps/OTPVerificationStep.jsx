@@ -15,7 +15,7 @@ const OTPVerificationStep = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-md mx-auto space-y-6 bg-white p-8 rounded-lg shadow-md"
+      className="max-w-md mx-auto space-y-6 bg-white p-8 rounded-lg shadow-md text-gray-700"
     >
       <div>
         <label className="block text-gray-700 text-sm font-semibold mb-2">

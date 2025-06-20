@@ -92,8 +92,9 @@ const SignupForm = () => {
   };
 
   const handleSuccessModalClose = () => {
-    setShowSuccessModal(false);
-    navigate("/login");
+    // setShowSuccessModal(false);
+    // navigate("/login");
+    window.location.reload();
   };
 
   return (

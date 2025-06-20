@@ -7,8 +7,8 @@ const Landing = () => {
   return (
     <div className="min-h-screen flex flex-col relative bg-gradient-to-r from-blue-900 via-indigo-900 to-gray-900 text-white">
       <div className="flex-grow relative z-10">
-        {/* <Hero /> */}
-        <LandingLayout />
+        <Hero />
+        {/* <LandingLayout /> */}
       </div>
       <Footer />
     </div>
