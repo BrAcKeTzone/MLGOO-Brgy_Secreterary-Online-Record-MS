@@ -1,18 +1,18 @@
 import React, { useEffect } from "react";
 import useRoleStore from "../../store/roleStore";
-import useBrgyStore from "../../store/brgyStore";
+import useSettingsStore from "../../store/settingsStore";
 import FormInput from "../Common/FormInput";
 import FormSelect from "../Common/FormSelect";
 import { optionsAccountStatus } from "../../data/options/optionsAccountStatus";
 
 const UserFilters = ({ filters, onFilterChange }) => {
   const { roles, fetchRoles } = useRoleStore();
-  const { barangays, fetchBarangays } = useBrgyStore();
+  const { barangays, fetchBarangays } = useSettingsStore();
 
   useEffect(() => {
     fetchRoles();
     fetchBarangays();
-  }, []);
+  }, [fetchRoles, fetchBarangays]);
 
   const roleOptions = [{ _id: "all", name: "All Roles" }, ...(roles || [])];
   const brgyOptions = [{ _id: "all", name: "All Barangays" }, ...(barangays || [])];

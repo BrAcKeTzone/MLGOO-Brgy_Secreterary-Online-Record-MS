@@ -1,7 +1,6 @@
 import React from "react";
 import Hero from "../components/LandingComp/Hero";
 import LandingLayout from "../components/LandingComp/LandingLayout";
-import Footer from "../components/LandingComp/Footer";
 
 const Landing = () => {
   return (
@@ -10,7 +9,6 @@ const Landing = () => {
         <Hero />
         {/* <LandingLayout /> */}
       </div>
-      <Footer />
     </div>
   );
 };

@@ -91,7 +91,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user && isBarangaySecretary}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             <SubmitReport />
@@ -103,7 +103,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user && isBarangaySecretary}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             <MyReports />
@@ -117,7 +117,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user && isMLGOOStaff}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             <Dashboard />
@@ -129,7 +129,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user && isMLGOOStaff}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             <ManageUsers />
@@ -141,7 +141,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user && isMLGOOStaff}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             <ManageDocuments />
@@ -153,7 +153,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             {isMLGOOStaff ? <AdminNotification /> : <BrgyNotifications />}
@@ -165,7 +165,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user && isMLGOOStaff}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             <Logs />
@@ -177,7 +177,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user && isMLGOOStaff}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             <Settings />
@@ -191,7 +191,7 @@ const AppRouter = () => {
         element={
           <ProtectedRoute
             condition={!!user}
-            redirectTo="/login"
+            redirectTo="/"
             location={location.pathname}
           >
             <Profile />

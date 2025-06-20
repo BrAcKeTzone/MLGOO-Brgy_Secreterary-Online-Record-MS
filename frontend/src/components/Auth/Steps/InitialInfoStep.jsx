@@ -3,7 +3,7 @@ import FormInput from "../../Common/FormInput";
 import FormSelect from "../../Common/FormSelect";
 import ErrorMessage from "../../Common/ErrorMessage";
 import SubmitButton from "../../Common/SubmitButton";
-import useBrgyStore from "../../../store/brgyStore";
+import useSettingsStore from "../../../store/settingsStore";
 import useRoleStore from "../../../store/roleStore";
 
 const InitialInfoStep = ({
@@ -13,7 +13,7 @@ const InitialInfoStep = ({
   handleChange,
   handleSubmit,
 }) => {
-  const { barangays, error: fetchBrgyError, fetchBarangays } = useBrgyStore();
+  const { barangays, error: fetchBrgyError, fetchBarangays } = useSettingsStore();
   const { roles, error: fetchRoleError, fetchRoles } = useRoleStore();
 
   useEffect(() => {

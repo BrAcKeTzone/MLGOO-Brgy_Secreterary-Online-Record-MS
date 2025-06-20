@@ -72,15 +72,15 @@ const useAuthStore = create((set) => ({
   requestOTP: async (email) => {
     set({ loading: true, error: null });
     try {
-      // const { data } = await authAPI.checkEmail(email);
+      const { data } = await authAPI.checkEmail(email);
       set({ 
         loading: false,
         error: null
       });
       return {
         success: true,
-        // email: data.email,
-        // message: data.message
+        email: data.email,
+        message: data.message
       };
     } catch (err) {
       set({
@@ -94,15 +94,15 @@ const useAuthStore = create((set) => ({
   verifyOTP: async (email, otp) => {
     set({ loading: true, error: null });
     try {
-      // const { data } = await authAPI.verifyEmailOtp(email, otp);
+      const { data } = await authAPI.verifyEmailOtp(email, otp);
       set({ 
         loading: false,
         error: null
       });
       return {
         success: true,
-        // verified: data.verified,
-        // message: data.message
+        verified: data.verified,
+        message: data.message
       };
     } catch (err) {
       set({
@@ -116,12 +116,12 @@ const useAuthStore = create((set) => ({
   signup: async (formData) => {
     set({ loading: true, error: null });
     try {
-      // const { data } = await authAPI.signup(formData);
+      const { data } = await authAPI.signup(formData);
       set({ 
         loading: false,
         successMessage: 'Account created successfully! Please wait for admin approval.' 
       });
-      // return data;
+      return data;
     } catch (err) {
       set({
         error: err.response?.data?.message || "Signup failed",
@@ -134,15 +134,15 @@ const useAuthStore = create((set) => ({
   requestPasswordReset: async (email) => {
     set({ loading: true, error: null });
     try {
-      // const { data } = await authAPI.requestPasswordReset(email);
+      const { data } = await authAPI.requestPasswordReset(email);
       set({ 
         loading: false,
         error: null
       });
       return {
         success: true,
-        // email: data.email,
-        // message: data.message || "Reset code sent successfully"
+        email: data.email,
+        message: data.message || "Reset code sent successfully"
       };
     } catch (err) {
       set({
@@ -156,15 +156,15 @@ const useAuthStore = create((set) => ({
   verifyPasswordResetOtp: async (email, otp) => {
     set({ loading: true, error: null });
     try {
-      // const { data } = await authAPI.verifyPasswordResetOtp(email, otp);
+      const { data } = await authAPI.verifyPasswordResetOtp(email, otp);
       set({ 
         loading: false,
         error: null
       });
       return {
         success: true,
-        // verified: data.verified,
-        // message: data.message || "OTP verified successfully"
+        verified: data.verified,
+        message: data.message || "OTP verified successfully"
       };
     } catch (err) {
       set({
@@ -178,14 +178,14 @@ const useAuthStore = create((set) => ({
   resetPassword: async (email, newPassword) => {
     set({ loading: true, error: null });
     try {
-      // const { data } = await authAPI.resetPassword(email, newPassword);
+      const { data } = await authAPI.resetPassword(email, newPassword);
       set({ 
         loading: false,
         error: null
       });
       return {
         success: true,
-        // message: data.message || "Password reset successfully"
+        message: data.message || "Password reset successfully"
       };
     } catch (err) {
       set({
