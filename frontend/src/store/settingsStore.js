@@ -208,10 +208,10 @@ const useSettingsStore = create((set) => ({
     set({ loading: true });
     try {
       await settingsAPI.deletePrivacyPolicySection(id);
-      set(state => ({
-        privacyPolicy: state.privacyPolicy.filter(section => section.id !== id),
-        loading: false
-      }));
+      
+      // Fetch updated data from server instead of filtering locally
+      // This ensures we get the correctly reordered sections from the backend
+      await useSettingsStore.getState().fetchPrivacyPolicy();
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;
@@ -221,12 +221,11 @@ const useSettingsStore = create((set) => ({
   deleteTermsOfServiceSection: async (id) => {
     set({ loading: true });
     try {
-      console.log(id);
       await settingsAPI.deleteTermsOfServiceSection(id);
-      set(state => ({
-        termsOfService: state.termsOfService.filter(section => section.id !== id),
-        loading: false
-      }));
+      
+      // Fetch updated data from server instead of filtering locally
+      // This ensures we get the correctly reordered sections from the backend
+      await useSettingsStore.getState().fetchTermsOfService();
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;

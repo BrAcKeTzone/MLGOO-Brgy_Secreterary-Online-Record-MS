@@ -248,10 +248,31 @@ exports.deletePrivacyPolicySection = async (req, res) => {
     if (!existingSection) {
       return res.status(404).json({ message: 'Privacy policy section not found' });
     }
-    
+
+    // Delete the section
     await prisma.privacyPolicy.delete({
       where: { id: Number(id) }
     });
+    
+    // Get remaining sections ordered by their current order
+    const remainingSections = await prisma.privacyPolicy.findMany({
+      orderBy: { order: 'asc' }
+    });
+    
+    // If there are remaining sections, reorder them sequentially from 1
+    if (remainingSections.length > 0) {
+      await prisma.$transaction(
+        remainingSections.map((section, index) => 
+          prisma.privacyPolicy.update({
+            where: { id: section.id },
+            data: { 
+              order: index + 1,
+              updatedAt: new Date()
+            }
+          })
+        )
+      );
+    }
     
     res.status(204).send();
   } catch (error) {
@@ -420,9 +441,30 @@ exports.deleteTermsOfServiceSection = async (req, res) => {
       return res.status(404).json({ message: 'Terms of service section not found' });
     }
     
+    // Delete the section
     await prisma.termsOfService.delete({
       where: { id: Number(id) }
     });
+
+    // Get remaining sections ordered by their current order
+    const remainingSections = await prisma.termsOfService.findMany({
+      orderBy: { order: 'asc' }
+    });
+    
+    // If there are remaining sections, reorder them sequentially from 1
+    if (remainingSections.length > 0) {
+      await prisma.$transaction(
+        remainingSections.map((section, index) => 
+          prisma.termsOfService.update({
+            where: { id: section.id },
+            data: { 
+              order: index + 1,
+              updatedAt: new Date()
+            }
+          })
+        )
+      );
+    }
     
     res.status(204).send();
   } catch (error) {
