@@ -47,6 +47,11 @@ const ModalForgotPass = ({ isOpen, onClose, onBackToLogin, isMobile }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Special handler for OTP input
+  const handleOtpChange = (value) => {
+    setForm((prev) => ({ ...prev, otp: value }));
+  };
+
   // Validate passwords when either password field changes
   useEffect(() => {
     if (form.password || form.confirmPassword) {
@@ -158,18 +163,23 @@ const ModalForgotPass = ({ isOpen, onClose, onBackToLogin, isMobile }) => {
         )}
 
         {step === 2 && (
-          <form onSubmit={handleVerifyOTP} className="space-y-6">
+          <form
+            onSubmit={handleVerifyOTP}
+            className="max-w-md mx-auto space-y-6 bg-white p-8 rounded-lg shadow-md text-gray-700"
+          >
             <div>
-              <label className="block text-white text-sm font-semibold mb-2">
+              <label className="block text-gray-600 text-sm font-semibold mb-2">
                 Enter Verification Code
               </label>
-              <p className="text-sm text-gray-300 mb-4">
+              <p className="text-sm text-gray-600 mb-4">
                 We sent a verification code to {form.email}
               </p>
               <OTPInput
-                value={form.otp}
-                onChange={(value) =>
-                  setForm((prev) => ({ ...prev, otp: value }))
+                value={form.otp || ""}
+                onChange={(e) =>
+                  handleChange({
+                    target: { name: "otp", value: e.target.value },
+                  })
                 }
               />
             </div>
@@ -195,11 +205,14 @@ const ModalForgotPass = ({ isOpen, onClose, onBackToLogin, isMobile }) => {
         )}
 
         {step === 3 && (
-          <form onSubmit={handleResetPassword} className="space-y-6">
-            <h2 className="text-xl font-semibold text-white">
+          <form
+            onSubmit={handleResetPassword}
+            className="max-w-md mx-auto space-y-6 bg-white p-8 rounded-lg shadow-md text-gray-700"
+          >
+            <h2 className="text-xl font-semibold text-gray-600">
               Create New Password
             </h2>
-            <p className="text-sm text-gray-300 mb-4">
+            <p className="text-sm text-gray-600 mb-4">
               Please enter your new password
             </p>
 
@@ -249,7 +262,7 @@ const ModalForgotPass = ({ isOpen, onClose, onBackToLogin, isMobile }) => {
         )}
 
         {step === 4 && (
-          <div className="text-center space-y-6">
+          <div className="max-w-md mx-auto space-y-6 bg-white p-8 rounded-lg shadow-md text-gray-700 text-center">
             <div className="text-green-500 mb-4">
               <svg
                 className="w-16 h-16 mx-auto"
@@ -265,10 +278,10 @@ const ModalForgotPass = ({ isOpen, onClose, onBackToLogin, isMobile }) => {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-white">
+            <h2 className="text-xl font-semibold text-gray-600">
               Password Reset Successful
             </h2>
-            <p className="text-gray-300">
+            <p className="text-gray-600">
               Your password has been successfully reset. You can now login with
               your new password.
             </p>

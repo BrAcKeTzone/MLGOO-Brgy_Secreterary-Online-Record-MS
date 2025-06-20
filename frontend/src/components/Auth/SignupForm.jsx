@@ -8,7 +8,7 @@ import SignupSuccessModal from "./Modals/SignupSuccessModal";
 import { validatePassword } from "../../utils/passwordUtils";
 
 const SignupForm = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { requestOTP, verifyOTP, signup, loading, error } = useAuthStore();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
@@ -34,10 +34,6 @@ const SignupForm = () => {
       setForm((prev) => ({ ...prev, [name]: files[0] }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
-    }
-
-    if (name === "password" || name === "confirmPassword") {
-      setPasswordError("");
     }
   };
 

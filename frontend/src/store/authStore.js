@@ -185,7 +185,7 @@ const useAuthStore = create((set) => ({
       });
       return {
         success: true,
-        message: data.message || "Password reset successfully"
+        // message: data.message || "Password reset successfully"
       };
     } catch (err) {
       set({

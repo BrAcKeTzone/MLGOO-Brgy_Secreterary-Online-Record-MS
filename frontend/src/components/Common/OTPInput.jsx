@@ -1,16 +1,22 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
-const OTPInput = ({ value, onChange, length = 6 }) => {
-  const [otp, setOtp] = useState(value.split(""));
+const OTPInput = ({ value = "", onChange, length = 6 }) => {
+  // Ensure value is a string before splitting
+  const [otp, setOtp] = useState((value || "").toString().split(""));
   const inputRefs = useRef([]);
 
+  // Update internal state when value prop changes
+  useEffect(() => {
+    setOtp((value || "").toString().split(""));
+  }, [value]);
+
   const handleChange = (index, e) => {
-    const value = e.target.value;
-    if (isNaN(value)) return;
+    const inputValue = e.target.value;
+    if (isNaN(inputValue)) return;
 
     const newOtp = [...otp];
     // Take only the last digit if multiple digits are pasted
-    newOtp[index] = value.slice(-1);
+    newOtp[index] = inputValue.slice(-1);
     setOtp(newOtp);
 
     // Combine the OTP digits and call the onChange handler
@@ -18,7 +24,7 @@ const OTPInput = ({ value, onChange, length = 6 }) => {
     onChange({ target: { name: "otp", value: otpValue } });
 
     // Move to next input if value is entered
-    if (value && index < length - 1) {
+    if (inputValue && index < length - 1) {
       inputRefs.current[index + 1].focus();
     }
   };
