@@ -108,22 +108,31 @@ export const profileAPI = {
 };
 
 export const settingsAPI = {
+  // Barangays
   fetchBarangays: () => api.get('/settings/barangays'),
   updateBarangay: (id, updates) => api.put(`/settings/barangays/${id}`, updates),
   createBarangay: (barangay) => api.post('/settings/barangays', barangay),
   deleteBarangay: (id) => api.delete(`/settings/barangays/${id}`),
 
-
+  // Report Types
   fetchReportTypes: () => api.get('/settings/report-types'),
   updateReportType: (id, updates) => api.put(`/settings/report-types/${id}`, updates),
   createReportType: (reportType) => api.post('/settings/report-types', reportType),
   deleteReportType: (id) => api.delete(`/settings/report-types/${id}`),
 
+  // Privacy Policy
   fetchPrivacyPolicy: () => api.get('/settings/privacy-policy'),
-  updatePrivacyPolicy: (updates) => api.put('/settings/privacy-policy', { updates }),
+  createPrivacyPolicySection: (sectionData) => api.post('/settings/privacy-policy', sectionData),
+  updatePrivacyPolicySection: (id, updates) => api.put(`/settings/privacy-policy/${id}`, updates),
+  deletePrivacyPolicySection: (id) => api.delete(`/settings/privacy-policy/${id}`),
+  reorderPrivacyPolicySections: (sections) => api.post('/settings/privacy-policy/reorder', sections),
 
+  // Terms of Service
   fetchTermsOfService: () => api.get('/settings/terms-of-service'),
-  updateTermsOfService: (updates) => api.put('/settings/terms-of-service', { updates }),
+  createTermsOfServiceSection: (sectionData) => api.post('/settings/terms-of-service', sectionData),
+  updateTermsOfServiceSection: (id, updates) => api.put(`/settings/terms-of-service/${id}`, updates),
+  deleteTermsOfServiceSection: (id) => api.delete(`/settings/terms-of-service/${id}`),
+  reorderTermsOfServiceSections: (sections) => api.post('/settings/terms-of-service/reorder', sections),
 };
 
 export default api;

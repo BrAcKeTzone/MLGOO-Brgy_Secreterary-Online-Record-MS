@@ -10,6 +10,7 @@ import useSettingsStore from "../store/settingsStore";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("reports");
+  const [initLoading, setInitLoading] = useState(true);
   const {
     reportTypes,
     barangays,
@@ -17,16 +18,19 @@ const Settings = () => {
     termsOfService,
     loading,
     error,
-    updateReportType,
-    updateBarangay,
-    updatePrivacyPolicy,
-    updateTermsOfService,
     initialize,
   } = useSettingsStore();
 
   useEffect(() => {
     const loadSettings = async () => {
-      await initialize();
+      setInitLoading(true);
+      try {
+        await initialize();
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      } finally {
+        setInitLoading(false);
+      }
     };
     loadSettings();
   }, [initialize]);
@@ -44,26 +48,27 @@ const Settings = () => {
         return (
           <ReportTypesPanel
             reportTypes={reportTypes}
-            onUpdate={updateReportType}
+            useSettingsStore={useSettingsStore}
           />
         );
       case "barangays":
         return (
-          <BarangaysPanel barangays={barangays} onUpdate={updateBarangay} />
+          <BarangaysPanel
+            barangays={barangays}
+            useSettingsStore={useSettingsStore}
+          />
         );
       case "privacy":
         return (
           <PrivacyPanel
-            policy={privacyPolicy}
-            onUpdate={updatePrivacyPolicy}
+            privacyPolicy={privacyPolicy}
             useSettingsStore={useSettingsStore}
           />
         );
       case "terms":
         return (
           <TermsPanel
-            terms={termsOfService}
-            onUpdate={updateTermsOfService}
+            termsOfService={termsOfService}
             useSettingsStore={useSettingsStore}
           />
         );
@@ -72,11 +77,13 @@ const Settings = () => {
     }
   };
 
-  if (loading) {
+  // Only show loading screen during initial load
+  if (initLoading) {
     return <LoadingScreen message="Loading settings..." />;
   }
+
   if (error) {
-    return <ErrorScreen error={error} />;
+    return <ErrorScreen error={error} retryAction={initialize} />;
   }
 
   return (
@@ -108,6 +115,11 @@ const Settings = () => {
           {/* Content Area */}
           <div className="md:col-span-3">
             <div className="bg-white rounded-lg shadow p-6">
+              {loading && (
+                <div className="absolute inset-0 bg-white bg-opacity-75 z-10 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-t-blue-500 border-b-blue-700 border-gray-200"></div>
+                </div>
+              )}
               {renderTabContent()}
             </div>
           </div>

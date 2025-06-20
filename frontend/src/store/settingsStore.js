@@ -1,12 +1,11 @@
-/*************  ✨ Windsurf Command 🌟  *************/
 import { create } from 'zustand';
 import { settingsAPI } from '../services/api';
 
 const useSettingsStore = create((set) => ({
   reportTypes: [],
   barangays: [],
-  privacyPolicy: {},
-  termsOfService: {},
+  privacyPolicy: [],
+  termsOfService: [],
   loading: false,
   error: null,
 
@@ -23,8 +22,8 @@ const useSettingsStore = create((set) => ({
       set({
         barangays: barangays.data.barangays,
         reportTypes: reportTypes.data.reportTypes,
-        privacyPolicy: Object.fromEntries(privacy.data.privacyPolicy.map(p => [p.section, p.content])),
-        termsOfService: Object.fromEntries(terms.data.termsOfService.map(t => [t.section, t.content])),
+        privacyPolicy: privacy.data.privacyPolicy || [],
+        termsOfService: terms.data.termsOfService || [],
         loading: false,
         error: null
       });
@@ -32,19 +31,21 @@ const useSettingsStore = create((set) => ({
       set({ error: error.message, loading: false });
     }
   },
+  
   createBarangay: async (barangay) => {
-  set({ loading: true });
-  try {
-    const { data } = await settingsAPI.createBarangay(barangay);
-    set(state => ({
-      barangays: [...state.barangays, data.barangay],
-      loading: false
-    }));
-  } catch (error) {
-    set({ error: error.message, loading: false });
-    throw error;
-  }
-},
+    set({ loading: true });
+    try {
+      const { data } = await settingsAPI.createBarangay(barangay);
+      set(state => ({
+        barangays: [...state.barangays, data.barangay],
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+  
   createReportType: async (newReportType) => {
     set({ loading: true });
     try {
@@ -53,6 +54,38 @@ const useSettingsStore = create((set) => ({
         reportTypes: [...state.reportTypes, reportType],
         loading: false
       }));
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  // Create new section for Privacy Policy
+  createPrivacyPolicySection: async (sectionData) => {
+    set({ loading: true });
+    try {
+      const { data } = await settingsAPI.createPrivacyPolicySection(sectionData);
+      set(state => ({
+        privacyPolicy: [...state.privacyPolicy, data.section],
+        loading: false
+      }));
+      return data.section;
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  // Create new section for Terms of Service
+  createTermsOfServiceSection: async (sectionData) => {
+    set({ loading: true });
+    try {
+      const { data } = await settingsAPI.createTermsOfServiceSection(sectionData);
+      set(state => ({
+        termsOfService: [...state.termsOfService, data.section],
+        loading: false
+      }));
+      return data.section;
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;
@@ -84,7 +117,10 @@ const useSettingsStore = create((set) => ({
     set({ loading: true });
     try {
       const { data } = await settingsAPI.fetchPrivacyPolicy();
-      set({ privacyPolicy: Object.fromEntries(data.privacyPolicy.map(p => [p.section, p.content])), loading: false });
+      set({ 
+        privacyPolicy: data.privacyPolicy || [], 
+        loading: false 
+      });
     } catch (error) {
       set({ error: error.message, loading: false });
     }
@@ -94,7 +130,10 @@ const useSettingsStore = create((set) => ({
     set({ loading: true });
     try {
       const { data } = await settingsAPI.fetchTermsOfService();
-      set({ termsOfService: Object.fromEntries(data.termsOfService.map(t => [t.section, t.content])), loading: false });
+      set({ 
+        termsOfService: data.termsOfService || [], 
+        loading: false 
+      });
     } catch (error) {
       set({ error: error.message, loading: false });
     }
@@ -131,23 +170,93 @@ const useSettingsStore = create((set) => ({
     }
   },
 
-  updatePrivacyPolicy: async (updates) => {
+  updatePrivacyPolicySection: async (id, updates) => {
     set({ loading: true });
     try {
-      const { data } = await settingsAPI.updatePrivacyPolicy(updates);
-      set({ privacyPolicy: Object.fromEntries(data.privacyPolicy.map(p => [p.section, p.content])), loading: false });
+      const { data } = await settingsAPI.updatePrivacyPolicySection(id, updates);
+      set(state => ({
+        privacyPolicy: state.privacyPolicy.map(section => 
+          section.id === data.section.id ? data.section : section
+        ),
+        loading: false
+      }));
+      return data.section;
     } catch (error) {
       set({ error: error.message, loading: false });
+      throw error;
     }
   },
 
-  updateTermsOfService: async (updates) => {
+  updateTermsOfServiceSection: async (id, updates) => {
     set({ loading: true });
     try {
-      const { data } = await settingsAPI.updateTermsOfService(updates);
-      set({ termsOfService: Object.fromEntries(data.termsOfService.map(t => [t.section, t.content])), loading: false });
+      const { data } = await settingsAPI.updateTermsOfServiceSection(id, updates);
+      set(state => ({
+        termsOfService: state.termsOfService.map(section => 
+          section.id === data.section.id ? data.section : section
+        ),
+        loading: false
+      }));
+      return data.section;
     } catch (error) {
       set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  deletePrivacyPolicySection: async (id) => {
+    set({ loading: true });
+    try {
+      await settingsAPI.deletePrivacyPolicySection(id);
+      set(state => ({
+        privacyPolicy: state.privacyPolicy.filter(section => section.id !== id),
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  deleteTermsOfServiceSection: async (id) => {
+    set({ loading: true });
+    try {
+      console.log(id);
+      await settingsAPI.deleteTermsOfServiceSection(id);
+      set(state => ({
+        termsOfService: state.termsOfService.filter(section => section.id !== id),
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+  
+  reorderPrivacyPolicySections: async (sections) => {
+    set({ loading: true });
+    try {
+      await settingsAPI.reorderPrivacyPolicySections({ sections });
+      // After reordering, fetch to get the updated order
+      await useSettingsStore.getState().fetchPrivacyPolicy();
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  reorderTermsOfServiceSections: async (sections) => {
+    set({ loading: true });
+    try {
+      // Send the array of sections with the correct format required by the backend
+      await settingsAPI.reorderTermsOfServiceSections({ sections });
+      // Set loading to false after API call completes
+      set({ loading: false });
+      // After reordering, refresh the data
+      await useSettingsStore.getState().fetchTermsOfService();
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
     }
   },
 
@@ -166,19 +275,18 @@ const useSettingsStore = create((set) => ({
   },
 
   deleteReportType: async (id) => {
-  set({ loading: true });
-  try {
-    await settingsAPI.deleteReportType(id);
-    set(state => ({
-      reportTypes: state.reportTypes.filter(rt => rt.id !== id),
-      loading: false
-    }));
-  } catch (error) {
-    set({ error: error.message, loading: false });
-    throw error;
-  }
-},
+    set({ loading: true });
+    try {
+      await settingsAPI.deleteReportType(id);
+      set(state => ({
+        reportTypes: state.reportTypes.filter(rt => rt.id !== id),
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
 }));
 
 export default useSettingsStore;
-/*******  b98886ab-36cf-4a0d-9cba-eba0af998511  *******/
