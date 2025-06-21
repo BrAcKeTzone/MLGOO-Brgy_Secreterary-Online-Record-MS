@@ -50,8 +50,14 @@ const useSettingsStore = create((set) => ({
     set({ loading: true });
     try {
       const { data } = await settingsAPI.fetchActiveValidIDTypes();
-      set({ validIDTypes: data.validIDTypes, loading: false });
+      // Make sure descriptions are included
+      const validIDTypesWithDescriptions = data.validIDTypes.map(idType => ({
+        ...idType,
+        description: idType.description || "No additional information available."
+      }));
+      set({ validIDTypes: validIDTypesWithDescriptions, loading: false });
     } catch (error) {
+      console.error('Error fetching active valid ID types:', error);
       set({ error: error.message, loading: false });
     }
   },

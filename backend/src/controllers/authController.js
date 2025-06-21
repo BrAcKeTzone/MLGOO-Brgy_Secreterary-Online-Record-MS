@@ -108,6 +108,7 @@ exports.signup = async (req, res) => {
       dateOfBirth, 
       role,
       assignedBrgy, // This is the barangay ID from frontend
+      validIDTypeId, // New field for the ID type
       nationalIdFront,
       nationalIdBack
     } = req.body;
@@ -133,6 +134,32 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
+    // Check if the provided validIDTypeId exists
+    if (validIDTypeId) {
+      const idType = await prisma.validIDType.findUnique({
+        where: { id: Number(validIDTypeId) }
+      });
+      
+      if (!idType) {
+        return res.status(400).json({ message: 'Invalid ID type selected' });
+      }
+      
+      if (!idType.isActive) {
+        return res.status(400).json({ message: 'The selected ID type is currently not accepted' });
+      }
+    }
+
+    // Check if the provided barangay exists (for BARANGAY_SECRETARY role)
+    if (role === 'BARANGAY_SECRETARY' && assignedBrgy) {
+      const barangay = await prisma.barangay.findUnique({
+        where: { id: Number(assignedBrgy) }
+      });
+      
+      if (!barangay) {
+        return res.status(400).json({ message: 'Invalid barangay selected' });
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Check if this is the first MLGOO_STAFF
@@ -151,7 +178,7 @@ exports.signup = async (req, res) => {
       }
     }
     
-    // Prepare user data object - WITHOUT assignedBrgy field
+    // Prepare user data object
     const userData = {
       email,
       password: hashedPassword,
@@ -170,6 +197,12 @@ exports.signup = async (req, res) => {
       console.log("Setting barangayId to:", brgyId);
       userData.barangayId = brgyId;
     }
+
+    // Add validIDTypeId if provided
+    if (validIDTypeId) {
+      userData.validIDTypeId = parseInt(validIDTypeId, 10);
+      console.log("Setting validIDTypeId to:", userData.validIDTypeId);
+    }
     
     // Handle ID document URLs if available 
     if (nationalIdFront?.url) {
@@ -185,7 +218,11 @@ exports.signup = async (req, res) => {
     console.log("Final userData being sent to database:", userData);
 
     const user = await prisma.user.create({
-      data: userData
+      data: userData,
+      include: {
+        assignedBrgy: true,
+        validIDType: true,
+      },
     });
 
     // Send welcome email with appropriate status notification
@@ -196,18 +233,26 @@ exports.signup = async (req, res) => {
       await sendWelcomeEmail(email, `${firstName} ${lastName}`, role);
     }
 
+    // Prepare the response object, removing sensitive information
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      creationStatus: user.creationStatus,
+      activeStatus: user.activeStatus,
+      barangayId: user.barangayId,
+      barangay: user.assignedBrgy?.name,
+      validIDTypeId: user.validIDTypeId,
+      validIDType: user.validIDType?.name
+    };
+
     res.status(201).json({ 
       message: creationStatus === 'APPROVED' 
         ? 'Account created successfully. You can now log in.'
         : 'Account created successfully. Please wait for admin approval.',
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        creationStatus: user.creationStatus,
-        activeStatus: user.activeStatus,
-        barangayId: user.barangayId
-      }
+      user: userResponse
     });
 
     // After successful user creation, cleanup used OTPs
@@ -233,16 +278,9 @@ exports.login = async (req, res) => {
 
     const user = await prisma.user.findUnique({ 
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        password: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        creationStatus: true,
-        activeStatus: true,
-        barangayId: true
+      include: {
+        assignedBrgy: true,
+        validIDType: true
       }
     });
 
@@ -255,7 +293,6 @@ exports.login = async (req, res) => {
       await sendAccountPendingEmail(email, `${user.firstName} ${user.lastName}`);
       return res.status(403).json({ 
         message: 'Your account is pending approval. Please check your email.',
-        
       });
     }
 
@@ -263,7 +300,6 @@ exports.login = async (req, res) => {
       await sendAccountDeactivatedEmail(email, `${user.firstName} ${user.lastName}`);
       return res.status(403).json({ 
         message: 'Your account is deactivated. Please contact the administrator.',
-        
       });
     }
 
@@ -283,12 +319,26 @@ exports.login = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    // Create user response without sensitive data
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      creationStatus: user.creationStatus,
+      activeStatus: user.activeStatus,
+      barangayId: user.barangayId,
+      barangay: user.assignedBrgy?.name,
+      validIDTypeId: user.validIDTypeId,
+      validIDType: user.validIDType?.name,
+      validIDFrontUrl: user.validIDFrontUrl,
+      validIDBackUrl: user.validIDBackUrl
+    };
 
     res.status(200).json({
       token,
-      user: userWithoutPassword
+      user: userResponse
     });
 
   } catch (error) {
@@ -310,15 +360,9 @@ exports.getCurrentUser = async (req, res) => {
     
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        creationStatus: true,
-        activeStatus: true,
-        barangayId: true
+      include: {
+        assignedBrgy: true,
+        validIDType: true
       }
     });
 
@@ -335,7 +379,24 @@ exports.getCurrentUser = async (req, res) => {
       return res.status(403).json({ message: 'Account deactivated' });
     }
 
-    res.status(200).json({ user });
+    // Prepare response without sensitive data
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      creationStatus: user.creationStatus,
+      activeStatus: user.activeStatus,
+      barangayId: user.barangayId,
+      barangay: user.assignedBrgy?.name,
+      validIDTypeId: user.validIDTypeId,
+      validIDType: user.validIDType?.name,
+      validIDFrontUrl: user.validIDFrontUrl,
+      validIDBackUrl: user.validIDBackUrl
+    };
+
+    res.status(200).json({ user: userResponse });
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ message: 'Invalid token' });

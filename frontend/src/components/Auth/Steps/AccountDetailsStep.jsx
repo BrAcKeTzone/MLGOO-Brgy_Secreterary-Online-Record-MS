@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PasswordInput from "../../Common/PasswordInput";
 import ErrorMessage from "../../Common/ErrorMessage";
 import SubmitButton from "../../Common/SubmitButton";
 import ImageUploadInput from "../../Common/ImageUploadInput";
+import FormSelect from "../../Common/FormSelect";
 import Modal from "../../Common/ModalPPandTOS";
+import useSettingsStore from "../../../store/settingsStore";
 
 const AccountDetailsStep = ({
   form,
@@ -23,6 +25,31 @@ const AccountDetailsStep = ({
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null);
   const [acceptedPolicies, setAcceptedPolicies] = useState(false);
+  const [selectedIdTypeDescription, setSelectedIdTypeDescription] = useState("");
+
+  // Get valid ID types from settings store
+  const {
+    validIDTypes,
+    fetchActiveValidIDTypes,
+    loading: loadingIDTypes,
+  } = useSettingsStore();
+
+  // Fetch active valid ID types on component mount
+  useEffect(() => {
+    fetchActiveValidIDTypes();
+  }, [fetchActiveValidIDTypes]);
+
+  // Update description when ID type changes
+  useEffect(() => {
+    if (form.validIDTypeId && validIDTypes.length > 0) {
+      const selectedType = validIDTypes.find(
+        (type) => type.id === parseInt(form.validIDTypeId, 10) || type.id === form.validIDTypeId
+      );
+      setSelectedIdTypeDescription(selectedType?.description || "");
+    } else {
+      setSelectedIdTypeDescription("");
+    }
+  }, [form.validIDTypeId, validIDTypes]);
 
   const handleImageChange = (e) => {
     const { name, files } = e.target;
@@ -53,10 +80,19 @@ const AccountDetailsStep = ({
   const isFormValid =
     form.password &&
     form.confirmPassword &&
+    form.validIDTypeId &&
     form.nationalIdFront &&
     form.nationalIdBack &&
     acceptedPolicies &&
     !passwordError;
+
+  // Format validIDTypes for the FormSelect component
+  const formattedIDTypes = validIDTypes
+    .filter((idType) => idType.isActive) // Only show active ID types
+    .map((idType) => ({
+      id: idType.id,
+      name: idType.name,
+    }));
 
   return (
     <form
@@ -68,6 +104,25 @@ const AccountDetailsStep = ({
         <p className="text-sm text-gray-500 mb-4">
           Please upload clear images of your valid government-issued ID
         </p>
+
+        <div className="space-y-2">
+          <FormSelect
+            label="ID Type"
+            name="validIDTypeId"
+            value={form.validIDTypeId || ""}
+            onChange={handleChange}
+            required
+            options={formattedIDTypes}
+            placeholder="Select ID type"
+            error={loadingIDTypes ? "Loading ID types..." : ""}
+          />
+
+          {selectedIdTypeDescription && (
+            <div className="text-sm text-gray-600 italic px-2 py-1 bg-gray-50 rounded-md">
+              {selectedIdTypeDescription}
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ImageUploadInput

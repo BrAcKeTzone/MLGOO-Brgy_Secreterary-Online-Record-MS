@@ -46,6 +46,8 @@ model User {
   activeStatus         ActiveStatus?
   assignedBrgy         Barangay?      @relation(fields: [barangayId], references: [id])
   barangayId           Int?
+  validIDType          ValidIDType?   @relation(fields: [validIDTypeId], references: [id])
+  validIDTypeId        Int?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   reports              Report[]
@@ -136,8 +138,9 @@ model TermsOfService {
 model ValidIDType {
   id          Int      @id @default(autoincrement())
   name        String   @unique
-  description String?  // Add this line - the ? makes it optional
+  description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  users       User[]
 }

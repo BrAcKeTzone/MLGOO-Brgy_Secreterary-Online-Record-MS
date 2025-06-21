@@ -21,6 +21,7 @@ const SignupForm = () => {
     password: "",
     confirmPassword: "",
     dateOfBirth: "",
+    validIDTypeId: "", // Added validIDTypeId field
     nationalIdFront: null,
     nationalIdBack: null,
   });
