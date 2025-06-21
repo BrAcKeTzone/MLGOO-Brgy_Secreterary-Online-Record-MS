@@ -84,9 +84,10 @@ export const homeAPI = {
 
 // User Management API endpoints
 export const userAPI = {
-  fetchUsers: () => api.get('/users'),
-  updateUserStatus: (userId, status) => 
-    api.patch(`/users/${userId}/status`, { status }),
+  fetchUsers: (queryString = '') => 
+    api.get(`/users?${queryString}`),
+  updateUserStatus: (userId, { status, activeStatus }) => 
+    api.patch(`/users/${userId}/status`, { status, activeStatus }),
   deleteUser: (userId) => 
     api.delete(`/users/${userId}`),
   updateUser: (userId, data) => 
@@ -108,6 +109,22 @@ export const profileAPI = {
 };
 
 export const settingsAPI = {
+  // Valid ID Types
+  fetchValidIDTypes: () => api.get('/settings/valid-id-types'),
+  fetchActiveValidIDTypes: () => api.get('/settings/valid-id-types/active'),
+  createValidIDType: (validIDType) => api.post('/settings/valid-id-types', validIDType),
+  updateValidIDType: (id, updates) => api.put(`/settings/valid-id-types/${id}`, updates),
+  deleteValidIDType: (id) => {
+    console.log("API called to delete ID type:", id);
+    return api.delete(`/settings/valid-id-types/${id}`)
+      .then(response => {
+        // If successful, return a resolved promise
+        console.log("Delete successful, status:", response.status);
+        return Promise.resolve({ success: true });
+      });
+  },
+  toggleValidIDTypeStatus: (id) => api.patch(`/settings/valid-id-types/${id}/toggle`),
+  
   // Barangays
   fetchBarangays: () => api.get('/settings/barangays'),
   updateBarangay: (id, updates) => api.put(`/settings/barangays/${id}`, updates),

@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaSave, FaTimes } from "react-icons/fa";
 import FormInput from "../Common/FormInput";
-import useSettingsStore from "../../store/settingsStore";
 
-const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
-  const createReportType = useSettingsStore((state) => state.createReportType);
-  const deleteReportType = useSettingsStore((state) => state.deleteReportType);
+const ReportTypesPanel = ({ reportTypes, useSettingsStore }) => {
+  const {
+    createReportType,
+    updateReportType,
+    deleteReportType,
+    loading,
+  } = useSettingsStore();
+
   const [editingType, setEditingType] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
@@ -14,24 +18,57 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
     shortName: "",
   });
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isAdding) {
-      // Add new report type
-      await createReportType({ name: formData.name, shortName: formData.shortName });
-      setIsAdding(false);
-      setFormData({ id: "", name: "", shortName: "" });
-    } else {
-      // Update existing report type
-      onUpdate(formData.id, { name: formData.name, shortName: formData.shortName });
-      setEditingType(null);
-      setFormData({ id: "", name: "", shortName: "" });
+    try {
+      if (isAdding) {
+        // Add new report type
+        await createReportType({
+          name: formData.name,
+          shortName: formData.shortName,
+        });
+        setIsAdding(false);
+        resetForm();
+      } else {
+        // Update existing report type
+        await updateReportType(formData.id, {
+          name: formData.name,
+          shortName: formData.shortName,
+        });
+        setEditingType(null);
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Error saving report type:", error);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const resetForm = () => {
+    setFormData({
+      id: "",
+      name: "",
+      shortName: "",
+    });
+    setEditingType(null);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this report type?")) {
+      try {
+        await deleteReportType(id);
+      } catch (error) {
+        console.error("Error deleting report type:", error);
+        alert(`Failed to delete: ${error.message || "Unknown error"}`);
+      }
+    }
   };
 
   return (
@@ -44,21 +81,23 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
           disabled={isAdding}
         >
           <FaPlus />
-          <span className="hidden md:inline-block md:text-sm">Report Type</span>
+          <span className="hidden md:inline-block md:text-sm">
+            Add Report Type
+          </span>
         </button>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid md:grid-cols-2 gap-4">
         {/* Add New Report Type Form */}
         {isAdding && (
           <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid gap-4">
                 <FormInput
                   label="Full Name"
                   name="name"
                   value={formData.name}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   required
                   placeholder="Enter full report name"
                 />
@@ -66,7 +105,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                   label="Short Name"
                   name="shortName"
                   value={formData.shortName}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   required
                   placeholder="Enter short name"
                 />
@@ -76,7 +115,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                   type="button"
                   onClick={() => {
                     setIsAdding(false);
-                    setFormData({ id: "", name: "", shortName: "" });
+                    resetForm();
                   }}
                   className="text-gray-600 hover:text-gray-900"
                 >
@@ -84,6 +123,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                 </button>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="text-green-600 hover:text-green-900"
                 >
                   <FaSave className="w-5 h-5" />
@@ -97,14 +137,14 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
         {reportTypes.map((type) => (
           <div key={type.id} className="bg-gray-50 p-4 rounded-lg">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid gap-4">
                 <FormInput
                   label="Full Name"
                   name="name"
                   value={
                     editingType?.id === type.id ? formData.name : type.name
                   }
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   disabled={editingType?.id !== type.id}
                   required
                 />
@@ -116,7 +156,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                       ? formData.shortName
                       : type.shortName
                   }
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   disabled={editingType?.id !== type.id}
                   required
                 />
@@ -134,6 +174,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                     </button>
                     <button
                       type="submit"
+                      disabled={loading}
                       className="text-green-600 hover:text-green-900"
                     >
                       <FaSave className="w-5 h-5" />
@@ -158,11 +199,7 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
                     <button
                       type="button"
                       className="text-red-600 hover:text-red-900"
-                      onClick={async () => {
-                        if (window.confirm("Are you sure you want to delete this report type?")) {
-                          await deleteReportType(type.id);
-                        }
-                      }}
+                      onClick={() => handleDelete(type.id)}
                     >
                       <FaTrash className="w-5 h-5" />
                     </button>
@@ -172,6 +209,12 @@ const ReportTypesPanel = ({ reportTypes, onUpdate }) => {
             </form>
           </div>
         ))}
+
+        {reportTypes.length === 0 && !isAdding && (
+          <div className="bg-white p-4 rounded-lg shadow text-center text-gray-500 md:col-span-2">
+            No report types found. Add some to get started.
+          </div>
+        )}
       </div>
     </div>
   );

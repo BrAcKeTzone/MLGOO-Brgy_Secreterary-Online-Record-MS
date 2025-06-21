@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { convertToNumber } = require('../utils/helpers');
 const prisma = new PrismaClient();
 
 // --- Barangays ---
@@ -527,5 +528,187 @@ exports.reorderTermsOfServiceSections = async (req, res) => {
   } catch (error) {
     console.error('Error reordering terms of service sections:', error);
     res.status(500).json({ message: 'Failed to reorder terms of service sections', error: error.message });
+  }
+};
+
+// --- Valid ID Types ---
+exports.getValidIDTypes = async (req, res) => {
+  try {
+    const validIDTypes = await prisma.validIDType.findMany({
+      orderBy: { name: 'asc' }
+    });
+    res.json({ validIDTypes });
+  } catch (error) {
+    console.error('Error fetching valid ID types:', error);
+    res.status(500).json({ message: 'Failed to fetch valid ID types', error: error.message });
+  }
+};
+
+exports.getActiveValidIDTypes = async (req, res) => {
+  try {
+    const validIDTypes = await prisma.validIDType.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' }
+    });
+    res.json({ validIDTypes });
+  } catch (error) {
+    console.error('Error fetching active valid ID types:', error);
+    res.status(500).json({ message: 'Failed to fetch active valid ID types', error: error.message });
+  }
+};
+
+// Update the createValidIDType function
+exports.createValidIDType = async (req, res) => {
+  try {
+    const { name, description, isActive = true } = req.body;
+    
+    // Validate required fields
+    if (!name) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+    
+    // Check if ID type already exists
+    const existingType = await prisma.validIDType.findFirst({
+      where: {
+        name: {
+          equals: name
+        }
+      }
+    });
+    
+    if (existingType) {
+      return res.status(400).json({ message: 'A valid ID type with this name already exists' });
+    }
+    
+    // Create with description if provided
+    const validIDType = await prisma.validIDType.create({
+      data: { 
+        name,
+        description,
+        isActive,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    });
+    
+    res.status(201).json({ validIDType });
+  } catch (error) {
+    console.error('Error creating valid ID type:', error);
+    res.status(500).json({ message: 'Failed to create valid ID type', error: error.message });
+  }
+};
+
+// Update the updateValidIDType function
+exports.updateValidIDType = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, isActive } = req.body;
+    
+    // Check if ID type exists
+    const existingType = await prisma.validIDType.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!existingType) {
+      return res.status(404).json({ message: 'Valid ID type not found' });
+    }
+    
+    // Check if name already exists 
+    if (name && name.toLowerCase() !== existingType.name.toLowerCase()) {
+      const nameExists = await prisma.validIDType.findFirst({
+        where: { 
+          name: { equals: name },
+          id: { not: Number(id) } // Exclude current record
+        }
+      });
+      
+      if (nameExists) {
+        return res.status(400).json({ message: 'A valid ID type with this name already exists' });
+      }
+    }
+    
+    // Update data object
+    const updateData = {
+      updatedAt: new Date()
+    };
+    
+    if (name) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (isActive !== undefined) updateData.isActive = isActive;
+    
+    const validIDType = await prisma.validIDType.update({
+      where: { id: Number(id) },
+      data: updateData
+    });
+    
+    res.json({ validIDType });
+  } catch (error) {
+    console.error('Error updating valid ID type:', error);
+    res.status(500).json({ message: 'Failed to update valid ID type', error: error.message });
+  }
+};
+
+// Update the deleteValidIDType function
+exports.deleteValidIDType = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Add better ID parsing with error handling
+    const idNumber = convertToNumber(id);
+    
+    if (idNumber === null) {
+      return res.status(400).json({ message: 'Invalid ID format' });
+    }
+    
+    // Check if ID type exists
+    const existingType = await prisma.validIDType.findUnique({
+      where: { id: idNumber }
+    });
+    
+    if (!existingType) {
+      return res.status(404).json({ message: 'Valid ID type not found' });
+    }
+    
+    // Delete the ID type
+    await prisma.validIDType.delete({
+      where: { id: idNumber }
+    });
+    
+    // Log success for debugging
+    console.log(`Successfully deleted ValidIDType with id ${idNumber}`);
+    
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting valid ID type:', error);
+    res.status(500).json({ message: 'Failed to delete valid ID type', error: error.message });
+  }
+};
+
+exports.toggleValidIDTypeStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if ID type exists
+    const existingType = await prisma.validIDType.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!existingType) {
+      return res.status(404).json({ message: 'Valid ID type not found' });
+    }
+    
+    // Toggle active status
+    const validIDType = await prisma.validIDType.update({
+      where: { id: Number(id) },
+      data: { 
+        isActive: !existingType.isActive,
+        updatedAt: new Date()
+      }
+    });
+    
+    res.json({ validIDType });
+  } catch (error) {
+    console.error('Error toggling valid ID type status:', error);
+    res.status(500).json({ message: 'Failed to toggle valid ID type status', error: error.message });
   }
 };

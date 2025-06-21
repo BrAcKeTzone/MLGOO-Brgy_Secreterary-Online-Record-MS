@@ -27,9 +27,14 @@ const FormSelect = ({
           error ? "focus:ring-red-200" : "focus:ring-blue-200"
         } transition-colors ${className}`}
       >
-        <option value="">{placeholder}</option>
+        <option key="placeholder" value="">
+          {placeholder}
+        </option>
         {options.map((option) => (
-          <option key={option._id} value={option._id}>
+          <option
+            key={option.id || option._id || `option-${option.name}`}
+            value={option.id || option._id}
+          >
             {option.name}
           </option>
         ))}

@@ -6,6 +6,7 @@ const useSettingsStore = create((set) => ({
   barangays: [],
   privacyPolicy: [],
   termsOfService: [],
+  validIDTypes: [],
   loading: false,
   error: null,
 
@@ -13,22 +14,139 @@ const useSettingsStore = create((set) => ({
   initialize: async () => {
     set({ loading: true });
     try {
-      const [barangays, reportTypes, privacy, terms] = await Promise.all([
+      const [barangays, reportTypes, privacy, terms, validIDTypes] = await Promise.all([
         settingsAPI.fetchBarangays(),
         settingsAPI.fetchReportTypes(),
         settingsAPI.fetchPrivacyPolicy(),
         settingsAPI.fetchTermsOfService(),
+        settingsAPI.fetchValidIDTypes(),
       ]);
       set({
         barangays: barangays.data.barangays,
         reportTypes: reportTypes.data.reportTypes,
         privacyPolicy: privacy.data.privacyPolicy || [],
         termsOfService: terms.data.termsOfService || [],
+        validIDTypes: validIDTypes.data.validIDTypes || [],
         loading: false,
         error: null
       });
     } catch (error) {
       set({ error: error.message, loading: false });
+    }
+  },
+  
+  // Valid ID Types functions
+  fetchValidIDTypes: async () => {
+    set({ loading: true });
+    try {
+      const { data } = await settingsAPI.fetchValidIDTypes();
+      set({ validIDTypes: data.validIDTypes, loading: false });
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  fetchActiveValidIDTypes: async () => {
+    set({ loading: true });
+    try {
+      const { data } = await settingsAPI.fetchActiveValidIDTypes();
+      set({ validIDTypes: data.validIDTypes, loading: false });
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
+  
+  createValidIDType: async (validIDType) => {
+    set({ loading: true });
+    try {
+      // Ensure we're handling all fields including description
+      const { data } = await settingsAPI.createValidIDType({
+        name: validIDType.name,
+        description: validIDType.description || '',
+        isActive: validIDType.isActive
+      });
+      set(state => ({
+        validIDTypes: [...state.validIDTypes, data.validIDType],
+        loading: false
+      }));
+      return data.validIDType;
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+  
+  updateValidIDType: async (id, updates) => {
+    set({ loading: true });
+    try {
+      // Ensure we're handling all fields including description
+      const { data } = await settingsAPI.updateValidIDType(id, {
+        name: updates.name,
+        description: updates.description || '',
+        isActive: updates.isActive
+      });
+      set(state => ({
+        validIDTypes: state.validIDTypes.map(idType =>
+          idType.id === data.validIDType.id ? data.validIDType : idType
+        ),
+        loading: false
+      }));
+      return data.validIDType;
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+  
+  deleteValidIDType: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      // Convert id to number if it's a string
+      const idToDelete = typeof id === 'string' ? parseInt(id, 10) : id;
+      
+      await settingsAPI.deleteValidIDType(idToDelete);
+      set(state => ({
+        validIDTypes: state.validIDTypes.filter(idType => 
+          // Compare as numbers to avoid string/number mismatch
+          parseInt(idType.id, 10) !== parseInt(idToDelete, 10)
+        ),
+        loading: false,
+        error: null
+      }));
+    } catch (error) {
+      console.error('Error deleting valid ID type:', error);
+      set({ 
+        error: error.response?.data?.message || error.message || 'Failed to delete ID type', 
+        loading: false 
+      });
+      throw error;
+    }
+  },
+
+  toggleValidIDTypeStatus: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      // Convert id to number if it's a string
+      const idToToggle = typeof id === 'string' ? parseInt(id, 10) : id;
+      
+      const { data } = await settingsAPI.toggleValidIDTypeStatus(idToToggle);
+      
+      set(state => ({
+        validIDTypes: state.validIDTypes.map(idType => 
+          idType.id === data.validIDType.id ? data.validIDType : idType
+        ),
+        loading: false,
+        error: null
+      }));
+      
+      return data.validIDType;
+    } catch (error) {
+      console.error('Error toggling valid ID type status:', error);
+      set({ 
+        error: error.response?.data?.message || error.message || 'Failed to toggle ID type status', 
+        loading: false 
+      });
+      throw error;
     }
   },
   
@@ -107,7 +225,13 @@ const useSettingsStore = create((set) => ({
     set({ loading: true });
     try {
       const { data } = await settingsAPI.fetchBarangays();
-      set({ barangays: data.barangays, loading: false });
+      // Ensure each barangay has both id and _id fields for compatibility
+      const formattedBarangays = data.barangays.map(brgy => ({
+        ...brgy,
+        id: brgy.id || brgy._id, // Ensure id exists
+        _id: brgy._id || brgy.id, // Ensure _id exists
+      }));
+      set({ barangays: formattedBarangays, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
     }

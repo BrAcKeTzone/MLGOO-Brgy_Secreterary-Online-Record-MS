@@ -29,4 +29,12 @@ router.put('/terms-of-service/:id', settingController.updateTermsOfServiceSectio
 router.delete('/terms-of-service/:id', settingController.deleteTermsOfServiceSection);
 router.post('/terms-of-service/reorder', settingController.reorderTermsOfServiceSections);
 
+// --- Valid ID Types ---
+router.get('/valid-id-types', settingController.getValidIDTypes);
+router.get('/valid-id-types/active', settingController.getActiveValidIDTypes);
+router.post('/valid-id-types', settingController.createValidIDType);
+router.put('/valid-id-types/:id', settingController.updateValidIDType);
+router.delete('/valid-id-types/:id', settingController.deleteValidIDType);
+router.patch('/valid-id-types/:id/toggle', settingController.toggleValidIDTypeStatus);
+
 module.exports = router;

@@ -21,6 +21,20 @@ const InitialInfoStep = ({
     fetchRoles();
   }, [fetchBarangays, fetchRoles]);
 
+  // Format barangays to ensure they have proper id structure
+  const formattedBarangays = barangays.map((brgy) => ({
+    _id: brgy.id || brgy._id,
+    id: brgy.id || brgy._id, // Ensure both formats exist
+    name: brgy.name,
+  }));
+
+  // Format roles to ensure they have proper id structure
+  const formattedRoles = roles.map((role) => ({
+    _id: role.id || role._id,
+    id: role.id || role._id, // Ensure both formats exist
+    name: role.name,
+  }));
+
   const isFormValid =
     form.email &&
     form.role &&
@@ -53,7 +67,7 @@ const InitialInfoStep = ({
         value={form.role}
         onChange={handleChange}
         required
-        options={roles}
+        options={formattedRoles}
         placeholder="Select your role"
         error={fetchRoleError}
       />
@@ -65,7 +79,7 @@ const InitialInfoStep = ({
           value={form.assignedBrgy}
           onChange={handleChange}
           required
-          options={barangays}
+          options={formattedBarangays}
           placeholder="Select a barangay"
           error={fetchBrgyError}
         />

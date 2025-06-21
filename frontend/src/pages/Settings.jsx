@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { FaFileAlt, FaBuilding, FaShieldAlt, FaGavel } from "react-icons/fa";
+import {
+  FaFileAlt,
+  FaBuilding,
+  FaShieldAlt,
+  FaGavel,
+  FaIdCard,
+} from "react-icons/fa";
 import ReportTypesPanel from "../components/SettingsComp/ReportTypesPanel";
 import BarangaysPanel from "../components/SettingsComp/BarangaysPanel";
 import PrivacyPanel from "../components/SettingsComp/PrivacyPanel";
 import TermsPanel from "../components/SettingsComp/TermsPanel";
+import ValidIDTypesPanel from "../components/SettingsComp/ValidIDTypesPanel";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
 import useSettingsStore from "../store/settingsStore";
@@ -16,6 +23,7 @@ const Settings = () => {
     barangays,
     privacyPolicy,
     termsOfService,
+    validIDTypes,
     loading,
     error,
     initialize,
@@ -38,6 +46,7 @@ const Settings = () => {
   const tabs = [
     { id: "reports", name: "Report Types", icon: FaFileAlt },
     { id: "barangays", name: "Barangays", icon: FaBuilding },
+    { id: "validIDs", name: "Valid ID Types", icon: FaIdCard },
     { id: "privacy", name: "Privacy Policy", icon: FaShieldAlt },
     { id: "terms", name: "Terms of Service", icon: FaGavel },
   ];
@@ -55,6 +64,13 @@ const Settings = () => {
         return (
           <BarangaysPanel
             barangays={barangays}
+            useSettingsStore={useSettingsStore}
+          />
+        );
+      case "validIDs":
+        return (
+          <ValidIDTypesPanel
+            validIDTypes={validIDTypes}
             useSettingsStore={useSettingsStore}
           />
         );
@@ -114,7 +130,7 @@ const Settings = () => {
 
           {/* Content Area */}
           <div className="md:col-span-3">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-lg shadow p-6 relative">
               {loading && (
                 <div className="absolute inset-0 bg-white bg-opacity-75 z-10 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-t-blue-500 border-b-blue-700 border-gray-200"></div>

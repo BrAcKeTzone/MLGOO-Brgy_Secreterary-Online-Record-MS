@@ -1,13 +1,17 @@
 import { create } from "zustand";
-import { sampleUserList } from "../data/samples/sampleUserList";
-
-const SIMULATED_DELAY = 1500;
+import { userAPI } from "../services/api";
 
 const useUserListStore = create((set, get) => ({
   users: [],
   filteredUsers: [],
   loading: false,
   error: null,
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0
+  },
   filters: {
     search: "",
     role: "all",
@@ -18,13 +22,27 @@ const useUserListStore = create((set, get) => ({
   fetchUsers: async () => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
+      const { filters, pagination } = get();
+      const queryParams = new URLSearchParams({
+        page: pagination.page,
+        limit: pagination.limit
+      });
+      
+      if (filters.search) queryParams.append('search', filters.search);
+      if (filters.role !== 'all') queryParams.append('role', filters.role);
+      if (filters.status !== 'all') queryParams.append('status', filters.status);
+      if (filters.barangay !== 'all') queryParams.append('barangay', filters.barangay);
+      
+      const { data } = await userAPI.fetchUsers(queryParams.toString());
+      
       set({ 
-        users: sampleUserList,
-        filteredUsers: sampleUserList,
+        users: data.users,
+        filteredUsers: data.users,
+        pagination: data.pagination,
         loading: false 
       });
     } catch (err) {
+      console.error("Error fetching users:", err);
       set({
         error: err.response?.data?.message || "Failed to fetch users",
         loading: false
@@ -33,95 +51,58 @@ const useUserListStore = create((set, get) => ({
   },
 
   updateFilters: (newFilters) => {
-    const { users } = get();
-    const filters = { ...get().filters, ...newFilters };
-    set({ filters });
+    set(state => ({ 
+      filters: { ...state.filters, ...newFilters },
+      // Reset to page 1 when filters change
+      pagination: { ...state.pagination, page: 1 }
+    }));
+    get().fetchUsers();
+  },
 
-    let filtered = [...users];
-
-    // Apply search filter
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filtered = filtered.filter(user => 
-        user.firstName.toLowerCase().includes(searchTerm) ||
-        user.lastName.toLowerCase().includes(searchTerm) ||
-        user.email.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    // Apply role filter
-    if (filters.role !== 'all') {
-      filtered = filtered.filter(user => user.role === filters.role);
-    }
-
-    // Apply barangay filter
-    if (filters.barangay !== 'all') {
-      filtered = filtered.filter(user => 
-        user.role === 'role001' && user.assignedBrgy === filters.barangay
-      );
-    }
-
-    // Apply status filter
-    if (filters.status !== 'all') {
-      if (filters.status === 'Active' || filters.status === 'Deactivated') {
-        filtered = filtered.filter(user => 
-          user.creationStatus === 'Approved' && 
-          user.activeStatus === filters.status
-        );
-      } else {
-        filtered = filtered.filter(user => user.creationStatus === filters.status);
-      }
-    }
-
-    set({ filteredUsers: filtered });
+  setPage: (page) => {
+    set(state => ({ 
+      pagination: { ...state.pagination, page }
+    }));
+    get().fetchUsers();
   },
 
   updateUserStatus: async (userId, newStatus, newActiveStatus = null) => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
+      const updateData = {};
+      if (newStatus) updateData.status = newStatus;
+      if (newActiveStatus) updateData.activeStatus = newActiveStatus;
       
-      const updatedUsers = get().users.map(user => {
-        if (user._id === userId) {
-          return {
-            ...user,
-            creationStatus: newStatus,
-            activeStatus: newActiveStatus,
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return user;
-      });
-
-      set({ 
-        users: updatedUsers,
-        loading: false 
-      });
-      get().updateFilters({}); // Refresh filtered list
+      await userAPI.updateUserStatus(userId, updateData);
+      
+      // Refresh the user list after update
+      await get().fetchUsers();
+      set({ loading: false });
     } catch (err) {
+      console.error("Error updating user status:", err);
       set({
         error: err.response?.data?.message || "Failed to update user status",
         loading: false
       });
+      throw err;
     }
   },
 
   deleteUser: async (userId) => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
+      await userAPI.deleteUser(userId);
       
-      const updatedUsers = get().users.filter(user => user._id !== userId);
-      set({ 
-        users: updatedUsers,
-        loading: false 
-      });
-      get().updateFilters({}); // Refresh filtered list
+      // Refresh the user list after deletion
+      await get().fetchUsers();
+      set({ loading: false });
     } catch (err) {
+      console.error("Error deleting user:", err);
       set({
         error: err.response?.data?.message || "Failed to delete user",
         loading: false
       });
+      throw err;
     }
   }
 }));

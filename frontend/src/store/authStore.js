@@ -116,7 +116,15 @@ const useAuthStore = create((set) => ({
   signup: async (formData) => {
     set({ loading: true, error: null });
     try {
-      const { data } = await authAPI.signup(formData);
+      // Create a new object with proper data formatting
+      const signupData = {
+        ...formData,
+        assignedBrgy: formData.assignedBrgy ? formData.assignedBrgy : null
+      };
+      
+      console.log("Sending signup data:", signupData);
+      const { data } = await authAPI.signup(signupData);
+      
       set({ 
         loading: false,
         successMessage: 'Account created successfully! Please wait for admin approval.' 

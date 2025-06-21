@@ -51,7 +51,8 @@ exports.checkEmail = async (req, res) => {
     });
 
     // Send OTP email
-    await sendOtpEmail(email, otp);
+    // await sendOtpEmail(email, otp);
+    console.log(otp);
 
     res.status(200).json({ 
       message: 'OTP sent successfully',
@@ -106,11 +107,12 @@ exports.signup = async (req, res) => {
       lastName, 
       dateOfBirth, 
       role,
-      validIDFrontUrl,
-      validIDFrontPublicId,
-      validIDBackUrl,
-      validIDBackPublicId
+      assignedBrgy, // This is the barangay ID from frontend
+      nationalIdFront,
+      nationalIdBack
     } = req.body;
+
+    console.log("Signup request body:", req.body); // Log the entire request body
 
     // Verify email was validated with OTP
     const verifiedOtp = await prisma.oTP.findFirst({
@@ -148,22 +150,42 @@ exports.signup = async (req, res) => {
         activeStatus = 'ACTIVE';
       }
     }
+    
+    // Prepare user data object - WITHOUT assignedBrgy field
+    const userData = {
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      dateOfBirth: new Date(dateOfBirth),
+      role,
+      creationStatus,
+      activeStatus
+    };
+    
+    // Add barangay assignment if role is BARANGAY_SECRETARY and barangay is selected
+    if (role === 'BARANGAY_SECRETARY' && assignedBrgy) {
+      // Parse to integer explicitly to avoid database type issues
+      const brgyId = parseInt(assignedBrgy, 10);
+      console.log("Setting barangayId to:", brgyId);
+      userData.barangayId = brgyId;
+    }
+    
+    // Handle ID document URLs if available 
+    if (nationalIdFront?.url) {
+      userData.validIDFrontUrl = nationalIdFront.url;
+      userData.validIDFrontPublicId = nationalIdFront.public_id;
+    }
+    
+    if (nationalIdBack?.url) {
+      userData.validIDBackUrl = nationalIdBack.url;
+      userData.validIDBackPublicId = nationalIdBack.public_id;
+    }
+
+    console.log("Final userData being sent to database:", userData);
 
     const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        dateOfBirth: new Date(dateOfBirth),
-        role,
-        creationStatus,
-        activeStatus,
-        validIDFrontUrl,
-        validIDFrontPublicId,
-        validIDBackUrl,
-        validIDBackPublicId
-      }
+      data: userData
     });
 
     // Send welcome email with appropriate status notification
@@ -183,7 +205,8 @@ exports.signup = async (req, res) => {
         email: user.email,
         role: user.role,
         creationStatus: user.creationStatus,
-        activeStatus: user.activeStatus
+        activeStatus: user.activeStatus,
+        barangayId: user.barangayId
       }
     });
 
@@ -197,7 +220,10 @@ exports.signup = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in signup:', error);
-    res.status(500).json({ message: 'Registration failed' });
+    res.status(500).json({ 
+      message: 'Registration failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

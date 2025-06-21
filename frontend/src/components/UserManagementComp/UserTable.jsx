@@ -1,18 +1,18 @@
 import React from "react";
 import { FaCheck, FaTimes, FaEdit, FaTrash, FaPowerOff } from "react-icons/fa";
 import TableActions from "../Common/TableActions";
-import useBrgyStore from "../../store/brgyStore";
+import useSettingsStore from "../../store/settingsStore";
 
 const UserTable = ({ users, onStatusUpdate, onDelete }) => {
-  const { barangays } = useBrgyStore();
+  const { barangays } = useSettingsStore();
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Approved":
+      case "APPROVED":
         return "text-green-600";
-      case "Pending":
+      case "PENDING":
         return "text-yellow-600";
-      case "Rejected":
+      case "REJECTED":
         return "text-red-600";
       default:
         return "text-gray-600";
@@ -21,8 +21,19 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
 
   const getBarangayName = (brgyId) => {
     if (!brgyId) return "N/A";
-    const barangay = barangays.find((b) => b._id === brgyId);
+    const barangay = barangays.find((b) => b.id === parseInt(brgyId));
     return barangay ? barangay.name : brgyId;
+  };
+
+  const formatRole = (role) => {
+    switch (role) {
+      case "BARANGAY_SECRETARY":
+        return "Barangay Secretary";
+      case "MLGOO_STAFF":
+        return "MLGOO Staff";
+      default:
+        return role;
+    }
   };
 
   return (
@@ -39,94 +50,100 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
-            <tr key={user._id} className="border-t">
-              <td className="p-4">
-                {user.firstName} {user.lastName}
-              </td>
-              <td className="p-4">{user.email}</td>
-              <td className="p-4">
-                {user.role === "role001" ? "Barangay Secretary" : "MLGOO Staff"}
-              </td>
-              <td className="p-4">
-                {user.role === "role001"
-                  ? getBarangayName(user.assignedBrgy)
-                  : "N/A"}
-              </td>
-              <td className={`p-4 ${getStatusColor(user.creationStatus)}`}>
-                {user.creationStatus}
-                {user.creationStatus === "Approved" && (
-                  <span
-                    className={`ml-2 ${
-                      user.activeStatus === "Active"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    ({user.activeStatus})
-                  </span>
-                )}
-              </td>
-              <td className="p-4">
-                <TableActions
-                  actions={[
-                    ...(user.creationStatus === "Pending"
-                      ? [
-                          {
-                            icon: <FaCheck />,
-                            onClick: () =>
-                              onStatusUpdate(user._id, "Approved", "Active"),
-                            className: "text-green-600 hover:text-green-800",
-                            title: "Approve",
-                          },
-                          {
-                            icon: <FaTimes />,
-                            onClick: () => onStatusUpdate(user._id, "Rejected"),
-                            className: "text-red-600 hover:text-red-800",
-                            title: "Reject",
-                          },
-                        ]
-                      : []),
-                    ...(user.creationStatus === "Approved"
-                      ? [
-                          {
-                            icon: <FaPowerOff />,
-                            onClick: () =>
-                              onStatusUpdate(
-                                user._id,
-                                "Approved",
-                                user.activeStatus === "Active"
-                                  ? "Deactivated"
-                                  : "Active"
-                              ),
-                            className:
-                              user.activeStatus === "Active"
-                                ? "text-red-600 hover:text-red-800"
-                                : "text-green-600 hover:text-green-800",
-                            title:
-                              user.activeStatus === "Active"
-                                ? "Deactivate"
-                                : "Activate",
-                          },
-                        ]
-                      : []),
-                    {
-                      icon: <FaEdit />,
-                      onClick: () => {},
-                      className: "text-blue-600 hover:text-blue-800",
-                      title: "Edit",
-                    },
-                    {
-                      icon: <FaTrash />,
-                      onClick: () => onDelete(user._id),
-                      className: "text-red-600 hover:text-red-800",
-                      title: "Delete",
-                    },
-                  ]}
-                />
+          {users.length === 0 ? (
+            <tr>
+              <td colSpan="6" className="p-4 text-center text-gray-500">
+                No users found
               </td>
             </tr>
-          ))}
+          ) : (
+            users.map((user) => (
+              <tr key={user._id} className="border-t">
+                <td className="p-4">
+                  {user.firstName} {user.lastName}
+                </td>
+                <td className="p-4">{user.email}</td>
+                <td className="p-4">{formatRole(user.role)}</td>
+                <td className="p-4">
+                  {user.role === "BARANGAY_SECRETARY"
+                    ? user.barangayName || getBarangayName(user.barangayId)
+                    : "N/A"}
+                </td>
+                <td className={`p-4 ${getStatusColor(user.creationStatus)}`}>
+                  {user.creationStatus}
+                  {user.creationStatus === "APPROVED" && (
+                    <span
+                      className={`ml-2 ${
+                        user.activeStatus === "ACTIVE"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      ({user.activeStatus})
+                    </span>
+                  )}
+                </td>
+                <td className="p-4">
+                  <TableActions
+                    actions={[
+                      ...(user.creationStatus === "PENDING"
+                        ? [
+                            {
+                              icon: <FaCheck />,
+                              onClick: () =>
+                                onStatusUpdate(user._id, "APPROVED", "ACTIVE"),
+                              className: "text-green-600 hover:text-green-800",
+                              title: "Approve",
+                            },
+                            {
+                              icon: <FaTimes />,
+                              onClick: () => onStatusUpdate(user._id, "REJECTED"),
+                              className: "text-red-600 hover:text-red-800",
+                              title: "Reject",
+                            },
+                          ]
+                        : []),
+                      ...(user.creationStatus === "APPROVED"
+                        ? [
+                            {
+                              icon: <FaPowerOff />,
+                              onClick: () =>
+                                onStatusUpdate(
+                                  user._id,
+                                  null,
+                                  user.activeStatus === "ACTIVE"
+                                    ? "DEACTIVATED"
+                                    : "ACTIVE"
+                                ),
+                              className:
+                                user.activeStatus === "ACTIVE"
+                                  ? "text-red-600 hover:text-red-800"
+                                  : "text-green-600 hover:text-green-800",
+                              title:
+                                user.activeStatus === "ACTIVE"
+                                  ? "Deactivate"
+                                  : "Activate",
+                            },
+                          ]
+                        : []),
+                      {
+                        icon: <FaEdit />,
+                        onClick: () => {},
+                        className: "text-blue-600 hover:text-blue-800",
+                        title: "Edit",
+                      },
+                      {
+                        icon: <FaTrash />,
+                        onClick: () => onDelete(user._id),
+                        className: "text-red-600 hover:text-red-800",
+                        title: "Delete",
+                      },
+                    ]}
+                  />
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>

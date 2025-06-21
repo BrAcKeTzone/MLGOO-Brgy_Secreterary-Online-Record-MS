@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { FaEdit, FaTrash, FaPlus, FaSave, FaTimes } from "react-icons/fa";
 import FormInput from "../Common/FormInput";
-import useSettingsStore from "../../store/settingsStore";
 
-const BarangaysPanel = ({ barangays, onUpdate }) => {
-  const createBarangay = useSettingsStore((state) => state.createBarangay);
-  const deleteBarangay = useSettingsStore((state) => state.deleteBarangay);
+const BarangaysPanel = ({ barangays, useSettingsStore }) => {
+  const {
+    createBarangay,
+    updateBarangay,
+    deleteBarangay,
+    loading,
+  } = useSettingsStore();
+
   const [editingBarangay, setEditingBarangay] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
@@ -13,24 +17,50 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
     name: "",
   });
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isAdding) {
-      // Add new barangay
-      await createBarangay({ name: formData.name });
-      setIsAdding(false);
-      setFormData({ id: "", name: "" });
-    } else {
-      // Update existing barangay
-      onUpdate(formData.id, { name: formData.name });
-      setEditingBarangay(null);
-      setFormData({ id: "", name: "" });
+    try {
+      if (isAdding) {
+        // Add new barangay
+        await createBarangay({ name: formData.name });
+        setIsAdding(false);
+        resetForm();
+      } else {
+        // Update existing barangay
+        await updateBarangay(formData.id, { name: formData.name });
+        setEditingBarangay(null);
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Error saving barangay:", error);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const resetForm = () => {
+    setFormData({
+      id: "",
+      name: "",
+    });
+    setEditingBarangay(null);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this barangay?")) {
+      try {
+        await deleteBarangay(id);
+      } catch (error) {
+        console.error("Error deleting barangay:", error);
+        alert(`Failed to delete: ${error.message || "Unknown error"}`);
+      }
+    }
   };
 
   return (
@@ -59,7 +89,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                   label="Barangay Name"
                   name="name"
                   value={formData.name}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   required
                   placeholder="Enter barangay name"
                 />
@@ -69,7 +99,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                   type="button"
                   onClick={() => {
                     setIsAdding(false);
-                    setFormData({ id: "", name: "" });
+                    resetForm();
                   }}
                   className="text-gray-600 hover:text-gray-900"
                 >
@@ -77,6 +107,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                 </button>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="text-green-600 hover:text-green-900"
                 >
                   <FaSave className="w-5 h-5" />
@@ -99,7 +130,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                       ? formData.name
                       : barangay.name
                   }
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   disabled={editingBarangay?.id !== barangay.id}
                   required
                 />
@@ -117,6 +148,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                     </button>
                     <button
                       type="submit"
+                      disabled={loading}
                       className="text-green-600 hover:text-green-900"
                     >
                       <FaSave className="w-5 h-5" />
@@ -140,15 +172,7 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
                     <button
                       type="button"
                       className="text-red-600 hover:text-red-900"
-                      onClick={async () => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete this barangay?"
-                          )
-                        ) {
-                          await deleteBarangay(barangay.id);
-                        }
-                      }}
+                      onClick={() => handleDelete(barangay.id)}
                     >
                       <FaTrash className="w-5 h-5" />
                     </button>
@@ -158,6 +182,12 @@ const BarangaysPanel = ({ barangays, onUpdate }) => {
             </form>
           </div>
         ))}
+
+        {barangays.length === 0 && !isAdding && (
+          <div className="bg-white p-4 rounded-lg shadow text-center text-gray-500 md:col-span-2">
+            No barangays found. Add some to get started.
+          </div>
+        )}
       </div>
     </div>
   );

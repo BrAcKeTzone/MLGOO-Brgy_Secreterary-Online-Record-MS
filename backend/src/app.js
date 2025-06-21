@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const settingRoutes = require('./routes/settingRoutes');
+const userListRoutes = require('./routes/userListRoutes');
 
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/users', userListRoutes);
 
 
 app.get('/', (req, res) => {
