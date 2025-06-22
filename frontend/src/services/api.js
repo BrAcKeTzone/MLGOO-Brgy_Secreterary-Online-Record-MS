@@ -107,6 +107,8 @@ export const homeAPI = {
 export const userAPI = {
   fetchUsers: (queryString = '') => 
     api.get(`/users?${queryString}`),
+  getUserDetails: (userId) => 
+    api.get(`/users/${userId}/details`),
   updateUserStatus: (userId, { status, activeStatus }) => 
     api.patch(`/users/${userId}/status`, { status, activeStatus }),
   deleteUser: (userId) => 

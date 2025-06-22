@@ -86,8 +86,22 @@ exports.getUsers = async (req, res) => {
         firstName: true,
         lastName: true,
         role: true,
+        dateOfBirth: true,  // Make sure this field is included
         creationStatus: true,
         activeStatus: true,
+        // Add these fields for ID images
+        validIDFrontUrl: true,
+        validIDBackUrl: true,
+        validIDFrontPublicId: true,
+        validIDBackPublicId: true,
+        validIDTypeId: true,
+        // Add validIDType to show the ID type name
+        validIDType: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
         assignedBrgy: {
           select: {
             id: true,
@@ -109,8 +123,16 @@ exports.getUsers = async (req, res) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
+      dateOfBirth: user.dateOfBirth,  // Include this in the response
       creationStatus: user.creationStatus,
       activeStatus: user.activeStatus || 'ACTIVE',
+      // Add these fields for ID images
+      validIDFrontUrl: user.validIDFrontUrl,
+      validIDBackUrl: user.validIDBackUrl,
+      validIDFrontPublicId: user.validIDFrontPublicId,
+      validIDBackPublicId: user.validIDBackPublicId,
+      validIDTypeName: user.validIDType?.name,
+      validIDTypeId: user.validIDTypeId,
       barangayId: user.assignedBrgy ? user.assignedBrgy.id.toString() : null,
       barangayName: user.assignedBrgy ? user.assignedBrgy.name : null,
       createdAt: user.createdAt,

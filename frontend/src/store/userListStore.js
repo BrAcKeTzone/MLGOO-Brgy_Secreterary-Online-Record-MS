@@ -6,6 +6,8 @@ const useUserListStore = create((set, get) => ({
   filteredUsers: [],
   loading: false,
   error: null,
+  selectedUser: null,
+  viewModalOpen: false,
   pagination: {
     page: 1,
     limit: 10,
@@ -104,6 +106,21 @@ const useUserListStore = create((set, get) => ({
       });
       throw err;
     }
+  },
+  
+  // Add functions for the user view modal
+  openViewModal: (user) => {
+    set({ 
+      selectedUser: user,
+      viewModalOpen: true 
+    });
+  },
+  
+  closeViewModal: () => {
+    set({ 
+      selectedUser: null,
+      viewModalOpen: false 
+    });
   }
 }));
 

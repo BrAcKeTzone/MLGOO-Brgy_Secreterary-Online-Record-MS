@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   FaCheck,
   FaTimes,
@@ -8,15 +8,22 @@ import {
   FaUserTag,
   FaMapMarkerAlt,
   FaEye,
+  FaBirthdayCake,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import TableActions from "../Common/TableActions";
 import useSettingsStore from "../../store/settingsStore";
+import useUserListStore from "../../store/userListStore";
 import Modal from "../Common/Modal";
 
 const UserTable = ({ users, onStatusUpdate, onDelete }) => {
   const { barangays } = useSettingsStore();
-  const [showModal, setShowModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const { 
+    selectedUser, 
+    viewModalOpen, 
+    openViewModal, 
+    closeViewModal 
+  } = useUserListStore();
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -60,15 +67,15 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
         return role;
     }
   };
-
-  const handleOpenViewModal = (user) => {
-    setSelectedUser(user);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedUser(null);
+  
+  // Format date function for DOB and other dates
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not provided";
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
   };
 
   if (users.length === 0) {
@@ -145,6 +152,14 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
                   </span>
                 </div>
               )}
+              
+              {/* Add DOB to the card if it exists */}
+              {user.dateOfBirth && (
+                <div className="flex items-center text-sm">
+                  <FaBirthdayCake className="mr-2 text-gray-400" />
+                  <span>{formatDate(user.dateOfBirth)}</span>
+                </div>
+              )}
             </div>
 
             {/* Action buttons */}
@@ -195,10 +210,10 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
                     : []),
                   {
                     icon: <FaEye />,
-                    onClick: () => handleOpenViewModal(user),
+                    onClick: () => openViewModal(user),
                     className:
                       "text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100",
-                    title: "View ID",
+                    title: "View Details",
                   },
                   {
                     icon: <FaTrash />,
@@ -215,66 +230,195 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
         ))}
       </div>
 
-      {/* View ID Modal */}
-      {showModal && selectedUser && (
+      {/* Enhanced User Detail Modal */}
+      {viewModalOpen && selectedUser && (
         <Modal
-          isOpen={showModal}
-          onClose={handleCloseModal}
-          title={`ID Verification - ${selectedUser.firstName} ${selectedUser.lastName}`}
+          isOpen={viewModalOpen}
+          onClose={closeViewModal}
+          title={`User Details - ${selectedUser.firstName} ${selectedUser.lastName}`}
         >
           <div className="p-4">
-            <div className="mb-4">
-              <div className="font-medium text-gray-700 mb-1">ID Type:</div>
-              <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-md inline-block">
-                {selectedUser.validIDTypeName || "Valid ID"}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <div className="font-medium text-gray-700 mb-1">Front ID:</div>
-                {selectedUser.validIDFrontUrl ? (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <img
-                      src={selectedUser.validIDFrontUrl}
-                      alt="ID Front"
-                      className="w-full h-auto object-contain"
-                      style={{ maxHeight: "300px" }}
-                    />
+            {/* User Profile Section */}
+            <div className="border-b pb-4 mb-4">
+              <h3 className="text-lg font-medium text-gray-800 mb-3">Profile Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">Full Name</div>
+                  <div className="text-gray-900">{selectedUser.firstName} {selectedUser.lastName}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">Email</div>
+                  <div className="text-gray-900 break-all">{selectedUser.email}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">Role</div>
+                  <div className="text-gray-900">{formatRole(selectedUser.role)}</div>
+                </div>
+                {/* Date of Birth field */}
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">
+                    <div className="flex items-center">
+                      <FaCalendarAlt className="mr-1 text-gray-400" />
+                      Date of Birth
+                    </div>
                   </div>
-                ) : (
-                  <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                    No front ID image available
+                  <div className="text-gray-900">
+                    {formatDate(selectedUser.dateOfBirth)}
                   </div>
-                )}
-              </div>
-
-              <div>
-                <div className="font-medium text-gray-700 mb-1">Back ID:</div>
-                {selectedUser.validIDBackUrl ? (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <img
-                      src={selectedUser.validIDBackUrl}
-                      alt="ID Back"
-                      className="w-full h-auto object-contain"
-                      style={{ maxHeight: "300px" }}
-                    />
-                  </div>
-                ) : (
-                  <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                    No back ID image available
+                </div>
+                {selectedUser.role === "BARANGAY_SECRETARY" && (
+                  <div>
+                    <div className="text-sm font-medium text-gray-500 mb-1">Assigned Barangay</div>
+                    <div className="text-gray-900">{selectedUser.barangayName || getBarangayName(selectedUser.barangayId) || "Not assigned"}</div>
                   </div>
                 )}
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">Account Status</div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusBgColor(selectedUser.creationStatus)} ${getStatusColor(selectedUser.creationStatus)}`}>
+                      {selectedUser.creationStatus}
+                    </span>
+                    {selectedUser.creationStatus === "APPROVED" && (
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        selectedUser.activeStatus === "ACTIVE"
+                          ? "bg-green-50 text-green-600"
+                          : "bg-red-50 text-red-600"
+                      }`}>
+                        {selectedUser.activeStatus}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">Registered On</div>
+                  <div className="text-gray-900">
+                    {formatDate(selectedUser.createdAt)}
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={handleCloseModal}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Close
-              </button>
+            
+            {/* ID Verification Section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-800 mb-3">ID Verification</h3>
+              <div className="mb-4">
+                <div className="text-sm font-medium text-gray-500 mb-1">ID Type</div>
+                {selectedUser.validIDTypeName ? (
+                  <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-md inline-block">
+                    {selectedUser.validIDTypeName}
+                  </div>
+                ) : (
+                  <div className="text-gray-400 italic">No ID type provided</div>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">Front ID</div>
+                  {selectedUser.validIDFrontUrl ? (
+                    <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                      <img
+                        src={selectedUser.validIDFrontUrl}
+                        alt="ID Front"
+                        className="w-full h-auto object-contain"
+                        style={{ maxHeight: "250px" }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                      No front ID image available
+                    </div>
+                  )}
+                </div>
+                
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">Back ID</div>
+                  {selectedUser.validIDBackUrl ? (
+                    <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+                      <img
+                        src={selectedUser.validIDBackUrl}
+                        alt="ID Back"
+                        className="w-full h-auto object-contain"
+                        style={{ maxHeight: "250px" }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                      No back ID image available
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Management Actions Section */}
+            <div className="border-t pt-4 flex flex-wrap items-center justify-between gap-3">
+              {/* Status Management */}
+              <div className="flex flex-wrap gap-2">
+                {selectedUser.creationStatus === "PENDING" && (
+                  <>
+                    <button
+                      onClick={() => {
+                        onStatusUpdate(selectedUser._id, "APPROVED", "ACTIVE");
+                        closeViewModal();
+                      }}
+                      className="px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-sm font-medium flex items-center gap-1"
+                    >
+                      <FaCheck size={14} /> Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        onStatusUpdate(selectedUser._id, "REJECTED");
+                        closeViewModal();
+                      }}
+                      className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium flex items-center gap-1"
+                    >
+                      <FaTimes size={14} /> Reject
+                    </button>
+                  </>
+                )}
+                {selectedUser.creationStatus === "APPROVED" && (
+                  <button
+                    onClick={() => {
+                      onStatusUpdate(
+                        selectedUser._id, 
+                        null,
+                        selectedUser.activeStatus === "ACTIVE" ? "DEACTIVATED" : "ACTIVE"
+                      );
+                      closeViewModal();
+                    }}
+                    className={`px-3 py-1.5 ${
+                      selectedUser.activeStatus === "ACTIVE"
+                        ? "bg-red-100 text-red-700 hover:bg-red-200"
+                        : "bg-green-100 text-green-700 hover:bg-green-200"
+                    } rounded-md text-sm font-medium flex items-center gap-1`}
+                  >
+                    <FaPowerOff size={14} />
+                    {selectedUser.activeStatus === "ACTIVE" ? "Deactivate" : "Activate"}
+                  </button>
+                )}
+              </div>
+              
+              {/* Close button */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to delete this user?")) {
+                      onDelete(selectedUser._id);
+                      closeViewModal();
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+                >
+                  Delete User
+                </button>
+                <button
+                  onClick={closeViewModal}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </Modal>

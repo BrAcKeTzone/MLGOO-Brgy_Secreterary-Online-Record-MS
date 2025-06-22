@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import useUserListStore from "../store/userListStore";
+import useSettingsStore from "../store/settingsStore"; 
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
 import UserFilters from "../components/UserManagementComp/UserFilters";
 import UserTable from "../components/UserManagementComp/UserTable";
-import Pagination from "../components/Common/Pagination"; // Make sure this component exists
+import Pagination from "../components/Common/Pagination";
 
 const ManageUsers = () => {
   const {
@@ -18,11 +19,24 @@ const ManageUsers = () => {
     setPage,
     updateUserStatus,
     deleteUser,
+    closeViewModal,
+    viewModalOpen,
   } = useUserListStore();
+  
+  // Fetch barangays data for dropdown filters and display
+  const { fetchBarangays } = useSettingsStore();
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchUsers(); // This should now include dateOfBirth field
+    fetchBarangays();
+    
+    // Clean up function to close modal when unmounting
+    return () => {
+      if (viewModalOpen) {
+        closeViewModal();
+      }
+    };
+  }, [fetchUsers, fetchBarangays, closeViewModal, viewModalOpen]);
 
   const handleDelete = async (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
