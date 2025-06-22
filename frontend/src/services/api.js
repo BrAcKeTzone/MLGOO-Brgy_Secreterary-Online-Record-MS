@@ -162,6 +162,13 @@ export const reportAPI = {
       },
     });
   },
+  
+  // Get the current user details
+  getCurrentUser: () => authAPI.getCurrentUser(),
+  
+  // This is important for getting reports for the barangay secretary
+  getMyReports: (queryString = '') => 
+    api.get(`/reports/my-reports?${queryString}`),
 };
 
 // Logs API endpoints

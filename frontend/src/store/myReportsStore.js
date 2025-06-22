@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import api from '../services/api';
-import { sampleReports } from '../data/samples/sampleReports'; // Using sample data for now
+import { reportAPI } from '../services/api';
+import { toast } from 'react-toastify';
 import { CURRENT_YEAR } from '../utils/dateUtils';
 
 const useMyReportsStore = create((set, get) => ({
@@ -11,51 +11,67 @@ const useMyReportsStore = create((set, get) => ({
     search: "",
     reportType: "all",
     status: "all",
-    year: CURRENT_YEAR
+    year: CURRENT_YEAR,
+    page: 1,
+    limit: 10
   },
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    pages: 1
+  },
+  selectedReport: null,
+  viewModalOpen: false,
 
-  fetchReports: async (filters = null) => {
+  fetchReports: async (newFilters = null) => {
     set({ loading: true, error: null });
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // If no filters provided, use current store filters
-      const currentFilters = filters || get().filters;
-
-      // Filter reports based on current filters
-      let filteredReports = [...sampleReports];
-
-      // Filter by year
-      filteredReports = filteredReports.filter(report =>
-        new Date(report.submittedDate).getFullYear().toString() === currentFilters.year
-      );
-
-      // Apply search filter if present
-      if (currentFilters.search) {
-        const searchTerm = currentFilters.search.toLowerCase();
-        filteredReports = filteredReports.filter(report =>
-          report.reportName.toLowerCase().includes(searchTerm) ||
-          report.barangayName.toLowerCase().includes(searchTerm) ||
-          report.fileName.toLowerCase().includes(searchTerm)
-        );
+      // Use provided filters or current state filters
+      const currentFilters = newFilters || get().filters;
+      
+      // Build query params
+      const queryParams = new URLSearchParams();
+      
+      if (currentFilters.search) queryParams.append('search', currentFilters.search);
+      if (currentFilters.reportType && currentFilters.reportType !== 'all') queryParams.append('reportType', currentFilters.reportType);
+      if (currentFilters.status && currentFilters.status !== 'all') queryParams.append('status', currentFilters.status);
+      if (currentFilters.year && currentFilters.year !== 'all') queryParams.append('year', currentFilters.year);
+      if (currentFilters.page) queryParams.append('page', currentFilters.page);
+      if (currentFilters.limit) queryParams.append('limit', currentFilters.limit);
+      
+      const queryString = queryParams.toString();
+      
+      // Fetch reports using the appropriate API endpoint
+      let response;
+      try {
+        // First try to get the user info to determine if we need to filter by barangay
+        const userResponse = await reportAPI.getCurrentUser();
+        const userData = userResponse.data.user || userResponse.data;
+        
+        // If user has barangayId, fetch reports for that specific barangay
+        if (userData && userData.barangayId) {
+          response = await reportAPI.getReportsByBarangay(userData.barangayId, queryString);
+        } else {
+          // If no barangayId is found, use a fallback method to get the user's reports
+          response = await reportAPI.getMyReports(queryString);
+        }
+      } catch (userError) {
+        // If getting user info fails, fall back to fetching user's reports directly
+        console.warn("Could not determine user's barangay ID, fetching reports directly:", userError);
+        response = await reportAPI.getMyReports(queryString);
       }
-
-      // Apply other filters
-      if (currentFilters.reportType !== 'all') {
-        filteredReports = filteredReports.filter(report => report.reportType === currentFilters.reportType);
-      }
-      if (currentFilters.status !== 'all') {
-        filteredReports = filteredReports.filter(report => report.status === currentFilters.status);
-      }
-
-      // Sort by submission date (newest first)
-      filteredReports.sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate));
-
-      set({ reports: filteredReports, loading: false });
-    } catch (err) {
+      
       set({
-        error: err.message || "Failed to fetch reports",
+        reports: response.data.reports,
+        pagination: response.data.pagination,
+        loading: false,
+        filters: currentFilters // Update filters state
+      });
+    } catch (err) {
+      console.error("Error fetching reports:", err);
+      set({
+        error: err.response?.data?.message || "Failed to fetch reports",
         loading: false
       });
     }
@@ -64,12 +80,28 @@ const useMyReportsStore = create((set, get) => ({
   updateFilters: (newFilters) => {
     set(state => {
       const updatedFilters = { ...state.filters, ...newFilters };
-
-      // Only fetch if the changes include non-search filters or if it's a search action
-      if (!newFilters.hasOwnProperty('search') || newFilters.search !== undefined) {
-        state.fetchReports(updatedFilters);
+      
+      // Reset page to 1 when any filter changes except page
+      if (!newFilters.hasOwnProperty('page') && (
+        newFilters.search !== undefined ||
+        newFilters.reportType !== undefined ||
+        newFilters.status !== undefined || 
+        newFilters.year !== undefined
+      )) {
+        updatedFilters.page = 1;
       }
+      
+      // Fetch reports with new filters
+      state.fetchReports(updatedFilters);
+      
+      return { filters: updatedFilters };
+    });
+  },
 
+  setPage: (page) => {
+    set(state => {
+      const updatedFilters = { ...state.filters, page };
+      state.fetchReports(updatedFilters);
       return { filters: updatedFilters };
     });
   },
@@ -77,16 +109,58 @@ const useMyReportsStore = create((set, get) => ({
   deleteReport: async (reportId) => {
     set({ loading: true, error: null });
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      set(state => ({
-        reports: state.reports.filter(report => report._id !== reportId),
-        loading: false
-      }));
+      await reportAPI.deleteReport(reportId);
+      toast.success('Report deleted successfully');
+      
+      // Refresh reports list
+      await get().fetchReports();
     } catch (err) {
-      set({ error: err.message || "Failed to delete report", loading: false });
+      set({ 
+        error: err.response?.data?.message || "Failed to delete report", 
+        loading: false 
+      });
+      
+      // Show error based on status code
+      if (err.response?.status === 403) {
+        toast.error("You can only delete pending reports. Contact MLGOO staff for others.");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to delete report");
+      }
     }
+  },
+
+  getReportDetails: async (reportId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await reportAPI.getReportById(reportId);
+      set({ 
+        selectedReport: response.data.report,
+        loading: false 
+      });
+      return response.data.report;
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || "Failed to fetch report details",
+        loading: false
+      });
+      toast.error(err.response?.data?.message || "Failed to fetch report details");
+      return null;
+    }
+  },
+
+  openViewModal: async (reportId) => {
+    // Fetch report details and open modal
+    const reportDetails = await get().getReportDetails(reportId);
+    if (reportDetails) {
+      set({ viewModalOpen: true });
+    }
+  },
+
+  closeViewModal: () => {
+    set({ 
+      selectedReport: null,
+      viewModalOpen: false 
+    });
   }
 }));
 
