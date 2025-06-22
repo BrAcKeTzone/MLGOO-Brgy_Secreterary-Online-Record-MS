@@ -58,7 +58,7 @@ const AppRouter = () => {
         path="/"
         element={user ? <Navigate to="/home" replace /> : <Landing />}
       />
-      <Route
+      {/* <Route
         path="/login"
         element={user ? <Navigate to="/home" replace /> : <Login />}
       />
@@ -69,7 +69,7 @@ const AppRouter = () => {
       <Route
         path="/forgot-password"
         element={user ? <Navigate to="/home" replace /> : <ForgotPass />}
-      />
+      /> */}
 
       {/* Protected Routes */}
       <Route

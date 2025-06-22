@@ -51,11 +51,87 @@ exports.uploadFile = async (req, res) => {
       message: 'File uploaded successfully',
       url: result.secure_url,
       public_id: result.public_id,
+      originalname: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
       uploadType,
       folder
     });
   } catch (error) {
     console.error('Upload error:', error);
+    res.status(500).json({
+      message: 'Upload failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Upload error'
+    });
+  }
+};
+
+/**
+ * NEW: Upload multiple files to Cloudinary
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ */
+exports.uploadMultipleFiles = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'No files uploaded' });
+    }
+
+    // Determine the upload folder based on the request type
+    const uploadType = req.query.type || 'report';
+    let folder = 'tabina_oms/reports';
+    let resourceType = 'auto';
+    
+    console.log(`Uploading ${req.files.length} files to ${folder} as ${resourceType}`);
+
+    // Upload all files to Cloudinary
+    const uploadPromises = req.files.map(file => {
+      return new Promise((resolve, reject) => {
+        const cloudinaryStream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: resourceType,
+            flags: 'attachment'
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              // Include original file metadata with the cloudinary result
+              resolve({
+                ...result,
+                originalname: file.originalname,
+                size: file.size,
+                mimetype: file.mimetype
+              });
+            }
+          }
+        );
+        
+        streamifier.createReadStream(file.buffer).pipe(cloudinaryStream);
+      });
+    });
+
+    // Wait for all uploads to complete
+    const results = await Promise.all(uploadPromises);
+
+    // Format the response with file details
+    const uploadedFiles = results.map(result => ({
+      url: result.secure_url,
+      public_id: result.public_id,
+      originalname: result.originalname,
+      size: result.size,
+      mimetype: result.mimetype
+    }));
+
+    res.status(200).json({
+      message: `${uploadedFiles.length} files uploaded successfully`,
+      files: uploadedFiles,
+      uploadType,
+      folder
+    });
+  } catch (error) {
+    console.error('Multiple file upload error:', error);
     res.status(500).json({
       message: 'Upload failed',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Upload error'

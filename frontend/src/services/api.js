@@ -117,6 +117,53 @@ export const userAPI = {
     api.put(`/users/${userId}`, data),
 };
 
+// NEW Report API endpoints
+export const reportAPI = {
+  // Get all reports with optional filtering
+  getAllReports: (queryString = '') => 
+    api.get(`/reports?${queryString}`),
+    
+  // Get a specific report by ID
+  getReportById: (reportId) => 
+    api.get(`/reports/${reportId}`),
+    
+  // Create a new report
+  createReport: (reportData) => 
+    api.post('/reports', reportData),
+    
+  // Update report status (for MLGOO staff)
+  updateReportStatus: (reportId, { status, comments }) => 
+    api.patch(`/reports/${reportId}/status`, { status, comments }),
+    
+  // Delete a report
+  deleteReport: (reportId) => 
+    api.delete(`/reports/${reportId}`),
+    
+  // Get reports for a specific barangay
+  getReportsByBarangay: (barangayId, queryString = '') => 
+    api.get(`/reports/barangay/${barangayId}?${queryString}`),
+    
+  // Update an existing report
+  updateReport: (reportId, reportData) => 
+    api.put(`/reports/${reportId}`, reportData),
+    
+  // Upload report files to cloudinary
+  uploadReportFiles: (files) => {
+    const formData = new FormData();
+    
+    // Add each file to the form data
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    
+    return api.post('/upload/report', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+};
+
 // Logs API endpoints
 export const logsAPI = {
   fetchLogs: () => api.get('/logs'),

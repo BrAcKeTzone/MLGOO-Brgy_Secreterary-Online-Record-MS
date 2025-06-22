@@ -10,6 +10,8 @@ const FormSelect = ({
   placeholder,
   className = "",
   error,
+  valueField = "id", // Default to id, but can be overridden
+  labelField = "name", // Default to name, but can be overridden
 }) => {
   return (
     <div>
@@ -30,14 +32,28 @@ const FormSelect = ({
         <option key="placeholder" value="">
           {placeholder}
         </option>
-        {options.map((option) => (
-          <option
-            key={option.id || option._id || `option-${option.name}`}
-            value={option.id || option._id}
-          >
-            {option.name}
-          </option>
-        ))}
+        {options.map((option) => {
+          // Get the value from the specified valueField, fall back to id or _id
+          const optionValue =
+            option[valueField] !== undefined
+              ? option[valueField]
+              : option.id || option._id || option.value;
+
+          // Get the label from the specified labelField, fall back to name
+          const optionLabel =
+            option[labelField] !== undefined
+              ? option[labelField]
+              : option.label || option.name;
+
+          return (
+            <option
+              key={optionValue || `option-${optionLabel}`}
+              value={optionValue}
+            >
+              {optionLabel}
+            </option>
+          );
+        })}
       </select>
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>

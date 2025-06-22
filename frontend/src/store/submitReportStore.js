@@ -1,64 +1,139 @@
 import { create } from 'zustand';
+import { reportAPI } from '../services/api';
+import { toast } from 'react-toastify';
 
 const useSubmitReportStore = create((set, get) => ({
   reportType: '',
-  formData: {},
+  reportName: '',
+  comments: '',
   selectedFiles: [],
+  uploadedAttachments: [],
   loading: false,
+  submitting: false,
   error: null,
+  success: false, // Whether a submission was just successful
 
   setReportType: (reportType) => set({ reportType }),
-  setFormData: (formData) => set({ formData }),
+  
+  setReportName: (reportName) => set({ reportName }),
+  
+  setComments: (comments) => set({ comments }),
+  
   setSelectedFiles: (selectedFiles) => set({ selectedFiles }),
 
+  // Reset success flag specifically - useful when returning to the form
+  resetSuccess: () => set({ success: false }),
+  
+  // Complete reset of the form
+  resetForm: () => set({
+    reportType: '',
+    reportName: '',
+    comments: '',
+    selectedFiles: [],
+    uploadedAttachments: [],
+    error: null,
+    success: false
+  }),
+
   handleInputChange: (e) => {
+    const { name, value } = e.target;
     set(state => ({
-      formData: { ...state.formData, [e.target.name]: e.target.value }
+      [name]: value
     }));
   },
 
+  // Upload files to Cloudinary and then create report
   submitReport: async () => {
-    set({ loading: true, error: null });
+    const { reportType, reportName, comments, selectedFiles } = get();
+    
+    // Basic validation
+    if (!reportType) {
+      toast.error('Please select a report type');
+      return;
+    }
+    
+    if (!reportName || reportName.trim() === '') {
+      toast.error('Please enter a report name');
+      return;
+    }
+    
+    if (selectedFiles.length === 0) {
+      toast.error('Please upload at least one file');
+      return;
+    }
+    
+    set({ submitting: true, error: null });
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // const formData = new FormData();
-      // formData.append('reportType', get().reportType);
-      // // Append other form data
-      // Object.keys(get().formData).forEach(key => {
-      //   formData.append(key, get().formData[key]);
-      // });
-      // // Append files
-      // get().selectedFiles.forEach(file => {
-      //   formData.append('files', file);
-      // });
-
-      // const response = await api.post('/reports', formData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data'
-      //   }
-      // });
-
-      // console.log('Report submitted successfully:', response.data);
-      set({ loading: false });
+      console.log("Submitting report with type:", reportType);
+      
+      // Step 1: Upload files to cloudinary
+      const formData = new FormData();
+      selectedFiles.forEach(file => {
+        formData.append('files', file);
+      });
+      
+      const uploadResponse = await reportAPI.uploadReportFiles(selectedFiles);
+      console.log("Upload response:", uploadResponse.data);
+      
+      // Get the uploaded files data from response
+      const attachments = uploadResponse.data.files.map(file => ({
+        fileName: file.originalname,
+        fileSize: file.size,
+        url: file.url,
+        public_id: file.public_id,
+        contentType: file.mimetype
+      }));
+      
+      set({ uploadedAttachments: attachments });
+      
+      // Step 2: Create report with file references
+      // Extract just the report type shortName if an object was selected
+      const reportTypeValue = typeof reportType === 'object' && reportType !== null 
+        ? reportType.value || reportType.shortName
+        : reportType;
+      
+      const reportData = {
+        reportType: reportTypeValue,
+        reportName,
+        comments,
+        attachments
+      };
+      
+      console.log("Creating report with data:", reportData);
+      const createResponse = await reportAPI.createReport(reportData);
+      
+      // Set success and reset form fields, but don't show toast here
+      // We'll let the component handle feedback
+      set({ 
+        submitting: false, 
+        success: true,
+        // Reset form after successful submission
+        reportType: '',
+        reportName: '',
+        comments: '',
+        selectedFiles: [],
+        uploadedAttachments: []
+      });
+      
+      return createResponse.data;
+      
     } catch (error) {
       console.error('Error submitting report:', error);
-      set({ loading: false, error: error.message || 'Failed to submit report' });
+      const errorMsg = error.response?.data?.message || 'Failed to submit report. Please try again.';
+      
+      // Show more detailed error if available
+      if (error.response?.data?.debug) {
+        console.error('Debug info:', error.response.data.debug);
+      }
+      
+      toast.error(errorMsg);
+      set({ 
+        submitting: false,
+        error: errorMsg
+      });
     }
-  },
-
-  saveDraft: async () => {
-    set({ loading: true, error: null });
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      set({ loading: false });
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      set({ loading: false, error: error.message || 'Failed to save draft' });
-    }
-  },
+  }
 }));
 
 export default useSubmitReportStore;
