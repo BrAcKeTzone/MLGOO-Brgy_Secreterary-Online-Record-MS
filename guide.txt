@@ -1,0 +1,74 @@
+Guide pra e start ni nga system. Remember need syag internet pra maka send ug email,
+
+E open ang xampp, e start ang "mysql" ug "apache".
+
+Adtu sa phpmyadmin, pag create ug database na ang ngalan kay "orms_db".
+
+Pangitag folder na kasudlan then right click then open in terminal.
+
+run in terminal:
+	git clone https://github.com/BrAcKeTzone/MLGOO-Brgy_Secreterary-Online-Record-MS.git
+	
+run in terminal:
+	cd MLGOO-Brgy_Secreterary-Online-Record-MS
+
+run in terminal:
+	code .
+	
+Pwede na dayun e close tung 
+	
+Inig open sa vs code naa kay makita nga duha ka folder sa kilid [backend & frontend].
+
+E tunong ang mouse sa "backend" folder, then right click, then pilia ang "Open in Integrated Terminal".
+
+Mugawas dayun tung "Terminal" sa ubos. E click sa Terminal sa vs code.
+
+run in terminal sa backend:
+	cmd
+	
+run in terminal sa backend:
+	npm install
+	
+Pangitaa ang ".env" file, e open.
+
+Sulod sa ".env" file, pangitaa ang:
+	DATABASE_URL="mysql://root:ManiwangJP682@localhost:3306/orms_db"
+	
+Ecopy ni then e ilis:
+	DATABASE_URL="mysql://root:@localhost:3306/orms_db"
+	
+Then save.
+
+run in terminal sa backend:
+	npx prisma generate
+	
+run in terminal sa backend:
+	npx prisma migrate dev --name init
+	
+run in terminal sa backend:
+	npm run seed
+	
+run in terminal sa backend:
+	npm run dev
+	
+Adtu napud sa file sa kilid.
+
+E tunong ang mouse sa "frontend" folder, then right click, then pilia ang "Open in Integrated Terminal".
+
+Mugawas dayun tung "Terminal" sa ubos. E click sa Terminal sa vs code.
+
+run in terminal sa frontend:
+	cmd
+	
+run in terminal sa frontend:
+	npm install
+	
+run in terminal sa frontend:
+	npm run dev
+	
+Tungod sa Local e control + click ang "http://localhost:5173/"
+
+Then ma open na dayun ang browser.
+
+Pag signup daan pra maka login, ang unang MLGOO account kay automatic syang approve na daan.
+
