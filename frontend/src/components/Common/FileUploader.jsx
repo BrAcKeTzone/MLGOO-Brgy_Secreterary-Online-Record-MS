@@ -16,7 +16,10 @@ const FileUploader = ({ onFileSelect, selectedFiles: propSelectedFiles }) => {
     onFileSelect([...selectedFiles, ...newFiles]);
   };
 
-  const handleClick = () => {
+  const handleClick = (e) => {
+    // Prevent the click from bubbling up to parent elements
+    e.preventDefault();
+    e.stopPropagation();
     inputRef.current.click();
   };
 
@@ -51,6 +54,7 @@ const FileUploader = ({ onFileSelect, selectedFiles: propSelectedFiles }) => {
     <div>
       <button
         onClick={handleClick}
+        type="button" // Explicitly set button type to prevent form submission
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       >
         Select Files
@@ -74,7 +78,12 @@ const FileUploader = ({ onFileSelect, selectedFiles: propSelectedFiles }) => {
               {file.name}
             </p>
             <button
-              onClick={() => handleClearFile(index)}
+              onClick={(e) => {
+                e.preventDefault(); // Prevent form submission
+                e.stopPropagation(); // Prevent event bubbling
+                handleClearFile(index);
+              }}
+              type="button" // Explicitly set button type
               className="absolute top-1 right-1 bg-red-400 hover:bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
             >
               <FaTrash className="text-xs" />

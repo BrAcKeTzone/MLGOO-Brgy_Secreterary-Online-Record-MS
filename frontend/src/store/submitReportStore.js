@@ -44,6 +44,12 @@ const useSubmitReportStore = create((set, get) => ({
 
   // Upload files to Cloudinary and then create report
   submitReport: async () => {
+    // Check if already submitting to prevent double submissions
+    if (get().submitting) {
+      console.log("Submission already in progress");
+      return;
+    }
+    
     const { reportType, reportName, comments, selectedFiles } = get();
     
     // Basic validation
