@@ -39,7 +39,25 @@ export const authAPI = {
   resetPassword: (email, newPassword) => 
     api.post('/auth/reset-password', { email, newPassword }),
   
+  // Added method to upload image files
+  uploadImage: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    return axios.post(
+      `${import.meta.env.VITE_API_URL_DEV}/upload`, 
+      formData, 
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+  },
+  
+  // Updated signup method to include ID images
   signup: (formData) => {
+    // Make sure we're sending all the required fields
     const data = {
       email: formData.email,
       password: formData.password,
@@ -47,11 +65,14 @@ export const authAPI = {
       lastName: formData.lastName,
       dateOfBirth: formData.dateOfBirth,
       role: formData.role,
-      validIDFrontUrl: null, // Will be updated after file upload
-      validIDFrontPublicId: null,
-      validIDBackUrl: null,
-      validIDBackPublicId: null
+      validIDTypeId: formData.validIDTypeId,
+      // Include assignedBrgy only if it's provided
+      ...(formData.assignedBrgy ? { assignedBrgy: formData.assignedBrgy } : {}),
+      // Include ID document information
+      ...(formData.nationalIdFront ? { nationalIdFront: formData.nationalIdFront } : {}),
+      ...(formData.nationalIdBack ? { nationalIdBack: formData.nationalIdBack } : {})
     };
+    
     return api.post('/auth/signup', data);
   },
   

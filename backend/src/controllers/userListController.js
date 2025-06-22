@@ -1,5 +1,24 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { deleteMultipleImages } = require('../utils/cloudinary');
+
+/**
+ * Delete images from Cloudinary
+ * @param {string} publicId - The public ID of the image to delete
+ */
+async function deleteImageFromCloudinary(publicId) {
+  if (!publicId) return;
+  
+  try {
+    console.log(`Deleting image with public_id: ${publicId}`);
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log(`Cloudinary deletion result: ${result.result}`);
+    return result;
+  } catch (error) {
+    console.error(`Error deleting image from Cloudinary: ${error.message}`);
+    // We don't throw here to ensure the user deletion continues even if image deletion fails
+  }
+}
 
 /**
  * Get all users with pagination and filtering
@@ -194,22 +213,71 @@ exports.updateUserStatus = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = parseInt(id);
 
-    // Check if user exists
+    // Check if user exists and get their image public IDs
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(id) }
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        validIDFrontPublicId: true,
+        validIDBackPublicId: true
+      }
     });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Delete the user
+    // Log the operation for audit purposes
+    console.log(`Deleting user: ${user.firstName} ${user.lastName} (${user.email}), ID: ${userId}`);
+    
+    // Collect public IDs of images to delete
+    const imagePublicIds = [
+      user.validIDFrontPublicId,
+      user.validIDBackPublicId
+    ].filter(Boolean); // Remove null/undefined values
+    
+    let imageDeleteResults = [];
+    
+    // Delete the user's images from Cloudinary if they exist
+    if (imagePublicIds.length > 0) {
+      console.log(`Deleting ${imagePublicIds.length} images for user ${userId}`);
+      
+      try {
+        imageDeleteResults = await deleteMultipleImages(imagePublicIds);
+        console.log('Image deletion results:', imageDeleteResults);
+      } catch (imageError) {
+        console.error('Error deleting images, but continuing with user deletion:', imageError);
+      }
+    } else {
+      console.log(`No images to delete for user ${userId}`);
+    }
+
+    // Delete the user from the database
     await prisma.user.delete({
-      where: { id: parseInt(id) }
+      where: { id: userId }
     });
 
-    res.status(200).json({ message: 'User deleted successfully' });
+    // Prepare response with image deletion status
+    const imageDeleteStatus = imagePublicIds.length > 0 ? {
+      attempted: imagePublicIds.length,
+      successful: imageDeleteResults.filter(r => r.status === 'fulfilled').length,
+      failed: imageDeleteResults.filter(r => r.status === 'rejected').length,
+    } : 'No images to delete';
+
+    res.status(200).json({ 
+      message: 'User and associated data deleted successfully',
+      deletedUser: {
+        id: userId,
+        email: user.email
+      },
+      imagesDeleted: imageDeleteStatus
+    });
+    
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ message: 'Failed to delete user', error: error.message });

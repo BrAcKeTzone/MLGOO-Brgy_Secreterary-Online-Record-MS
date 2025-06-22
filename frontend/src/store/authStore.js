@@ -45,7 +45,6 @@ const useAuthStore = create((set) => ({
     try {
       const { data } = await authAPI.login(email, password);
       
-      // Remove success check since backend doesn't return a success flag
       set({ 
         user: data.user, 
         token: data.token, 
@@ -116,23 +115,101 @@ const useAuthStore = create((set) => ({
   signup: async (formData) => {
     set({ loading: true, error: null });
     try {
-      // Create a new object with proper data formatting
+      console.log("Starting signup process with form data", { ...formData, password: "[REDACTED]" });
+      
+      // Handle file uploads for ID images first
+      const uploadPromises = [];
+      let nationalIdFront = null;
+      let nationalIdBack = null;
+
+      // Upload front ID image if provided
+      if (formData.nationalIdFront) {
+        console.log("Uploading front ID image...");
+        const frontUploadPromise = authAPI.uploadImage(formData.nationalIdFront)
+          .then(response => {
+            console.log("Front ID upload successful", response.data);
+            nationalIdFront = {
+              url: response.data.url,
+              public_id: response.data.public_id
+            };
+          })
+          .catch(error => {
+            console.error("Front ID upload failed:", error);
+            throw new Error("Failed to upload front ID image. Please try again.");
+          });
+        uploadPromises.push(frontUploadPromise);
+      } else {
+        console.error("Front ID image is required but not provided");
+        set({ 
+          error: "Front ID image is required", 
+          loading: false 
+        });
+        throw new Error("Front ID image is required");
+      }
+
+      // Upload back ID image if provided
+      if (formData.nationalIdBack) {
+        console.log("Uploading back ID image...");
+        const backUploadPromise = authAPI.uploadImage(formData.nationalIdBack)
+          .then(response => {
+            console.log("Back ID upload successful", response.data);
+            nationalIdBack = {
+              url: response.data.url,
+              public_id: response.data.public_id
+            };
+          })
+          .catch(error => {
+            console.error("Back ID upload failed:", error);
+            throw new Error("Failed to upload back ID image. Please try again.");
+          });
+        uploadPromises.push(backUploadPromise);
+      } else {
+        console.error("Back ID image is required but not provided");
+        set({ 
+          error: "Back ID image is required", 
+          loading: false 
+        });
+        throw new Error("Back ID image is required");
+      }
+
+      // Wait for all uploads to complete
+      console.log("Waiting for all image uploads to complete...");
+      await Promise.all(uploadPromises);
+      console.log("All image uploads completed successfully");
+      
+      // Create the signup data object with proper formatting
       const signupData = {
-        ...formData,
-        assignedBrgy: formData.assignedBrgy ? formData.assignedBrgy : null
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth,
+        role: formData.role,
+        // Only include assignedBrgy if role is BARANGAY_SECRETARY and it has a value
+        ...(formData.role === 'BARANGAY_SECRETARY' && formData.assignedBrgy 
+          ? { assignedBrgy: parseInt(formData.assignedBrgy, 10) } 
+          : {}
+        ),
+        // Include validIDTypeId as an integer
+        validIDTypeId: parseInt(formData.validIDTypeId, 10),
+        // Include the uploaded image information
+        nationalIdFront,
+        nationalIdBack
       };
       
-      console.log("Sending signup data:", signupData);
+      console.log("Sending signup data:", { ...signupData, password: "[REDACTED]" });
       const { data } = await authAPI.signup(signupData);
       
+      console.log("Signup successful:", data);
       set({ 
         loading: false,
-        successMessage: 'Account created successfully! Please wait for admin approval.' 
+        successMessage: data.message || 'Account created successfully! Please wait for admin approval.' 
       });
       return data;
     } catch (err) {
+      console.error("Signup error:", err);
       set({
-        error: err.response?.data?.message || "Signup failed",
+        error: err.response?.data?.message || err.message || "Signup failed",
         loading: false,
       });
       throw err;

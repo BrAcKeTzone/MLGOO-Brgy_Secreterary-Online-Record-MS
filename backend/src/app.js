@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const settingRoutes = require('./routes/settingRoutes');
 const userListRoutes = require('./routes/userListRoutes');
+const uploadRoutes = require('./routes/uploadRoutes'); // New upload route import
 
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/users', userListRoutes);
+app.use('/api/upload', uploadRoutes); // Set up upload routes
 
 
 app.get('/', (req, res) => {

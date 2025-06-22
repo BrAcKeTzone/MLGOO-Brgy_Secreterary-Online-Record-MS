@@ -43,7 +43,9 @@ const AccountDetailsStep = ({
   useEffect(() => {
     if (form.validIDTypeId && validIDTypes.length > 0) {
       const selectedType = validIDTypes.find(
-        (type) => type.id === parseInt(form.validIDTypeId, 10) || type.id === form.validIDTypeId
+        (type) =>
+          type.id === parseInt(form.validIDTypeId, 10) ||
+          type.id === form.validIDTypeId
       );
       setSelectedIdTypeDescription(selectedType?.description || "");
     } else {
@@ -77,12 +79,14 @@ const AccountDetailsStep = ({
     setModalType(null);
   };
 
+  // Check if an ID type is selected
+  const hasIdTypeSelected = !!form.validIDTypeId;
+
   const isFormValid =
     form.password &&
     form.confirmPassword &&
     form.validIDTypeId &&
-    form.nationalIdFront &&
-    form.nationalIdBack &&
+    (hasIdTypeSelected ? form.nationalIdFront && form.nationalIdBack : true) &&
     acceptedPolicies &&
     !passwordError;
 
@@ -124,23 +128,25 @@ const AccountDetailsStep = ({
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ImageUploadInput
-            label="Valid ID (Front)"
-            name="nationalIdFront"
-            onChange={handleImageChange}
-            preview={previews.nationalIdFront}
-            required
-          />
+        {hasIdTypeSelected && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ImageUploadInput
+              label="Valid ID(Front)"
+              name="nationalIdFront"
+              onChange={handleImageChange}
+              preview={previews.nationalIdFront}
+              required
+            />
 
-          <ImageUploadInput
-            label="Valid ID (Back)"
-            name="nationalIdBack"
-            onChange={handleImageChange}
-            preview={previews.nationalIdBack}
-            required
-          />
-        </div>
+            <ImageUploadInput
+              label="Valid ID(Back)"
+              name="nationalIdBack"
+              onChange={handleImageChange}
+              preview={previews.nationalIdBack}
+              required
+            />
+          </div>
+        )}
       </div>
 
       <PasswordInput

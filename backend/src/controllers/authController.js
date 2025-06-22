@@ -7,9 +7,51 @@ const {
   sendAccountPendingEmail,
   sendAccountDeactivatedEmail, 
   sendWelcomeEmail,
-  generateOtp // Add this import
+  generateOtp
 } = require('../services/emailService');
+const cloudinary = require('../config/cloudinary');
 const prisma = new PrismaClient();
+
+// Just update the uploadToCloudinary function to ensure consistent folder usage
+
+const uploadToCloudinary = async (base64Image, folder = 'tabina_oms/valid_ids') => {
+  if (!base64Image) return null;
+  
+  try {
+    // Handle already uploaded images
+    if (typeof base64Image === 'object' && base64Image.url) {
+      return {
+        url: base64Image.url,
+        public_id: base64Image.public_id
+      };
+    }
+    
+    // For base64 strings, upload to Cloudinary
+    if (typeof base64Image === 'string') {
+      // Make sure the string is a valid base64 image
+      if (!base64Image.startsWith('data:image')) {
+        throw new Error('Invalid image format');
+      }
+      
+      // Upload the image to Cloudinary
+      const result = await cloudinary.uploader.upload(base64Image, {
+        folder,
+        resource_type: 'image',
+        flags: 'attachment'
+      });
+      
+      return {
+        url: result.secure_url,
+        public_id: result.public_id
+      };
+    }
+    
+    throw new Error('Invalid image format');
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    throw new Error(`Failed to upload image: ${error.message}`);
+  }
+};
 
 exports.checkEmail = async (req, res) => {
   try {
@@ -107,14 +149,14 @@ exports.signup = async (req, res) => {
       lastName, 
       dateOfBirth, 
       role,
-      assignedBrgy, // This is the barangay ID from frontend
-      validIDTypeId, // New field for the ID type
+      assignedBrgy,
+      validIDTypeId,
       nationalIdFront,
       nationalIdBack
     } = req.body;
 
-    console.log("Signup request body:", req.body); // Log the entire request body
-
+    console.log("Signup request body received");
+    
     // Verify email was validated with OTP
     const verifiedOtp = await prisma.oTP.findFirst({
       where: {
@@ -203,19 +245,61 @@ exports.signup = async (req, res) => {
       userData.validIDTypeId = parseInt(validIDTypeId, 10);
       console.log("Setting validIDTypeId to:", userData.validIDTypeId);
     }
-    
-    // Handle ID document URLs if available 
-    if (nationalIdFront?.url) {
-      userData.validIDFrontUrl = nationalIdFront.url;
-      userData.validIDFrontPublicId = nationalIdFront.public_id;
-    }
-    
-    if (nationalIdBack?.url) {
-      userData.validIDBackUrl = nationalIdBack.url;
-      userData.validIDBackPublicId = nationalIdBack.public_id;
+
+    // Handle image uploads to Cloudinary
+    try {
+      // Process front ID image
+      if (nationalIdFront) {
+        console.log("Uploading front ID image to Cloudinary...");
+        let frontImageData;
+        
+        // Handle either base64 string or object with url
+        if (typeof nationalIdFront === 'string') {
+          frontImageData = await uploadToCloudinary(nationalIdFront);
+        } else if (nationalIdFront.url) {
+          // If already uploaded and has URL
+          frontImageData = {
+            url: nationalIdFront.url,
+            public_id: nationalIdFront.public_id
+          };
+        }
+        
+        if (frontImageData) {
+          userData.validIDFrontUrl = frontImageData.url;
+          userData.validIDFrontPublicId = frontImageData.public_id;
+        }
+      }
+      
+      // Process back ID image
+      if (nationalIdBack) {
+        console.log("Uploading back ID image to Cloudinary...");
+        let backImageData;
+        
+        // Handle either base64 string or object with url
+        if (typeof nationalIdBack === 'string') {
+          backImageData = await uploadToCloudinary(nationalIdBack);
+        } else if (nationalIdBack.url) {
+          // If already uploaded and has URL
+          backImageData = {
+            url: nationalIdBack.url,
+            public_id: nationalIdBack.public_id
+          };
+        }
+        
+        if (backImageData) {
+          userData.validIDBackUrl = backImageData.url;
+          userData.validIDBackPublicId = backImageData.public_id;
+        }
+      }
+    } catch (uploadError) {
+      console.error('Error uploading images:', uploadError);
+      return res.status(500).json({ message: 'Failed to upload ID images. Please try again.' });
     }
 
-    console.log("Final userData being sent to database:", userData);
+    console.log("Final userData being sent to database:", {
+      ...userData,
+      password: '[REDACTED]'
+    });
 
     const user = await prisma.user.create({
       data: userData,
@@ -245,7 +329,9 @@ exports.signup = async (req, res) => {
       barangayId: user.barangayId,
       barangay: user.assignedBrgy?.name,
       validIDTypeId: user.validIDTypeId,
-      validIDType: user.validIDType?.name
+      validIDType: user.validIDType?.name,
+      validIDFrontUrl: user.validIDFrontUrl,
+      validIDBackUrl: user.validIDBackUrl
     };
 
     res.status(201).json({ 
