@@ -19,6 +19,15 @@ exports.getProfile = async (req, res) => {
         validIDFrontUrl: true,
         validIDBackUrl: true,
         barangayId: true,
+        validIDTypeId: true,
+        validIDType: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            isActive: true
+          }
+        },
         assignedBrgy: {
           select: {
             id: true,

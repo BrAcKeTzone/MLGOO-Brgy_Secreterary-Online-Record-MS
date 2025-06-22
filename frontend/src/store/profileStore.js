@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { profileAPI } from "../services/api";
 
-const useProfileStore = create((set) => ({
+const useProfileStore = create((set, get) => ({
   profileData: null,
   loading: false,
   error: null,
@@ -10,12 +10,18 @@ const useProfileStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await profileAPI.getProfile();
-      set({ profileData: data.profile, loading: false });
+      set({ 
+        profileData: data.profile, 
+        loading: false 
+      });
+      return data.profile;
     } catch (err) {
+      console.error('Error fetching profile:', err);
       set({
         error: err.response?.data?.message || "Failed to fetch profile",
         loading: false
       });
+      return null;
     }
   },
 
@@ -26,6 +32,7 @@ const useProfileStore = create((set) => ({
       set({ loading: false });
       return data;
     } catch (err) {
+      console.error('Error changing password:', err);
       set({
         error: err.response?.data?.message || "Failed to change password",
         loading: false

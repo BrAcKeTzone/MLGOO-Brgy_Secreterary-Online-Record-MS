@@ -26,8 +26,8 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    fetchProfile(user?._id);
-  }, [user]);
+    fetchProfile();
+  }, [fetchProfile]);
 
   useEffect(() => {
     if (profileData) {
@@ -36,8 +36,9 @@ const Profile = () => {
         lastName: profileData.lastName,
         email: profileData.email,
         dateOfBirth: profileData.dateOfBirth?.split("T")[0],
-        nationalIdFront: profileData.nationalIdFront,
-        nationalIdBack: profileData.nationalIdBack,
+        nationalIdFront: profileData.validIDFrontUrl,
+        nationalIdBack: profileData.validIDBackUrl,
+        idType: profileData.validIDType?.name,
       });
     }
   }, [profileData]);
@@ -85,63 +86,99 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 py-4 px-3 sm:py-6 sm:px-6">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">My Profile</h1>
-          <p className="text-gray-600">View your profile information</p>
+        {/* Header - Responsive text sizes */}
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">
+            My Profile
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            View your profile information
+          </p>
         </div>
 
-        {/* Profile Information (View Only) */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">
+        {/* Profile Information - Responsive padding and spacing */}
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 sm:mb-6">
             Profile Information
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          {/* Responsive grid layout that stacks on small screens */}
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
+            {/* Name section - 2 columns on medium screens and up */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <FormInput
+                label="First Name"
+                name="firstName"
+                value={formData.firstName || ""}
+                disabled={true}
+              />
+              <FormInput
+                label="Last Name"
+                name="lastName"
+                value={formData.lastName || ""}
+                disabled={true}
+              />
+            </div>
+
+            {/* Email and DOB section - 2 columns on medium screens and up */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <FormInput
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email || ""}
+                disabled={true}
+              />
+              <FormInput
+                label="Date of Birth"
+                name="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth || ""}
+                disabled={true}
+              />
+            </div>
+
+            {/* Role - Full width regardless of screen size */}
             <FormInput
-              label="First Name"
-              name="firstName"
-              value={formData.firstName || ""}
+              label="Role"
+              name="role"
+              value={profileData?.role || ""}
               disabled={true}
             />
-            <FormInput
-              label="Last Name"
-              name="lastName"
-              value={formData.lastName || ""}
-              disabled={true}
-            />
-            <FormInput
-              label="Email"
-              name="email"
-              type="email"
-              value={formData.email || ""}
-              disabled={true}
-            />
-            <FormInput
-              label="Date of Birth"
-              name="dateOfBirth"
-              type="date"
-              value={formData.dateOfBirth || ""}
-              disabled={true}
-            />
+
+            {/* Barangay - Only shown for users with assigned barangay */}
+            {profileData?.assignedBrgy && (
+              <FormInput
+                label="Assigned Barangay"
+                name="barangay"
+                value={profileData.assignedBrgy?.name || ""}
+                disabled={true}
+              />
+            )}
           </div>
         </div>
 
-        {/* National ID Images (View Only) */}
-        <NationalIdSection
-          frontImage={formData.nationalIdFront}
-          backImage={formData.nationalIdBack}
-        />
+        {/* National ID Images - Only shown if they exist */}
+        {(formData.nationalIdFront || formData.nationalIdBack) && (
+          <NationalIdSection
+            frontImage={formData.nationalIdFront}
+            backImage={formData.nationalIdBack}
+            idType={formData.idType}
+          />
+        )}
 
-        {/* Password Change Form (Editable) */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">
+        {/* Password Change Form - Responsive padding and spacing */}
+        <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          {/* Responsive header with flex layout that works on all screens */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
               Change Password
             </h2>
             <button
               onClick={() => setShowPasswordForm(!showPasswordForm)}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 hover:text-blue-800 text-sm sm:text-base py-1 px-3 border border-blue-600 rounded-md sm:border-0 sm:p-0 self-start sm:self-auto"
             >
               {showPasswordForm ? "Cancel" : "Change Password"}
             </button>
@@ -149,7 +186,7 @@ const Profile = () => {
 
           {showPasswordForm && (
             <form onSubmit={handlePasswordSubmit}>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <PasswordInput
                   label="Current Password"
                   name="currentPassword"
@@ -183,10 +220,10 @@ const Profile = () => {
                 />
               </div>
 
-              <div className="mt-6">
+              <div className="mt-4 sm:mt-6">
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-sm sm:text-base"
                 >
                   Update Password
                 </button>
