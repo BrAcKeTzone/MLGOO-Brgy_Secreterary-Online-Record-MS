@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import useUserListStore from "../store/userListStore";
-import useSettingsStore from "../store/settingsStore"; 
+import useSettingsStore from "../store/settingsStore";
+import useAuthStore from "../store/authStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
 import UserFilters from "../components/UserManagementComp/UserFilters";
@@ -22,14 +23,17 @@ const ManageUsers = () => {
     closeViewModal,
     viewModalOpen,
   } = useUserListStore();
-  
+
+  // Fetch current user data
+  const { user: currentUser } = useAuthStore();
+
   // Fetch barangays data for dropdown filters and display
   const { fetchBarangays } = useSettingsStore();
 
   useEffect(() => {
-    fetchUsers(); // This should now include dateOfBirth field
+    fetchUsers(); // Initial fetch with default filters
     fetchBarangays();
-    
+
     // Clean up function to close modal when unmounting
     return () => {
       if (viewModalOpen) {
@@ -38,13 +42,45 @@ const ManageUsers = () => {
     };
   }, [fetchUsers, fetchBarangays, closeViewModal, viewModalOpen]);
 
+  const handleFilterChange = (newFilters) => {
+    // For dropdown filters (role, status, barangay), fetch immediately
+    if ("search" in newFilters) {
+      // For search, just update the store value but don't fetch
+      updateFilters(newFilters);
+    } else {
+      // For other filters, update and fetch
+      updateFilters(newFilters);
+      fetchUsers();
+    }
+  };
+
   const handleDelete = async (userId) => {
+    // Prevent deleting own account
+    if (currentUser && userId === currentUser.id.toString()) {
+      alert("You cannot delete your own account");
+      return;
+    }
+
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         await deleteUser(userId);
       } catch (err) {
         console.error("Delete failed:", err);
       }
+    }
+  };
+
+  const handleStatusUpdate = async (userId, status, activeStatus) => {
+    // Prevent deactivating own account
+    if (currentUser && userId === currentUser.id.toString()) {
+      alert("You cannot modify your own account status");
+      return;
+    }
+
+    try {
+      await updateUserStatus(userId, status, activeStatus);
+    } catch (err) {
+      console.error("Status update failed:", err);
     }
   };
 
@@ -67,7 +103,7 @@ const ManageUsers = () => {
         </div>
       )}
 
-      <UserFilters filters={filters} onFilterChange={updateFilters} />
+      <UserFilters filters={filters} onFilterChange={handleFilterChange} />
 
       {loading && filteredUsers.length > 0 && (
         <div className="flex justify-center my-4">
@@ -79,7 +115,7 @@ const ManageUsers = () => {
 
       <UserTable
         users={filteredUsers}
-        onStatusUpdate={updateUserStatus}
+        onStatusUpdate={handleStatusUpdate}
         onDelete={handleDelete}
       />
 
