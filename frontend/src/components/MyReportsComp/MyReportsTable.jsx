@@ -160,8 +160,13 @@ const MyReportsTable = ({
                       icon: <FaTrash />,
                       onClick: () => handleDelete(report.id),
                       className:
-                        "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100",
-                      title: "Delete",
+                        report.status !== "PENDING"
+                          ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                          : "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100",
+                      title:
+                        report.status !== "PENDING"
+                          ? "Can only delete pending reports"
+                          : "Delete",
                       disabled: report.status !== "PENDING",
                     },
                   ]}

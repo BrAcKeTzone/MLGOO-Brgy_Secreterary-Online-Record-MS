@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useMyReportsStore from "../store/myReportsStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
@@ -14,6 +14,7 @@ import {
   FaFileExcel,
   FaFileImage,
   FaDownload,
+  FaEdit,
 } from "react-icons/fa";
 
 const MyReports = () => {
@@ -34,6 +35,9 @@ const MyReports = () => {
     closeViewModal,
   } = useMyReportsStore();
 
+  // State for overlay loading during actions
+  const [actionLoading, setActionLoading] = useState(false);
+
   // Initial fetch with default filters
   useEffect(() => {
     fetchReports();
@@ -48,6 +52,19 @@ const MyReports = () => {
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
+  };
+
+  const handleFilterChange = (newFilters) => {
+    updateFilters(newFilters);
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    setActionLoading(true);
+    try {
+      await deleteReport(reportId);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleViewReport = (reportId) => {
@@ -99,7 +116,7 @@ const MyReports = () => {
     }
   };
 
-  if (loading && !reports.length) {
+  if (loading && !actionLoading && reports.length === 0) {
     return <LoadingScreen message="Loading reports..." />;
   }
 
@@ -108,7 +125,7 @@ const MyReports = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">My Reports</h1>
         <p className="text-gray-600">
@@ -116,9 +133,18 @@ const MyReports = () => {
         </p>
       </div>
 
-      <MyReportsFilters filters={filters} onFilterChange={updateFilters} />
+      <MyReportsFilters filters={filters} onFilterChange={handleFilterChange} />
 
-      {loading && reports.length > 0 && (
+      {actionLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-5 rounded-lg shadow-lg">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-3 text-gray-700">Processing...</p>
+          </div>
+        </div>
+      )}
+
+      {loading && reports.length > 0 && !actionLoading && (
         <div className="flex justify-center my-4">
           <div className="animate-pulse text-gray-500">
             Loading updated results...
@@ -129,7 +155,7 @@ const MyReports = () => {
       <MyReportsTable
         reports={reports}
         pagination={pagination}
-        onDelete={deleteReport}
+        onDelete={handleDeleteReport}
         onView={handleViewReport}
         onEdit={handleEditReport}
         onPageChange={handlePageChange}
@@ -294,7 +320,7 @@ const MyReports = () => {
                           "Are you sure you want to delete this report?"
                         )
                       ) {
-                        deleteReport(selectedReport.id);
+                        handleDeleteReport(selectedReport.id);
                         closeViewModal();
                       }
                     }}

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { reportAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { CURRENT_YEAR } from '../utils/dateUtils';
+import useAuthStore from './authStore';
 
 const useMyReportsStore = create((set, get) => ({
   reports: [],
@@ -66,7 +67,7 @@ const useMyReportsStore = create((set, get) => ({
         reports: response.data.reports,
         pagination: response.data.pagination,
         loading: false,
-        filters: currentFilters // Update filters state
+        filters: currentFilters      
       });
     } catch (err) {
       console.error("Error fetching reports:", err);
@@ -114,6 +115,7 @@ const useMyReportsStore = create((set, get) => ({
       
       // Refresh reports list
       await get().fetchReports();
+      set({ loading: false });
     } catch (err) {
       set({ 
         error: err.response?.data?.message || "Failed to delete report", 
@@ -149,10 +151,28 @@ const useMyReportsStore = create((set, get) => ({
   },
 
   openViewModal: async (reportId) => {
-    // Fetch report details and open modal
-    const reportDetails = await get().getReportDetails(reportId);
-    if (reportDetails) {
-      set({ viewModalOpen: true });
+    try {
+      // Start loading
+      set({ loading: true });
+      
+      // Fetch report details 
+      const reportDetails = await get().getReportDetails(reportId);
+      
+      // If successful, open the modal
+      if (reportDetails) {
+        set({ 
+          selectedReport: reportDetails,
+          viewModalOpen: true,
+          loading: false 
+        });
+      } else {
+        // If we couldn't get details, ensure loading is set to false
+        set({ loading: false });
+      }
+    } catch (error) {
+      console.error("Error fetching report details:", error);
+      set({ loading: false });
+      toast.error("Failed to load report details");
     }
   },
 
