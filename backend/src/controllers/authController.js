@@ -93,7 +93,7 @@ exports.checkEmail = async (req, res) => {
     });
 
     // Send OTP email
-    // await sendOtpEmail(email, otp);
+    await sendOtpEmail(email, otp);
     console.log(otp);
 
     res.status(200).json({ 
