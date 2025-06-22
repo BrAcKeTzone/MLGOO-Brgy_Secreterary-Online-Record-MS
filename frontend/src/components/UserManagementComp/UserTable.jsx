@@ -86,6 +86,17 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
     });
   };
 
+  // Get border color based on user status
+  const getBorderColor = (user) => {
+    if (user.creationStatus === "APPROVED") {
+      return user.activeStatus === "ACTIVE" ? "#10B981" : "#EF4444";
+    } else if (user.creationStatus === "PENDING") {
+      return "#F59E0B";
+    } else {
+      return "#EF4444";
+    }
+  };
+
   if (users.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
@@ -96,168 +107,320 @@ const UserTable = ({ users, onStatusUpdate, onDelete }) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {users.map((user) => {
-          const userIsCurrentUser = isCurrentUser(user);
-          
-          return (
-            <div
-              key={user._id}
-              className={`bg-white rounded-lg shadow p-4 flex flex-col border-l-4 hover:shadow-lg transition-shadow ${
-                userIsCurrentUser ? "bg-green-50" : ""
-              }`}
-              style={{
-                borderLeftColor:
-                  user.creationStatus === "APPROVED"
-                    ? user.activeStatus === "ACTIVE"
-                      ? "#10B981"
-                      : "#EF4444"
-                    : user.creationStatus === "PENDING"
-                    ? "#F59E0B"
-                    : "#EF4444",
-              }}
-            >
-              {/* Header with name and status */}
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-semibold text-lg flex items-center">
-                  {userIsCurrentUser && (
-                    <FaUserCircle className="mr-2 text-green-600" title="This is you" />
-                  )}
-                  {user.firstName} {user.lastName}
-                  {userIsCurrentUser && (
-                    <span className="ml-2 text-xs text-green-600 font-normal">(You)</span>
-                  )}
-                </h3>
-                <div className="flex flex-col items-end">
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${getStatusBgColor(
-                      user.creationStatus
-                    )} ${getStatusColor(user.creationStatus)}`}
-                  >
-                    {user.creationStatus}
-                  </span>
-
-                  {user.creationStatus === "APPROVED" && (
+      {/* Mobile view - card layout (visible only on small screens) */}
+      <div className="md:hidden">
+        <div className="space-y-4">
+          {users.map((user) => {
+            const userIsCurrentUser = isCurrentUser(user);
+            
+            return (
+              <div
+                key={user._id}
+                className={`bg-white rounded-lg shadow p-4 flex flex-col border-l-4 hover:shadow-lg transition-shadow ${
+                  userIsCurrentUser ? "bg-green-50" : ""
+                }`}
+                style={{
+                  borderLeftColor: getBorderColor(user)
+                }}
+              >
+                {/* Header with name and status */}
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-lg flex items-center">
+                    {userIsCurrentUser && (
+                      <FaUserCircle className="mr-2 text-green-600" title="This is you" />
+                    )}
+                    {user.firstName} {user.lastName}
+                    {userIsCurrentUser && (
+                      <span className="ml-2 text-xs text-green-600 font-normal">(You)</span>
+                    )}
+                  </h3>
+                  <div className="flex flex-col items-end">
                     <span
-                      className={`text-xs mt-1 px-2 py-1 rounded-full ${
-                        user.activeStatus === "ACTIVE"
-                          ? "bg-green-50 text-green-600"
-                          : "bg-red-50 text-red-600"
-                      }`}
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusBgColor(
+                        user.creationStatus
+                      )} ${getStatusColor(user.creationStatus)}`}
                     >
-                      {user.activeStatus}
+                      {user.creationStatus}
                     </span>
+
+                    {user.creationStatus === "APPROVED" && (
+                      <span
+                        className={`text-xs mt-1 px-2 py-1 rounded-full ${
+                          user.activeStatus === "ACTIVE"
+                            ? "bg-green-50 text-green-600"
+                            : "bg-red-50 text-red-600"
+                        }`}
+                      >
+                        {user.activeStatus}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* User details */}
+                <div className="space-y-2 mb-4 flex-grow">
+                  <div className="flex items-center text-sm">
+                    <FaEnvelope className="mr-2 text-gray-400" />
+                    <span className="truncate">{user.email}</span>
+                  </div>
+
+                  <div className="flex items-center text-sm">
+                    <FaUserTag className="mr-2 text-gray-400" />
+                    <span>{formatRole(user.role)}</span>
+                  </div>
+
+                  {user.role === "BARANGAY_SECRETARY" && (
+                    <div className="flex items-center text-sm">
+                      <FaMapMarkerAlt className="mr-2 text-gray-400" />
+                      <span>
+                        {user.barangayName || getBarangayName(user.barangayId)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Add DOB to the card if it exists */}
+                  {user.dateOfBirth && (
+                    <div className="flex items-center text-sm">
+                      <FaBirthdayCake className="mr-2 text-gray-400" />
+                      <span>{formatDate(user.dateOfBirth)}</span>
+                    </div>
                   )}
                 </div>
-              </div>
 
-              {/* User details */}
-              <div className="space-y-2 mb-4 flex-grow">
-                <div className="flex items-center text-sm">
-                  <FaEnvelope className="mr-2 text-gray-400" />
-                  <span className="truncate">{user.email}</span>
+                {/* Action buttons */}
+                <div className="border-t pt-3 flex justify-center">
+                  <TableActions
+                    actions={[
+                      ...(user.creationStatus === "PENDING"
+                        ? [
+                            {
+                              icon: <FaCheck />,
+                              onClick: () =>
+                                onStatusUpdate(user._id, "APPROVED", "ACTIVE"),
+                              className:
+                                "text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100",
+                              title: "Approve",
+                            },
+                            {
+                              icon: <FaTimes />,
+                              onClick: () => onStatusUpdate(user._id, "REJECTED"),
+                              className:
+                                "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100",
+                              title: "Reject",
+                            },
+                          ]
+                        : []),
+                      ...(user.creationStatus === "APPROVED"
+                        ? [
+                            {
+                              icon: <FaPowerOff />,
+                              onClick: () =>
+                                onStatusUpdate(
+                                  user._id,
+                                  null,
+                                  user.activeStatus === "ACTIVE"
+                                    ? "DEACTIVATED"
+                                    : "ACTIVE"
+                                ),
+                              className: userIsCurrentUser
+                                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                                : user.activeStatus === "ACTIVE"
+                                ? "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100"
+                                : "text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100",
+                              title: userIsCurrentUser
+                                ? "Cannot modify your own account"
+                                : user.activeStatus === "ACTIVE"
+                                ? "Deactivate"
+                                : "Activate",
+                              disabled: userIsCurrentUser,
+                            },
+                          ]
+                        : []),
+                      {
+                        icon: <FaEye />,
+                        onClick: () => openViewModal(user),
+                        className:
+                          "text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100",
+                        title: "View Details",
+                      },
+                      {
+                        icon: <FaTrash />,
+                        onClick: () => onDelete(user._id),
+                        className: userIsCurrentUser
+                          ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                          : "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100",
+                        title: userIsCurrentUser
+                          ? "Cannot delete your own account"
+                          : "Delete",
+                        disabled: userIsCurrentUser,
+                      },
+                    ]}
+                    buttonClassName="rounded-full p-2"
+                  />
                 </div>
-
-                <div className="flex items-center text-sm">
-                  <FaUserTag className="mr-2 text-gray-400" />
-                  <span>{formatRole(user.role)}</span>
-                </div>
-
-                {user.role === "BARANGAY_SECRETARY" && (
-                  <div className="flex items-center text-sm">
-                    <FaMapMarkerAlt className="mr-2 text-gray-400" />
-                    <span>
-                      {user.barangayName || getBarangayName(user.barangayId)}
-                    </span>
-                  </div>
-                )}
-                
-                {/* Add DOB to the card if it exists */}
-                {user.dateOfBirth && (
-                  <div className="flex items-center text-sm">
-                    <FaBirthdayCake className="mr-2 text-gray-400" />
-                    <span>{formatDate(user.dateOfBirth)}</span>
-                  </div>
-                )}
               </div>
-
-              {/* Action buttons */}
-              <div className="border-t pt-3 flex justify-center">
-                <TableActions
-                  actions={[
-                    ...(user.creationStatus === "PENDING"
-                      ? [
-                          {
-                            icon: <FaCheck />,
-                            onClick: () =>
-                              onStatusUpdate(user._id, "APPROVED", "ACTIVE"),
-                            className:
-                              "text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100",
-                            title: "Approve",
-                          },
-                          {
-                            icon: <FaTimes />,
-                            onClick: () => onStatusUpdate(user._id, "REJECTED"),
-                            className:
-                              "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100",
-                            title: "Reject",
-                          },
-                        ]
-                      : []),
-                    ...(user.creationStatus === "APPROVED"
-                      ? [
-                          {
-                            icon: <FaPowerOff />,
-                            onClick: () =>
-                              onStatusUpdate(
-                                user._id,
-                                null,
-                                user.activeStatus === "ACTIVE"
-                                  ? "DEACTIVATED"
-                                  : "ACTIVE"
-                              ),
-                            className: userIsCurrentUser
-                              ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                              : user.activeStatus === "ACTIVE"
-                              ? "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100"
-                              : "text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100",
-                            title: userIsCurrentUser
-                              ? "Cannot modify your own account"
-                              : user.activeStatus === "ACTIVE"
-                              ? "Deactivate"
-                              : "Activate",
-                            disabled: userIsCurrentUser,
-                          },
-                        ]
-                      : []),
-                    {
-                      icon: <FaEye />,
-                      onClick: () => openViewModal(user),
-                      className:
-                        "text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100",
-                      title: "View Details",
-                    },
-                    {
-                      icon: <FaTrash />,
-                      onClick: () => onDelete(user._id),
-                      className: userIsCurrentUser
-                        ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                        : "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100",
-                      title: userIsCurrentUser
-                        ? "Cannot delete your own account"
-                        : "Delete",
-                      disabled: userIsCurrentUser,
-                    },
-                  ]}
-                  buttonClassName="rounded-full p-2"
-                />
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      {/* Enhanced User Detail Modal */}
+      {/* Desktop view - table layout (visible only on medium screens and up) */}
+      <div className="hidden md:block bg-white rounded-lg shadow">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((user) => {
+                const userIsCurrentUser = isCurrentUser(user);
+                
+                return (
+                  <tr key={user._id} className={`hover:bg-gray-50 ${userIsCurrentUser ? "bg-green-50" : ""}`}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {userIsCurrentUser && (
+                          <FaUserCircle className="mr-2 text-green-600" title="This is you" />
+                        )}
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {user.firstName} {user.lastName}
+                            {userIsCurrentUser && (
+                              <span className="ml-2 text-xs text-green-600 font-normal">(You)</span>
+                            )}
+                          </div>
+                          {user.role === "BARANGAY_SECRETARY" && (
+                            <div className="text-xs text-gray-500">
+                              <FaMapMarkerAlt className="inline mr-1" />
+                              {user.barangayName || getBarangayName(user.barangayId)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{user.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{formatRole(user.role)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col space-y-1">
+                        <span
+                          className={`inline-flex text-xs leading-5 font-semibold rounded-full px-2 py-1 ${getStatusBgColor(
+                            user.creationStatus
+                          )} ${getStatusColor(user.creationStatus)}`}
+                        >
+                          {user.creationStatus}
+                        </span>
+
+                        {user.creationStatus === "APPROVED" && (
+                          <span
+                            className={`inline-flex text-xs leading-5 font-semibold rounded-full px-2 py-1 ${
+                              user.activeStatus === "ACTIVE"
+                                ? "bg-green-50 text-green-600"
+                                : "bg-red-50 text-red-600"
+                            }`}
+                          >
+                            {user.activeStatus}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <TableActions
+                        actions={[
+                          ...(user.creationStatus === "PENDING"
+                            ? [
+                                {
+                                  icon: <FaCheck />,
+                                  onClick: () =>
+                                    onStatusUpdate(user._id, "APPROVED", "ACTIVE"),
+                                  className:
+                                    "text-green-600 hover:text-green-900",
+                                  title: "Approve",
+                                },
+                                {
+                                  icon: <FaTimes />,
+                                  onClick: () => onStatusUpdate(user._id, "REJECTED"),
+                                  className:
+                                    "text-red-600 hover:text-red-900",
+                                  title: "Reject",
+                                },
+                              ]
+                            : []),
+                          ...(user.creationStatus === "APPROVED"
+                            ? [
+                                {
+                                  icon: <FaPowerOff />,
+                                  onClick: () =>
+                                    onStatusUpdate(
+                                      user._id,
+                                      null,
+                                      user.activeStatus === "ACTIVE"
+                                        ? "DEACTIVATED"
+                                        : "ACTIVE"
+                                    ),
+                                  className: userIsCurrentUser
+                                    ? "text-gray-400 cursor-not-allowed"
+                                    : user.activeStatus === "ACTIVE"
+                                    ? "text-red-600 hover:text-red-900"
+                                    : "text-green-600 hover:text-green-900",
+                                  title: userIsCurrentUser
+                                    ? "Cannot modify your own account"
+                                    : user.activeStatus === "ACTIVE"
+                                    ? "Deactivate"
+                                    : "Activate",
+                                  disabled: userIsCurrentUser,
+                                },
+                              ]
+                            : []),
+                          {
+                            icon: <FaEye />,
+                            onClick: () => openViewModal(user),
+                            className:
+                              "text-blue-600 hover:text-blue-900",
+                            title: "View Details",
+                          },
+                          {
+                            icon: <FaTrash />,
+                            onClick: () => onDelete(user._id),
+                            className: userIsCurrentUser
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-red-600 hover:text-red-900",
+                            title: userIsCurrentUser
+                              ? "Cannot delete your own account"
+                              : "Delete",
+                            disabled: userIsCurrentUser,
+                          },
+                        ]}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* User Details Modal */}
       {viewModalOpen && selectedUser && (
         <Modal
           isOpen={viewModalOpen}

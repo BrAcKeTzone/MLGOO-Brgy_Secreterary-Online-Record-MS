@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import { reportAPI } from '../services/api';
+import { toast } from 'react-toastify';
 import { CURRENT_YEAR } from '../utils/dateUtils';
-import { sampleReports } from '../data/samples/sampleReports';
 
 const useDocumentStore = create((set, get) => ({
   documents: [],
@@ -11,54 +12,51 @@ const useDocumentStore = create((set, get) => ({
     reportType: "all",
     status: "all",
     barangay: "all",
-    year: CURRENT_YEAR
+    year: CURRENT_YEAR,
+    page: 1,
+    limit: 10
   },
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 10,
+    pages: 1
+  },
+  
+  // Add state for modal
+  selectedDocument: null,
+  viewModalOpen: false,
 
   fetchDocuments: async (filters = null) => {
     set({ loading: true, error: null });
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
       // If no filters provided, use current store filters
       const currentFilters = filters || get().filters;
       
-      // Filter documents based on current filters
-      let filteredDocs = [...sampleReports];
+      // Build query string from filters
+      const queryParams = new URLSearchParams();
       
-      // Filter by year
-      filteredDocs = filteredDocs.filter(doc => 
-        new Date(doc.submittedDate).getFullYear().toString() === currentFilters.year
-      );
-
-      // Apply search filter if present
-      if (currentFilters.search) {
-        const searchTerm = currentFilters.search.toLowerCase();
-        filteredDocs = filteredDocs.filter(doc => 
-          doc.reportName.toLowerCase().includes(searchTerm) ||
-          doc.barangayName.toLowerCase().includes(searchTerm) ||
-          doc.fileName.toLowerCase().includes(searchTerm)
-        );
-      }
-
-      // Apply other filters
-      if (currentFilters.reportType !== 'all') {
-        filteredDocs = filteredDocs.filter(doc => doc.reportType === currentFilters.reportType);
-      }
-      if (currentFilters.status !== 'all') {
-        filteredDocs = filteredDocs.filter(doc => doc.status === currentFilters.status);
-      }
-      if (currentFilters.barangay !== 'all') {
-        filteredDocs = filteredDocs.filter(doc => doc.barangayId === currentFilters.barangay);
-      }
-
-      // Sort by submission date (newest first)
-      filteredDocs.sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate));
-
-      set({ documents: filteredDocs, loading: false });
+      if (currentFilters.search) queryParams.append('search', currentFilters.search);
+      if (currentFilters.reportType) queryParams.append('reportType', currentFilters.reportType);
+      if (currentFilters.status) queryParams.append('status', currentFilters.status);
+      if (currentFilters.barangay) queryParams.append('barangay', currentFilters.barangay);
+      if (currentFilters.year) queryParams.append('year', currentFilters.year);
+      if (currentFilters.page) queryParams.append('page', currentFilters.page);
+      if (currentFilters.limit) queryParams.append('limit', currentFilters.limit);
+      
+      const queryString = queryParams.toString();
+      
+      // Call the API with filters
+      const response = await reportAPI.getAllReports(queryString);
+      
+      set({ 
+        documents: response.data.reports, 
+        pagination: response.data.pagination,
+        loading: false 
+      });
     } catch (err) {
       set({
-        error: err.message || "Failed to fetch documents",
+        error: err.response?.data?.message || "Failed to fetch documents",
         loading: false
       });
     }
@@ -68,10 +66,19 @@ const useDocumentStore = create((set, get) => ({
     set(state => {
       const updatedFilters = { ...state.filters, ...newFilters };
       
-      // Only fetch if the changes include non-search filters or if it's a search action
-      if (!newFilters.hasOwnProperty('search') || newFilters.search !== undefined) {
-        state.fetchDocuments(updatedFilters);
+      // Reset to first page when filters change (except when explicitly changing pages)
+      if (!newFilters.hasOwnProperty('page') && (
+        newFilters.search !== undefined || 
+        newFilters.reportType !== undefined || 
+        newFilters.status !== undefined || 
+        newFilters.barangay !== undefined || 
+        newFilters.year !== undefined
+      )) {
+        updatedFilters.page = 1;
       }
+      
+      // Fetch documents with updated filters
+      state.fetchDocuments(updatedFilters);
       
       return { filters: updatedFilters };
     });
@@ -80,50 +87,90 @@ const useDocumentStore = create((set, get) => ({
   approveDocument: async (documentId) => {
     set({ loading: true, error: null });
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      set(state => ({
-        documents: state.documents.map(doc =>
-          doc._id === documentId ? { ...doc, status: "Approved", updatedAt: new Date().toISOString() } : doc
-        ),
-        loading: false
-      }));
+      await reportAPI.updateReportStatus(documentId, { status: 'APPROVED' });
+      
+      toast.success('Document approved successfully');
+      
+      // Refresh the documents list
+      await get().fetchDocuments();
     } catch (err) {
-      set({ error: err.message || "Failed to approve document", loading: false });
+      set({ 
+        error: err.response?.data?.message || "Failed to approve document", 
+        loading: false 
+      });
+      toast.error(err.response?.data?.message || "Failed to approve document");
     }
   },
 
   rejectDocument: async (documentId) => {
     set({ loading: true, error: null });
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      set(state => ({
-        documents: state.documents.map(doc =>
-          doc._id === documentId ? { ...doc, status: "Rejected", updatedAt: new Date().toISOString() } : doc
-        ),
-        loading: false
-      }));
+      await reportAPI.updateReportStatus(documentId, { status: 'REJECTED' });
+      
+      toast.success('Document rejected successfully');
+      
+      // Refresh the documents list
+      await get().fetchDocuments();
     } catch (err) {
-      set({ error: err.message || "Failed to reject document", loading: false });
+      set({ 
+        error: err.response?.data?.message || "Failed to reject document", 
+        loading: false 
+      });
+      toast.error(err.response?.data?.message || "Failed to reject document");
     }
   },
 
   deleteDocument: async (documentId) => {
     set({ loading: true, error: null });
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      set(state => ({
-        documents: state.documents.filter(doc => doc._id !== documentId),
-        loading: false
-      }));
+      await reportAPI.deleteReport(documentId);
+      
+      toast.success('Document deleted successfully');
+      
+      // Refresh the documents list
+      await get().fetchDocuments();
     } catch (err) {
-      set({ error: err.message || "Failed to delete document", loading: false });
+      set({ 
+        error: err.response?.data?.message || "Failed to delete document", 
+        loading: false 
+      });
+      toast.error(err.response?.data?.message || "Failed to delete document");
     }
+  },
+
+  // Add functions to handle modal
+  fetchDocumentDetails: async (docId) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await reportAPI.getReportById(docId);
+      set({ 
+        selectedDocument: response.data.report,
+        loading: false 
+      });
+      return response.data.report;
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || "Failed to fetch document details", 
+        loading: false
+      });
+      toast.error(err.response?.data?.message || "Failed to fetch document details");
+      return null;
+    }
+  },
+
+  openViewModal: async (docId) => {
+    // Fetch detailed document info and open modal
+    const documentDetails = await get().fetchDocumentDetails(docId);
+    if (documentDetails) {
+      set({ viewModalOpen: true });
+    }
+  },
+
+  closeViewModal: () => {
+    set({ 
+      selectedDocument: null,
+      viewModalOpen: false 
+    });
   }
 }));
 
