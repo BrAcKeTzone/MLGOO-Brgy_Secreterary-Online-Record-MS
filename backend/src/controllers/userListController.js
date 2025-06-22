@@ -3,24 +3,6 @@ const prisma = new PrismaClient();
 const { deleteMultipleImages } = require('../utils/cloudinary');
 
 /**
- * Delete images from Cloudinary
- * @param {string} publicId - The public ID of the image to delete
- */
-async function deleteImageFromCloudinary(publicId) {
-  if (!publicId) return;
-  
-  try {
-    console.log(`Deleting image with public_id: ${publicId}`);
-    const result = await cloudinary.uploader.destroy(publicId);
-    console.log(`Cloudinary deletion result: ${result.result}`);
-    return result;
-  } catch (error) {
-    console.error(`Error deleting image from Cloudinary: ${error.message}`);
-    // We don't throw here to ensure the user deletion continues even if image deletion fails
-  }
-}
-
-/**
  * Get all users with pagination and filtering
  */
 exports.getUsers = async (req, res) => {
@@ -34,19 +16,16 @@ exports.getUsers = async (req, res) => {
       limit = 10 
     } = req.query;
     
-    // Base query
+    // Build query conditions
     let whereConditions = {};
     
     // Apply search filter
     if (search) {
-      whereConditions = {
-        ...whereConditions,
-        OR: [
-          { firstName: { contains: search, mode: 'insensitive' } },
-          { lastName: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } }
-        ]
-      };
+      whereConditions.OR = [
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { email: { contains: search } }
+      ];
     }
     
     // Apply role filter
@@ -62,87 +41,73 @@ exports.getUsers = async (req, res) => {
     // Apply status filter
     if (status && status !== 'all') {
       if (status === 'ACTIVE' || status === 'DEACTIVATED') {
-        whereConditions = {
-          ...whereConditions,
-          creationStatus: 'APPROVED',
-          activeStatus: status
-        };
+        whereConditions.creationStatus = 'APPROVED';
+        whereConditions.activeStatus = status;
       } else {
         whereConditions.creationStatus = status;
       }
     }
 
-    // Calculate pagination
-    const skip = (page - 1) * limit;
-    
     // Get users with pagination
-    const users = await prisma.user.findMany({
-      where: whereConditions,
-      skip,
-      take: parseInt(limit),
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        dateOfBirth: true,  // Make sure this field is included
-        creationStatus: true,
-        activeStatus: true,
-        // Add these fields for ID images
-        validIDFrontUrl: true,
-        validIDBackUrl: true,
-        validIDFrontPublicId: true,
-        validIDBackPublicId: true,
-        validIDTypeId: true,
-        // Add validIDType to show the ID type name
-        validIDType: {
-          select: {
-            id: true,
-            name: true
-          }
+    const [users, totalCount] = await Promise.all([
+      prisma.user.findMany({
+        where: whereConditions,
+        skip: (page - 1) * limit,
+        take: parseInt(limit),
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          dateOfBirth: true,
+          creationStatus: true,
+          activeStatus: true,
+          validIDFrontUrl: true,
+          validIDBackUrl: true,
+          validIDFrontPublicId: true,
+          validIDBackPublicId: true,
+          validIDTypeId: true,
+          validIDType: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          assignedBrgy: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          createdAt: true,
+          updatedAt: true
         },
-        assignedBrgy: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        createdAt: true,
-        updatedAt: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }),
+      prisma.user.count({ where: whereConditions })
+    ]);
     
-    // Format users to match frontend expectations
+    // Format users for frontend
     const formattedUsers = users.map(user => ({
       _id: user.id.toString(),
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
-      dateOfBirth: user.dateOfBirth,  // Include this in the response
+      dateOfBirth: user.dateOfBirth,
       creationStatus: user.creationStatus,
       activeStatus: user.activeStatus || 'ACTIVE',
-      // Add these fields for ID images
       validIDFrontUrl: user.validIDFrontUrl,
       validIDBackUrl: user.validIDBackUrl,
-      validIDFrontPublicId: user.validIDFrontPublicId,
-      validIDBackPublicId: user.validIDBackPublicId,
       validIDTypeName: user.validIDType?.name,
-      validIDTypeId: user.validIDTypeId,
-      barangayId: user.assignedBrgy ? user.assignedBrgy.id.toString() : null,
-      barangayName: user.assignedBrgy ? user.assignedBrgy.name : null,
+      barangayId: user.assignedBrgy?.id?.toString(),
+      barangayName: user.assignedBrgy?.name,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     }));
-
-    // Count total matching records for pagination
-    const totalCount = await prisma.user.count({
-      where: whereConditions
-    });
 
     res.json({ 
       users: formattedUsers, 
@@ -171,19 +136,10 @@ exports.updateUserStatus = async (req, res) => {
       return res.status(400).json({ message: 'Status or activeStatus is required' });
     }
 
-    let updateData = {
-      updatedAt: new Date()
-    };
-
-    // Update creation status if provided
-    if (status) {
-      updateData.creationStatus = status;
-    }
-
-    // Update active status if provided
-    if (activeStatus) {
-      updateData.activeStatus = activeStatus;
-    }
+    // Prepare update data
+    const updateData = {};
+    if (status) updateData.creationStatus = status;
+    if (activeStatus) updateData.activeStatus = activeStatus;
 
     const updatedUser = await prisma.user.update({
       where: { id: parseInt(id) },
@@ -201,28 +157,23 @@ exports.updateUserStatus = async (req, res) => {
             id: true,
             name: true
           }
-        },
-        createdAt: true,
-        updatedAt: true
+        }
       }
     });
 
-    // Format user to match frontend expectations
-    const formattedUser = {
-      _id: updatedUser.id.toString(),
-      email: updatedUser.email,
-      firstName: updatedUser.firstName,
-      lastName: updatedUser.lastName,
-      role: updatedUser.role,
-      creationStatus: updatedUser.creationStatus,
-      activeStatus: updatedUser.activeStatus || 'ACTIVE',
-      barangayId: updatedUser.assignedBrgy ? updatedUser.assignedBrgy.id.toString() : null,
-      barangayName: updatedUser.assignedBrgy ? updatedUser.assignedBrgy.name : null,
-      createdAt: updatedUser.createdAt,
-      updatedAt: updatedUser.updatedAt
-    };
-
-    res.json({ user: formattedUser });
+    res.json({
+      user: {
+        _id: updatedUser.id.toString(),
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        role: updatedUser.role,
+        creationStatus: updatedUser.creationStatus,
+        activeStatus: updatedUser.activeStatus || 'ACTIVE',
+        barangayId: updatedUser.assignedBrgy?.id?.toString(),
+        barangayName: updatedUser.assignedBrgy?.name
+      }
+    });
   } catch (error) {
     console.error('Error updating user status:', error);
     res.status(500).json({ message: 'Failed to update user status', error: error.message });
@@ -237,7 +188,7 @@ exports.deleteUser = async (req, res) => {
     const { id } = req.params;
     const userId = parseInt(id);
 
-    // Check if user exists and get their image public IDs
+    // Get user data including image IDs
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -254,52 +205,25 @@ exports.deleteUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Log the operation for audit purposes
-    console.log(`Deleting user: ${user.firstName} ${user.lastName} (${user.email}), ID: ${userId}`);
+    // Delete user's ID images from cloud storage
+    const imagePublicIds = [user.validIDFrontPublicId, user.validIDBackPublicId].filter(Boolean);
     
-    // Collect public IDs of images to delete
-    const imagePublicIds = [
-      user.validIDFrontPublicId,
-      user.validIDBackPublicId
-    ].filter(Boolean); // Remove null/undefined values
-    
-    let imageDeleteResults = [];
-    
-    // Delete the user's images from Cloudinary if they exist
     if (imagePublicIds.length > 0) {
-      console.log(`Deleting ${imagePublicIds.length} images for user ${userId}`);
-      
       try {
-        imageDeleteResults = await deleteMultipleImages(imagePublicIds);
-        console.log('Image deletion results:', imageDeleteResults);
+        await deleteMultipleImages(imagePublicIds);
       } catch (imageError) {
-        console.error('Error deleting images, but continuing with user deletion:', imageError);
+        console.error('Error deleting images:', imageError);
+        // Continue with user deletion even if image deletion fails
       }
-    } else {
-      console.log(`No images to delete for user ${userId}`);
     }
 
-    // Delete the user from the database
-    await prisma.user.delete({
-      where: { id: userId }
-    });
-
-    // Prepare response with image deletion status
-    const imageDeleteStatus = imagePublicIds.length > 0 ? {
-      attempted: imagePublicIds.length,
-      successful: imageDeleteResults.filter(r => r.status === 'fulfilled').length,
-      failed: imageDeleteResults.filter(r => r.status === 'rejected').length,
-    } : 'No images to delete';
+    // Delete the user
+    await prisma.user.delete({ where: { id: userId } });
 
     res.status(200).json({ 
-      message: 'User and associated data deleted successfully',
-      deletedUser: {
-        id: userId,
-        email: user.email
-      },
-      imagesDeleted: imageDeleteStatus
+      message: 'User deleted successfully',
+      deletedUser: { id: userId, email: user.email }
     });
-    
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ message: 'Failed to delete user', error: error.message });
@@ -321,15 +245,12 @@ exports.updateUser = async (req, res) => {
     if (email) updateData.email = email;
     if (role) updateData.role = role;
     
-    // Only update barangay for barangay secretaries
+    // Handle barangay assignment based on role
     if (role === 'BARANGAY_SECRETARY' && barangayId) {
       updateData.barangayId = parseInt(barangayId);
     } else if (role === 'MLGOO_STAFF') {
-      // Remove barangay assignment if role is MLGOO_STAFF
       updateData.barangayId = null;
     }
-    
-    updateData.updatedAt = new Date();
 
     const updatedUser = await prisma.user.update({
       where: { id: parseInt(id) },
@@ -347,30 +268,93 @@ exports.updateUser = async (req, res) => {
             id: true,
             name: true
           }
+        }
+      }
+    });
+
+    res.json({
+      user: {
+        _id: updatedUser.id.toString(),
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        role: updatedUser.role,
+        creationStatus: updatedUser.creationStatus,
+        activeStatus: updatedUser.activeStatus || 'ACTIVE',
+        barangayId: updatedUser.assignedBrgy?.id?.toString(),
+        barangayName: updatedUser.assignedBrgy?.name
+      }
+    });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Failed to update user', error: error.message });
+  }
+};
+
+/**
+ * Get detailed information for a single user
+ */
+exports.getUserDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = parseInt(id);
+    
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        dateOfBirth: true,
+        creationStatus: true,
+        activeStatus: true,
+        validIDFrontUrl: true,
+        validIDBackUrl: true,
+        validIDTypeId: true,
+        validIDType: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        assignedBrgy: {
+          select: {
+            id: true,
+            name: true
+          }
         },
         createdAt: true,
         updatedAt: true
       }
     });
-
-    // Format user to match frontend expectations
-    const formattedUser = {
-      _id: updatedUser.id.toString(),
-      email: updatedUser.email,
-      firstName: updatedUser.firstName,
-      lastName: updatedUser.lastName,
-      role: updatedUser.role,
-      creationStatus: updatedUser.creationStatus,
-      activeStatus: updatedUser.activeStatus || 'ACTIVE',
-      barangayId: updatedUser.assignedBrgy ? updatedUser.assignedBrgy.id.toString() : null,
-      barangayName: updatedUser.assignedBrgy ? updatedUser.assignedBrgy.name : null,
-      createdAt: updatedUser.createdAt,
-      updatedAt: updatedUser.updatedAt
-    };
-
-    res.json({ user: formattedUser });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json({
+      user: {
+        _id: user.id.toString(),
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        dateOfBirth: user.dateOfBirth,
+        creationStatus: user.creationStatus,
+        activeStatus: user.activeStatus || 'ACTIVE',
+        validIDFrontUrl: user.validIDFrontUrl,
+        validIDBackUrl: user.validIDBackUrl,
+        validIDTypeName: user.validIDType?.name,
+        barangayId: user.assignedBrgy?.id?.toString(),
+        barangayName: user.assignedBrgy?.name,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
+      }
+    });
   } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ message: 'Failed to update user', error: error.message });
+    console.error('Error fetching user details:', error);
+    res.status(500).json({ message: 'Failed to fetch user details', error: error.message });
   }
 };
