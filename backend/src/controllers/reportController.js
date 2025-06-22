@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 const cloudinary = require('../config/cloudinary');
 const streamifier = require('streamifier');
 const { deleteMultipleImages } = require('../utils/cloudinary');
+const path = require('path');
 
 /**
  * Get all reports with pagination and filtering
@@ -316,8 +317,31 @@ exports.createReport = async (req, res) => {
     
     console.log("Matched report type:", reportTypeCheck);
 
+    // Ensure attachments have the proper fileName format
+    const formattedAttachments = attachments.map(attachment => {
+      const fileNameToUse = attachment.fileName || attachment.originalname;
+      const fileExt = attachment.fileExt || path.extname(fileNameToUse);
+      const baseName = path.basename(fileNameToUse, fileExt);
+      
+      // Use existing formatted filename if it already follows our pattern
+      if (baseName.includes(`_${reportTypeCheck.shortName}_`)) {
+        return attachment;
+      }
+      
+      // Format the filename if it doesn't already have the right format
+      const dateStr = new Date().toISOString().split('T')[0];
+      const formattedFileName = `${dateStr}_${reportTypeCheck.shortName}_${baseName}${fileExt}`;
+      
+      return {
+        ...attachment,
+        fileName: formattedFileName,
+        fileExt: fileExt,
+        contentType: attachment.contentType || attachment.mimetype
+      };
+    });
+
     // Calculate total file size
-    const totalFileSize = attachments.reduce((sum, attachment) => sum + (parseInt(attachment.fileSize) || 0), 0);
+    const totalFileSize = formattedAttachments.reduce((sum, attachment) => sum + (parseInt(attachment.fileSize || attachment.size) || 0), 0);
 
     // Create report record
     const report = await prisma.report.create({
@@ -328,11 +352,11 @@ exports.createReport = async (req, res) => {
         submittedDate: new Date(),
         barangayId: req.user.barangayId,
         userId: req.user.id, // From authenticated user
-        fileName: Array.isArray(attachments) && attachments.length > 0 ? 
-          attachments[0].fileName || attachments[0].originalname || 'attachment' : 'attachment',
+        fileName: Array.isArray(formattedAttachments) && formattedAttachments.length > 0 ? 
+          formattedAttachments[0].fileName : 'attachment',
         fileSize: totalFileSize,
         comments,
-        attachments: attachments // Store the array of attachment details
+        attachments: formattedAttachments // Store the array of formatted attachment details
       },
       include: {
         barangay: true,
@@ -358,7 +382,7 @@ exports.createReport = async (req, res) => {
         fileName: report.fileName,
         fileSize: report.fileSize,
         comments: report.comments,
-        attachments: report.attachments
+        attachments: formattedAttachments
       }
     });
   } catch (error) {
@@ -702,15 +726,38 @@ exports.updateReport = async (req, res) => {
     
     // Handle attachments update
     if (attachments && Array.isArray(attachments)) {
-      // Calculate total file size
-      const totalFileSize = attachments.reduce((sum, attachment) => sum + (attachment.fileSize || 0), 0);
+      // Format the attachments with proper filenames
+      const formattedAttachments = attachments.map(attachment => {
+        const fileNameToUse = attachment.fileName || attachment.originalname;
+        const fileExt = attachment.fileExt || path.extname(fileNameToUse);
+        const baseName = path.basename(fileNameToUse, fileExt);
+        
+        // Use existing formatted filename if it already follows our pattern
+        if (baseName.includes(`_${existingReport.reportType}_`)) {
+          return attachment;
+        }
+        
+        // Format the filename if it doesn't already have the right format
+        const dateStr = new Date().toISOString().split('T')[0];
+        const formattedFileName = `${dateStr}_${existingReport.reportType}_${baseName}${fileExt}`;
+        
+        return {
+          ...attachment,
+          fileName: formattedFileName,
+          fileExt: fileExt,
+          contentType: attachment.contentType || attachment.mimetype
+        };
+      });
       
-      updateData.attachments = attachments;
+      // Calculate total file size
+      const totalFileSize = formattedAttachments.reduce((sum, attachment) => sum + (parseInt(attachment.fileSize || attachment.size) || 0), 0);
+      
+      updateData.attachments = formattedAttachments;
       updateData.fileSize = totalFileSize;
       
       // Update the main fileName if there are new attachments
-      if (attachments.length > 0) {
-        updateData.fileName = attachments[0].fileName;
+      if (formattedAttachments.length > 0) {
+        updateData.fileName = formattedAttachments[0].fileName;
       }
     }
 

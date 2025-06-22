@@ -179,13 +179,17 @@ const MyReports = () => {
                   <div className="text-sm font-medium text-gray-500 mb-1">
                     Report Name
                   </div>
-                  <div className="text-gray-900">{selectedReport.reportName}</div>
+                  <div className="text-gray-900">
+                    {selectedReport.reportName}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500 mb-1">
                     Report Type
                   </div>
-                  <div className="text-gray-900">{selectedReport.reportType}</div>
+                  <div className="text-gray-900">
+                    {selectedReport.reportType}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500 mb-1">
@@ -253,21 +257,34 @@ const MyReports = () => {
                       className="bg-gray-50 rounded-lg p-3 border border-gray-200"
                     >
                       <div className="flex items-center mb-2">
-                        {getFileIcon(file.contentType)}
+                        {getFileIcon(file.contentType || file.mimetype)}
                         <span className="ml-2 text-sm font-medium text-gray-700 truncate flex-grow">
-                          {file.fileName}
+                          {file.fileName || file.originalname}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">
-                          {(file.fileSize / 1024).toFixed(2)} KB
+                          {((file.fileSize || file.size) / 1024).toFixed(2)} KB
+                          {file.fileExt && (
+                            <span className="ml-1">
+                              ({file.fileExt.replace(".", "")})
+                            </span>
+                          )}
                         </span>
 
                         <a
                           href={file.url}
                           target="_blank"
                           rel="noopener noreferrer"
+                          download={
+                            // Ensure the download filename has an extension
+                            (file.fileName || file.originalname) +
+                            ((!file.fileName || !file.fileName.includes(".")) &&
+                            file.fileExt
+                              ? file.fileExt
+                              : "")
+                          }
                           className="text-blue-600 hover:text-blue-800 flex items-center text-xs"
                         >
                           <FaDownload className="mr-1" /> Download
@@ -275,16 +292,17 @@ const MyReports = () => {
                       </div>
 
                       {/* Preview for images */}
-                      {file.contentType && file.contentType.includes("image") && (
-                        <div className="mt-2">
-                          <img
-                            src={file.url}
-                            alt={file.fileName}
-                            className="w-full h-auto object-contain rounded-md"
-                            style={{ maxHeight: "150px" }}
-                          />
-                        </div>
-                      )}
+                      {file.contentType &&
+                        file.contentType.includes("image") && (
+                          <div className="mt-2">
+                            <img
+                              src={file.url}
+                              alt={file.fileName}
+                              className="w-full h-auto object-contain rounded-md"
+                              style={{ maxHeight: "150px" }}
+                            />
+                          </div>
+                        )}
                     </div>
                   ))}
                 </div>

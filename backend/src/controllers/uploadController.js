@@ -1,5 +1,6 @@
 const cloudinary = require('../config/cloudinary');
 const streamifier = require('streamifier');
+const path = require('path');
 
 /**
  * Upload file to Cloudinary with specified folder destination
@@ -16,16 +17,27 @@ exports.uploadFile = async (req, res) => {
     // Default to valid_ids if not specified
     const uploadType = req.query.type || 'id';
     let folder = 'tabina_oms/valid_ids';
-    let resourceType = 'image';
+    let resourceType = uploadType === 'report' ? 'raw' : 'image';
     
     // Set the appropriate folder based on upload type
     if (uploadType === 'report') {
       folder = 'tabina_oms/reports';
-      // Auto-detect resource type for reports (could be PDF, images, etc.)
-      resourceType = 'auto';
     }
     
     console.log(`Uploading file to ${folder} as ${resourceType}`);
+
+    // Get file extension
+    const fileExt = path.extname(req.file.originalname);
+    
+    // Format filename for reports
+    let fileName = req.file.originalname;
+    if (uploadType === 'report') {
+      // Extract report type from query params if available
+      const reportType = req.query.reportType || 'general';
+      const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const baseName = path.basename(req.file.originalname, fileExt);
+      fileName = `${dateStr}_${reportType}_${baseName}${fileExt}`;
+    }
 
     // Upload file buffer to Cloudinary
     const result = await new Promise((resolve, reject) => {
@@ -33,7 +45,10 @@ exports.uploadFile = async (req, res) => {
         {
           folder,
           resource_type: resourceType,
-          flags: 'attachment'
+          flags: 'attachment',
+          use_filename: true,
+          unique_filename: false,
+          public_id: path.basename(fileName, fileExt) // Save without extension as Cloudinary adds it for raw files
         },
         (error, result) => {
           if (error) {
@@ -52,10 +67,12 @@ exports.uploadFile = async (req, res) => {
       url: result.secure_url,
       public_id: result.public_id,
       originalname: req.file.originalname,
+      fileName: fileName, // Return the formatted filename
       size: req.file.size,
       mimetype: req.file.mimetype,
       uploadType,
-      folder
+      folder,
+      fileExt: fileExt
     });
   } catch (error) {
     console.error('Upload error:', error);
@@ -67,7 +84,7 @@ exports.uploadFile = async (req, res) => {
 };
 
 /**
- * NEW: Upload multiple files to Cloudinary
+ * Upload multiple files to Cloudinary
  * @param {Object} req - The request object
  * @param {Object} res - The response object
  */
@@ -80,18 +97,34 @@ exports.uploadMultipleFiles = async (req, res) => {
     // Determine the upload folder based on the request type
     const uploadType = req.query.type || 'report';
     let folder = 'tabina_oms/reports';
-    let resourceType = 'auto';
+    let resourceType = 'raw'; // Using raw for better file handling
+    
+    // Extract report type from query params if available
+    const reportType = req.query.reportType || 'general';
+    const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
     console.log(`Uploading ${req.files.length} files to ${folder} as ${resourceType}`);
 
     // Upload all files to Cloudinary
     const uploadPromises = req.files.map(file => {
       return new Promise((resolve, reject) => {
+        // Get file extension
+        const fileExt = path.extname(file.originalname);
+        const baseName = path.basename(file.originalname, fileExt);
+        
+        // Format filename with correct report type
+        const fileName = `${dateStr}_${reportType}_${baseName}${fileExt}`;
+        
+        // IMPORTANT CHANGE: Include the extension in the public_id
+        const publicIdWithExt = `${folder}/${dateStr}_${reportType}_${baseName}${fileExt}`;
+        
         const cloudinaryStream = cloudinary.uploader.upload_stream(
           {
-            folder,
+            folder: '', // We'll include the folder in the public_id
             resource_type: resourceType,
-            flags: 'attachment'
+            use_filename: false,
+            public_id: publicIdWithExt, // Use the full path with extension
+            flags: 'attachment', // Force as attachment for downloads
           },
           (error, result) => {
             if (error) {
@@ -101,8 +134,12 @@ exports.uploadMultipleFiles = async (req, res) => {
               resolve({
                 ...result,
                 originalname: file.originalname,
+                fileName: fileName, // Store formatted filename
                 size: file.size,
-                mimetype: file.mimetype
+                fileSize: file.size,
+                mimetype: file.mimetype,
+                contentType: file.mimetype,
+                fileExt: fileExt
               });
             }
           }
@@ -120,8 +157,12 @@ exports.uploadMultipleFiles = async (req, res) => {
       url: result.secure_url,
       public_id: result.public_id,
       originalname: result.originalname,
+      fileName: result.fileName, // Include formatted filename
       size: result.size,
-      mimetype: result.mimetype
+      fileSize: result.size,
+      mimetype: result.mimetype,
+      contentType: result.mimetype,
+      fileExt: result.fileExt
     }));
 
     res.status(200).json({

@@ -148,7 +148,7 @@ export const reportAPI = {
     api.put(`/reports/${reportId}`, reportData),
     
   // Upload report files to cloudinary
-  uploadReportFiles: (files) => {
+  uploadReportFiles: (files, reportType) => {
     const formData = new FormData();
     
     // Add each file to the form data
@@ -156,7 +156,8 @@ export const reportAPI = {
       formData.append('files', file);
     });
     
-    return api.post('/upload/report', formData, {
+    // Add reportType to the request for filename formatting
+    return api.post(`/upload/report?reportType=${encodeURIComponent(reportType)}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

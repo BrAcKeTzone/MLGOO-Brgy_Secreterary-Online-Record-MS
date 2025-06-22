@@ -29,16 +29,22 @@ router.use(authenticate);
 
 // Routes for report uploads - only available to authenticated users
 // Limited by role to prevent unauthorized users from uploading reports
-// UPDATED: Changed from single file to array of files with field name "files"
+// The reportType query param is used to format the filename
 router.post('/report', 
   roleMiddleware(['ADMIN', 'MLGOO_STAFF', 'BARANGAY_SECRETARY']),
   upload.array('files', 5), // Allow up to 5 files with field name "files"
   (req, res, next) => {
     // Force type to be 'report'
     req.query.type = 'report';
+    
+    // Make sure we have the reportType query parameter
+    if (!req.query.reportType && req.body.reportType) {
+      req.query.reportType = req.body.reportType;
+    }
+    
     next();
   },
-  uploadController.uploadMultipleFiles // Changed to use a new controller method
+  uploadController.uploadMultipleFiles
 );
 
 // Only authenticated admin/staff can delete files
