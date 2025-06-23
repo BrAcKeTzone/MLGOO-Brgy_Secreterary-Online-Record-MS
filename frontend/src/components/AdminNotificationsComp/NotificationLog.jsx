@@ -47,6 +47,12 @@ const NotificationLog = ({ notifications, onDelete }) => {
     (a, b) => new Date(b.dateSent) - new Date(a.dateSent)
   );
 
+  // Calculate read status count for each notification
+  const getReadCount = (notification) => {
+    if (!notification.readBy) return 0;
+    return notification.readBy.length;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md">
       <div className="p-6 border-b">
@@ -97,7 +103,7 @@ const NotificationLog = ({ notifications, onDelete }) => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
-                      {notification.sentTo?.length} recipient(s)
+                      {notification.sentTo?.length || 0} recipient(s)
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {notification.sentTo?.slice(0, 3).map((recipient) => (
@@ -108,6 +114,9 @@ const NotificationLog = ({ notifications, onDelete }) => {
                       {notification.sentTo?.length > 3 && (
                         <div>+{notification.sentTo.length - 3} more</div>
                       )}
+                    </div>
+                    <div className="text-xs text-green-600 mt-1">
+                      {getReadCount(notification)} of {notification.sentTo?.length || 0} read
                     </div>
                   </td>
                   <td className="px-6 py-4">

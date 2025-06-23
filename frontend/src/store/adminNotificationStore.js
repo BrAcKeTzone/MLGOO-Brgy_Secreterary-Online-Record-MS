@@ -14,6 +14,8 @@ const useNotificationStore = create((set, get) => ({
   fetchNotifications: async () => {
     set({ loading: true, error: null });
     try {
+      // For MLGOO staff, we need to see all notifications they've created
+      // regardless of who has read them
       const response = await notificationAPI.getUserNotifications();
       
       set({ 

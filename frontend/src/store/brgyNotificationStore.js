@@ -8,6 +8,9 @@ const useBrgyNotificationStore = create((set, get) => ({
   error: null,
   filters: {
     year: CURRENT_YEAR,
+    type: "all",
+    priority: "all",
+    readStatus: "all"
   },
 
   fetchNotifications: async (filters = null) => {
@@ -21,11 +24,36 @@ const useBrgyNotificationStore = create((set, get) => ({
       // If no filters provided, use current store filters
       const currentFilters = filters || get().filters;
 
-      // Filter by year if needed
-      if (currentFilters.year) {
-        filteredNotifications = filteredNotifications.filter(notification =>
-          new Date(notification.dateSent).getFullYear().toString() === currentFilters.year
-        );
+      // Apply filters
+      if (currentFilters) {
+        // Filter by year if needed
+        if (currentFilters.year && currentFilters.year !== "all") {
+          filteredNotifications = filteredNotifications.filter(notification =>
+            new Date(notification.dateSent).getFullYear().toString() === currentFilters.year
+          );
+        }
+
+        // Filter by type if needed
+        if (currentFilters.type && currentFilters.type !== "all") {
+          filteredNotifications = filteredNotifications.filter(notification =>
+            notification.type === currentFilters.type
+          );
+        }
+
+        // Filter by priority if needed
+        if (currentFilters.priority && currentFilters.priority !== "all") {
+          filteredNotifications = filteredNotifications.filter(notification =>
+            notification.priority === currentFilters.priority
+          );
+        }
+
+        // Filter by read status if needed
+        if (currentFilters.readStatus && currentFilters.readStatus !== "all") {
+          const isRead = currentFilters.readStatus === "read";
+          filteredNotifications = filteredNotifications.filter(notification =>
+            notification.isRead === isRead
+          );
+        }
       }
 
       set({ notifications: filteredNotifications, loading: false });
@@ -38,7 +66,7 @@ const useBrgyNotificationStore = create((set, get) => ({
   },
 
   markAsRead: async (notificationId) => {
-    set({ loading: true, error: null });
+    set(state => ({ loading: true }));
     try {
       // Call the actual API endpoint
       await notificationAPI.markNotificationRead(notificationId);
@@ -58,6 +86,7 @@ const useBrgyNotificationStore = create((set, get) => ({
         error: err.response?.data?.message || "Failed to mark as read", 
         loading: false 
       });
+      throw err;
     }
   },
 
@@ -66,6 +95,20 @@ const useBrgyNotificationStore = create((set, get) => ({
       const updatedFilters = { ...state.filters, ...newFilters };
       state.fetchNotifications(updatedFilters); // Fetch notifications with updated filters
       return { filters: updatedFilters };
+    });
+  },
+  
+  clearFilters: () => {
+    const defaultFilters = {
+      year: CURRENT_YEAR,
+      type: "all",
+      priority: "all",
+      readStatus: "all"
+    };
+    
+    set(state => {
+      state.fetchNotifications(defaultFilters);
+      return { filters: defaultFilters };
     });
   }
 }));

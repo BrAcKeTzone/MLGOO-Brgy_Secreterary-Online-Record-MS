@@ -1,57 +1,103 @@
 import React from "react";
 import { format } from "date-fns";
+import { FaBell, FaInfoCircle, FaExclamationTriangle, FaCheckCircle, FaClock, FaCalendarAlt, FaEnvelopeOpen, FaEnvelope } from "react-icons/fa";
 
-const BrgyNotificationList = ({ notifications, onMarkAsRead }) => {
+const BrgyNotificationList = ({ notifications, onMarkAsRead, loading }) => {
   const formatDate = (dateString) => {
-    return format(new Date(dateString), "PPpp");
+    return format(new Date(dateString), "MMM dd, yyyy 'at' h:mm a");
   };
 
-  return (
-    <div className="bg-white rounded-lg shadow-md overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Title
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Message
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Date Sent
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {notifications.map((notification) => {
-            // Find the recipient for the current user
-            const recipient = notification.sentTo.find(
-              (r) => r.userId === "user001"
-            ); // Replace "user001" with actual user ID
-            if (!recipient) return null; // Skip if not sent to this user
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'alert':
+        return <FaExclamationTriangle className="text-red-500 text-lg" />;
+      case 'success':
+        return <FaCheckCircle className="text-green-500 text-lg" />;
+      case 'info':
+        return <FaInfoCircle className="text-blue-500 text-lg" />;
+      case 'reminder':
+        return <FaClock className="text-yellow-500 text-lg" />;
+      case 'event':
+        return <FaCalendarAlt className="text-purple-500 text-lg" />;
+      case 'system':
+        return <FaBell className="text-gray-500 text-lg" />;
+      default:
+        return <FaBell className="text-blue-500 text-lg" />;
+    }
+  };
 
-            return (
-              <tr key={notification._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case 'high':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">High</span>;
+      case 'medium':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Medium</span>;
+      case 'normal':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Normal</span>;
+      default:
+        return null;
+    }
+  };
+
+  if (notifications.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 text-center">
+        <FaBell className="mx-auto text-gray-300 text-4xl mb-2" />
+        <p className="text-gray-500">No notifications found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-md">
+      <div className="overflow-hidden">
+        {notifications.map((notification) => (
+          <div 
+            key={notification.id} 
+            className={`border-b border-gray-200 p-4 hover:bg-gray-50 cursor-pointer transition-all ${notification.isRead ? 'opacity-75' : ''}`}
+            onClick={() => !notification.isRead && onMarkAsRead(notification.id)}
+          >
+            <div className="flex items-start">
+              <div className="flex-shrink-0 mr-3 mt-1">
+                {getNotificationIcon(notification.type)}
+              </div>
+              <div className="flex-grow">
+                <div className="flex items-center">
+                  <h3 className="font-medium text-gray-900">
                     {notification.title}
+                  </h3>
+                  <div className="ml-2">
+                    {notification.isRead ? 
+                      <FaEnvelopeOpen className="text-gray-400 text-sm" title="Read" /> : 
+                      <FaEnvelope className="text-blue-500 text-sm" title="Unread" />
+                    }
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">
-                    {notification.message}
+                  <div className="ml-auto">
+                    {getPriorityBadge(notification.priority)}
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">
+                </div>
+                <p className="text-sm text-gray-600 my-1">{notification.message}</p>
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-xs text-gray-500">
                     {formatDate(notification.dateSent)}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </p>
+                  {!notification.isRead && (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMarkAsRead(notification.id);
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800"
+                    >
+                      Mark as read
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

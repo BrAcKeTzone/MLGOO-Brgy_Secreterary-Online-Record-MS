@@ -5,37 +5,59 @@ const prisma = new PrismaClient();
 exports.getUserNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
+    const userRole = req.user.role;
     
-    // Get all notifications for this user
-    const notifications = await prisma.notification.findMany({
-      where: {
-        sentTo: {
-          some: {
-            id: userId
-          }
-        }
-      },
-      include: {
-        readBy: {
-          where: {
-            id: userId
+    // Different behavior based on user role
+    if (userRole === 'MLGOO_STAFF') {
+      // For MLGOO, get notifications they've created (sent to anyone)
+      const createdNotifications = await prisma.notification.findMany({
+        include: {
+          sentTo: {
+            select: { id: true, firstName: true, lastName: true }
           },
-          select: { id: true }
+          readBy: {
+            select: { id: true }
+          }
+        },
+        orderBy: {
+          dateSent: 'desc'
         }
-      },
-      orderBy: {
-        dateSent: 'desc'
-      }
-    });
+      });
+      
+      return res.status(200).json(createdNotifications);
+      
+    } else {
+      // For barangay secretaries, get notifications sent to them
+      const notifications = await prisma.notification.findMany({
+        where: {
+          sentTo: {
+            some: {
+              id: userId
+            }
+          }
+        },
+        include: {
+          readBy: {
+            where: {
+              id: userId
+            },
+            select: { id: true }
+          }
+        },
+        orderBy: {
+          dateSent: 'desc'
+        }
+      });
 
-    // Transform the data to include a read status
-    const formattedNotifications = notifications.map(notification => ({
-      ...notification,
-      isRead: notification.readBy.length > 0,
-      readBy: undefined // Remove the readBy array from the response
-    }));
-    
-    return res.status(200).json(formattedNotifications);
+      // Transform the data to include a read status
+      const formattedNotifications = notifications.map(notification => ({
+        ...notification,
+        isRead: notification.readBy.length > 0,
+        readBy: undefined // Remove the readBy array from the response
+      }));
+      
+      return res.status(200).json(formattedNotifications);
+    }
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return res.status(500).json({

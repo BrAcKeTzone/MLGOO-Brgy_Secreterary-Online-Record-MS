@@ -18,17 +18,20 @@ const BrgyNotifications = () => {
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
 
   const handleMarkAsRead = async (notificationId) => {
     try {
       await markAsRead(notificationId);
     } catch (error) {
-      alert("Failed to mark as read: " + error.message);
+      alert(
+        "Failed to mark as read: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
-  if (loading) {
+  if (loading && notifications.length === 0) {
     return <LoadingScreen message="Loading notifications..." />;
   }
 
@@ -53,6 +56,7 @@ const BrgyNotifications = () => {
       <BrgyNotificationList
         notifications={notifications}
         onMarkAsRead={handleMarkAsRead}
+        loading={loading}
       />
     </div>
   );
