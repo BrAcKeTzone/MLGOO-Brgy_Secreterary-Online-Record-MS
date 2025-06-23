@@ -6,7 +6,9 @@ const profileRoutes = require('./routes/profileRoutes');
 const settingRoutes = require('./routes/settingRoutes');
 const userListRoutes = require('./routes/userListRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
-const reportRoutes = require('./routes/reportRoutes'); // New report route import
+const reportRoutes = require('./routes/reportRoutes'); 
+const dashboardRoutes = require('./routes/dashboardRoutes');
+
 
 const app = express();
 
@@ -27,7 +29,9 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/users', userListRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/reports', reportRoutes); // Set up report routes
+app.use('/api/reports', reportRoutes); 
+app.use('/api/dashboard', dashboardRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('Welcome to the Brgy Secretary Online Record MS API!');

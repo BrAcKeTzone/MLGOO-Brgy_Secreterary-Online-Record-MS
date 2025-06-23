@@ -93,8 +93,16 @@ export const roleAPI = {
 
 // Dashboard API endpoints
 export const dashboardAPI = {
-  fetchMetrics: () => api.get('/dashboard/metrics'),
-  fetchActivityData: () => api.get('/dashboard/activity'),
+  // For MLGOO staff
+  fetchMlgooMetrics: () => api.get('/dashboard/mlgoo-metrics'),
+  // For Barangay Secretary
+  fetchBarangayMetrics: () => api.get('/dashboard/barangay-metrics'),
+  // Analytics for charts (monthly data, distributions)
+  fetchAnalytics: () => api.get('/dashboard/analytics'),
+  // MLGOO-specific analytics
+  fetchMlgooAnalytics: () => api.get('/dashboard/mlgoo-analytics'),
+  // Weekly activity data for charts
+  fetchWeeklyActivity: () => api.get('/dashboard/analytics'),
 };
 
 // Home API endpoints
