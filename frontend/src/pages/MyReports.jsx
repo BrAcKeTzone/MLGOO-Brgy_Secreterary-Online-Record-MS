@@ -6,6 +6,7 @@ import ErrorScreen from "../components/Common/ErrorScreen";
 import MyReportsFilters from "../components/MyReportsComp/MyReportsFilters";
 import MyReportsTable from "../components/MyReportsComp/MyReportsTable";
 import Modal from "../components/Common/Modal";
+import ReportEditModal from "../components/MyReportsComp/ReportEditModal";
 import { format } from "date-fns";
 import {
   FaFile,
@@ -33,6 +34,9 @@ const MyReports = () => {
     viewModalOpen,
     openViewModal,
     closeViewModal,
+    editModalOpen,
+    openEditModal,
+    closeEditModal,
   } = useMyReportsStore();
 
   // State for overlay loading during actions
@@ -72,8 +76,7 @@ const MyReports = () => {
   };
 
   const handleEditReport = (reportId) => {
-    // Navigate to edit report page
-    navigate(`/reports/edit/${reportId}`);
+    openEditModal(reportId);
   };
 
   // Format dates for display
@@ -357,6 +360,11 @@ const MyReports = () => {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* Report Edit Modal - New Addition */}
+      {editModalOpen && selectedReport && (
+        <ReportEditModal isOpen={editModalOpen} onClose={closeEditModal} />
       )}
     </div>
   );

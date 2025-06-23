@@ -24,6 +24,7 @@ const useMyReportsStore = create((set, get) => ({
   },
   selectedReport: null,
   viewModalOpen: false,
+  editModalOpen: false, // Add this state for edit modal
 
   fetchReports: async (newFilters = null) => {
     set({ loading: true, error: null });
@@ -181,6 +182,71 @@ const useMyReportsStore = create((set, get) => ({
       selectedReport: null,
       viewModalOpen: false 
     });
+  },
+
+  // New functions for edit modal
+  openEditModal: async (reportId) => {
+    try {
+      // Start loading
+      set({ loading: true });
+      
+      // Fetch report details 
+      const reportDetails = await get().getReportDetails(reportId);
+      
+      // If successful, open the edit modal
+      if (reportDetails) {
+        set({ 
+          selectedReport: reportDetails,
+          editModalOpen: true,
+          loading: false 
+        });
+      } else {
+        set({ loading: false });
+      }
+    } catch (error) {
+      console.error("Error fetching report details for editing:", error);
+      set({ loading: false });
+      toast.error("Failed to load report details for editing");
+    }
+  },
+
+  closeEditModal: () => {
+    set({ 
+      selectedReport: null,
+      editModalOpen: false 
+    });
+  },
+  
+  updateReport: async (reportId, reportData) => {
+    set({ loading: true, error: null });
+    try {
+      console.log("Updating report with data:", reportData);
+      const response = await reportAPI.updateReport(reportId, reportData);
+      
+      // Update the local state with the updated report
+      set(state => {
+        // Find and update the report in the reports array
+        const updatedReports = state.reports.map(report => 
+          report.id === reportId ? response.data.report : report
+        );
+        
+        return {
+          reports: updatedReports,
+          loading: false,
+          selectedReport: response.data.report // Update the selected report with new data
+        };
+      });
+      
+      return response.data.report;
+    } catch (err) {
+      console.error("Error updating report:", err);
+      set({ 
+        error: err.response?.data?.message || "Failed to update report", 
+        loading: false 
+      });
+      
+      throw err; // Re-throw to allow handling in the component
+    }
   }
 }));
 

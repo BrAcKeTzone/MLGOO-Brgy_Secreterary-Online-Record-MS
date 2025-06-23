@@ -8,10 +8,12 @@ const useSubmitReportStore = create((set, get) => ({
   comments: '',
   selectedFiles: [],
   uploadedAttachments: [],
+  existingAttachments: [], // Added for edit mode
   loading: false,
   submitting: false,
   error: null,
   success: false, // Whether a submission was just successful
+  isEditMode: false, // Track if we're editing a report
 
   setReportType: (reportType) => set({ reportType }),
   
@@ -20,6 +22,25 @@ const useSubmitReportStore = create((set, get) => ({
   setComments: (comments) => set({ comments }),
   
   setSelectedFiles: (selectedFiles) => set({ selectedFiles }),
+  
+  setEditMode: (isEditMode) => set({ isEditMode }),
+  
+  setExistingAttachments: (attachments) => set({ existingAttachments: attachments || [] }),
+
+  // Initialize form with existing report data
+  initializeEditForm: (report) => {
+    if (!report) return;
+    
+    set({
+      reportType: report.reportType,
+      reportName: report.reportName,
+      comments: report.comments || '',
+      existingAttachments: report.attachments || [],
+      selectedFiles: [],
+      isEditMode: true,
+      error: null
+    });
+  },
 
   // Reset success flag specifically - useful when returning to the form
   resetSuccess: () => set({ success: false }),
@@ -31,8 +52,10 @@ const useSubmitReportStore = create((set, get) => ({
     comments: '',
     selectedFiles: [],
     uploadedAttachments: [],
+    existingAttachments: [],
     error: null,
-    success: false
+    success: false,
+    isEditMode: false
   }),
 
   handleInputChange: (e) => {
@@ -74,12 +97,7 @@ const useSubmitReportStore = create((set, get) => ({
       console.log("Submitting report with type:", reportType);
       
       // Step 1: Upload files to cloudinary
-      const formData = new FormData();
-      selectedFiles.forEach(file => {
-        formData.append('files', file);
-      });
-      
-      const uploadResponse = await reportAPI.uploadReportFiles(selectedFiles);
+      const uploadResponse = await reportAPI.uploadReportFiles(selectedFiles, reportType);
       console.log("Upload response:", uploadResponse.data);
       
       // Get the uploaded files data from response
@@ -119,7 +137,8 @@ const useSubmitReportStore = create((set, get) => ({
         reportName: '',
         comments: '',
         selectedFiles: [],
-        uploadedAttachments: []
+        uploadedAttachments: [],
+        existingAttachments: []
       });
       
       return createResponse.data;
@@ -132,6 +151,86 @@ const useSubmitReportStore = create((set, get) => ({
       if (error.response?.data?.debug) {
         console.error('Debug info:', error.response.data.debug);
       }
+      
+      toast.error(errorMsg);
+      set({ 
+        submitting: false,
+        error: errorMsg
+      });
+    }
+  },
+  
+  // New function for updating existing reports
+  updateReport: async (reportId) => {
+    // Check if already submitting to prevent double submissions
+    if (get().submitting) {
+      console.log("Update already in progress");
+      return;
+    }
+    
+    const { reportName, comments, selectedFiles, existingAttachments } = get();
+    
+    // Basic validation
+    if (!reportName || reportName.trim() === '') {
+      toast.error('Please enter a report name');
+      return;
+    }
+    
+    set({ submitting: true, error: null });
+    
+    try {
+      let attachments = existingAttachments;
+      
+      // If new files are selected, upload them
+      if (selectedFiles.length > 0) {
+        const reportType = get().reportType;
+        const uploadResponse = await reportAPI.uploadReportFiles(selectedFiles, reportType);
+        
+        // Replace existing attachments with new ones
+        attachments = uploadResponse.data.files.map(file => ({
+          fileName: file.originalname,
+          fileSize: file.size,
+          url: file.url,
+          public_id: file.public_id,
+          contentType: file.mimetype
+        }));
+      }
+      
+      // Make sure we have at least one attachment
+      if (!attachments || attachments.length === 0) {
+        toast.error('At least one attachment is required');
+        set({ submitting: false });
+        return;
+      }
+      
+      const reportData = {
+        reportName,
+        comments,
+        attachments
+      };
+      
+      console.log("Updating report with data:", reportData);
+      const updateResponse = await reportAPI.updateReport(reportId, reportData);
+      
+      // Set success and reset form fields
+      set({ 
+        submitting: false, 
+        success: true,
+        // Reset form after successful submission
+        reportType: '',
+        reportName: '',
+        comments: '',
+        selectedFiles: [],
+        uploadedAttachments: [],
+        existingAttachments: [],
+        isEditMode: false
+      });
+      
+      return updateResponse.data;
+      
+    } catch (error) {
+      console.error('Error updating report:', error);
+      const errorMsg = error.response?.data?.message || 'Failed to update report. Please try again.';
       
       toast.error(errorMsg);
       set({ 

@@ -686,7 +686,7 @@ exports.getReportsByBarangay = async (req, res) => {
 };
 
 /**
- * Update a report
+ * Update a report 
  */
 exports.updateReport = async (req, res) => {
   try {
@@ -719,38 +719,50 @@ exports.updateReport = async (req, res) => {
       }
     }
 
+    // Log details for debugging
+    console.log("Update request:", {
+      reportId,
+      reportName,
+      commentsLength: comments ? comments.length : 0,
+      hasAttachments: !!attachments,
+      attachmentsCount: attachments ? attachments.length : 0
+    });
+
     // Prepare update data
     const updateData = {};
     if (reportName) updateData.reportName = reportName;
     if (comments !== undefined) updateData.comments = comments;
     
-    // Handle attachments update
+    // Handle attachments update - important for replacing attachments
     if (attachments && Array.isArray(attachments)) {
-      // Format the attachments with proper filenames
-      const formattedAttachments = attachments.map(attachment => {
-        const fileNameToUse = attachment.fileName || attachment.originalname;
-        const fileExt = attachment.fileExt || path.extname(fileNameToUse);
-        const baseName = path.basename(fileNameToUse, fileExt);
-        
-        // Use existing formatted filename if it already follows our pattern
-        if (baseName.includes(`_${existingReport.reportType}_`)) {
-          return attachment;
-        }
-        
-        // Format the filename if it doesn't already have the right format
-        const dateStr = new Date().toISOString().split('T')[0];
-        const formattedFileName = `${dateStr}_${existingReport.reportType}_${baseName}${fileExt}`;
-        
+      // Log the attachments structure for debugging
+      console.log("Received attachments:", JSON.stringify(attachments, null, 2));
+
+      // Ensure attachments have proper structure
+      const validAttachments = attachments.filter(att => 
+        att && (att.url || att.secure_url) && (att.public_id || att.originalname)
+      );
+
+      if (validAttachments.length === 0 && attachments.length > 0) {
+        return res.status(400).json({ message: 'Invalid attachment format' });
+      }
+
+      // Format the attachments for storage
+      const formattedAttachments = validAttachments.map(attachment => {
+        // Use consistent property names for storage
         return {
-          ...attachment,
-          fileName: formattedFileName,
-          fileExt: fileExt,
-          contentType: attachment.contentType || attachment.mimetype
+          url: attachment.url || attachment.secure_url,
+          public_id: attachment.public_id || '',
+          fileName: attachment.fileName || attachment.originalname,
+          fileSize: attachment.fileSize || attachment.size || 0,
+          contentType: attachment.contentType || attachment.mimetype,
+          fileExt: attachment.fileExt || path.extname(attachment.fileName || attachment.originalname || '')
         };
       });
       
       // Calculate total file size
-      const totalFileSize = formattedAttachments.reduce((sum, attachment) => sum + (parseInt(attachment.fileSize || attachment.size) || 0), 0);
+      const totalFileSize = formattedAttachments.reduce((sum, attachment) => 
+        sum + (parseInt(attachment.fileSize) || 0), 0);
       
       updateData.attachments = formattedAttachments;
       updateData.fileSize = totalFileSize;
