@@ -238,4 +238,27 @@ export const settingsAPI = {
   reorderTermsOfServiceSections: (sections) => api.post('/settings/terms-of-service/reorder', sections),
 };
 
+// Notification API endpoints
+export const notificationAPI = {
+  // Get all notifications for the current user
+  getUserNotifications: () => 
+    api.get('/notifications/user-notifications'),
+  
+  // Mark a notification as read
+  markNotificationRead: (notificationId) => 
+    api.patch(`/notifications/mark-read/${notificationId}`),
+  
+  // MLGOO only - create a new notification
+  createNotification: (notificationData) => 
+    api.post('/notifications', notificationData),
+  
+  // MLGOO only - delete a notification
+  deleteNotification: (notificationId) => 
+    api.delete(`/notifications/${notificationId}`),
+  
+  // MLGOO only - get all barangay secretaries for selection
+  getBarangaySecretaries: () => 
+    api.get('/notifications/barangay-secretaries'),
+};
+
 export default api;

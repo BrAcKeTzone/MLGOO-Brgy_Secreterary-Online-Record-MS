@@ -3,13 +3,23 @@ import React, { useState } from 'react';
 const NotificationComposer = ({ onSend, disabled }) => {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
+  const [type, setType] = useState('info');
   const [priority, setPriority] = useState('normal');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSend(message, title, 'info', priority);
+    
+    const notificationData = {
+      title,
+      message,
+      type,
+      priority
+    };
+    
+    onSend(notificationData);
     setTitle('');
     setMessage('');
+    setType('info');
     setPriority('normal');
   };
 
@@ -21,6 +31,7 @@ const NotificationComposer = ({ onSend, disabled }) => {
       
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
           <input
             type="text"
             value={title}
@@ -32,6 +43,7 @@ const NotificationComposer = ({ onSend, disabled }) => {
         </div>
 
         <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -40,17 +52,36 @@ const NotificationComposer = ({ onSend, disabled }) => {
             required
           />
         </div>
+        
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="w-full p-2 border rounded-lg"
+            >
+              <option value="info">Information</option>
+              <option value="reminder">Reminder</option>
+              <option value="alert">Alert</option>
+              <option value="success">Success</option>
+              <option value="system">System</option>
+              <option value="event">Event</option>
+            </select>
+          </div>
 
-        <div className="mb-4">
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="w-full p-2 border rounded-lg"
-          >
-            <option value="normal">Normal Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="high">High Priority</option>
-          </select>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className="w-full p-2 border rounded-lg"
+            >
+              <option value="normal">Normal Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="high">High Priority</option>
+            </select>
+          </div>
         </div>
 
         <button

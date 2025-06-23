@@ -1,13 +1,10 @@
 import { create } from "zustand";
-import { sampleNotifications } from "../data/samples/sampleNotifications";
-import { sampleUserList } from "../data/samples/sampleUserList";
-
-const SIMULATED_DELAY = 1500;
+import { notificationAPI } from "../services/api";
 
 const useNotificationStore = create((set, get) => ({
   notifications: [],
-  users: [],
-  selectedUsers: [],
+  barangaySecretaries: [],
+  selectedSecretaryIds: [],
   loading: false,
   error: null,
   filters: {
@@ -17,15 +14,10 @@ const useNotificationStore = create((set, get) => ({
   fetchNotifications: async () => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
-      
-      // Sort notifications by date before setting state
-      const sortedNotifications = [...sampleNotifications].sort(
-        (a, b) => new Date(b.dateSent) - new Date(a.dateSent)
-      );
+      const response = await notificationAPI.getUserNotifications();
       
       set({ 
-        notifications: sortedNotifications,
+        notifications: response.data,
         loading: false 
       });
     } catch (err) {
@@ -36,55 +28,49 @@ const useNotificationStore = create((set, get) => ({
     }
   },
 
-  fetchUsers: async () => {
+  fetchBarangaySecretaries: async () => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
+      const response = await notificationAPI.getBarangaySecretaries();
+      
       set({ 
-        users: sampleUserList,
+        barangaySecretaries: response.data,
         loading: false 
       });
     } catch (err) {
       set({
-        error: err.response?.data?.message || "Failed to fetch users",
+        error: err.response?.data?.message || "Failed to fetch barangay secretaries",
         loading: false
       });
     }
   },
 
-  updateSelectedUsers: (userIds) => {
-    set({ selectedUsers: userIds });
+  updateSelectedSecretaries: (secretaryIds) => {
+    set({ selectedSecretaryIds: secretaryIds });
   },
 
-  sendNotification: async (message, title, type = "info", priority = "normal") => {
+  sendNotification: async (notificationData) => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
-      
-      const newNotification = {
-        _id: `notif${Date.now()}`,
-        title,
-        message,
-        type,
-        priority,
-        dateSent: new Date().toISOString(),
-        sentTo: get().selectedUsers.map(userId => {
-          const user = get().users.find(u => u._id === userId);
-          return {
-            userId,
-            userEmail: user.email,
-            read: false
-          };
-        })
+      // Format data for API
+      const apiData = {
+        title: notificationData.title,
+        message: notificationData.message,
+        type: notificationData.type || "info",
+        priority: notificationData.priority || "normal",
+        barangaySecretaryIds: get().selectedSecretaryIds
       };
 
-      // Add new notification and ensure list stays sorted
+      // Call the actual API endpoint
+      const response = await notificationAPI.createNotification(apiData);
+      
+      // Add the new notification to our local state
       set(state => ({ 
-        notifications: [newNotification, ...state.notifications],
+        notifications: [response.data, ...state.notifications],
         loading: false 
       }));
 
-      return newNotification;
+      return response.data;
     } catch (err) {
       set({
         error: err.response?.data?.message || "Failed to send notification",
@@ -94,7 +80,27 @@ const useNotificationStore = create((set, get) => ({
     }
   },
 
-  searchUsers: (searchTerm) => {
+  deleteNotification: async (notificationId) => {
+    set({ loading: true, error: null });
+    try {
+      // Call the actual API endpoint
+      await notificationAPI.deleteNotification(notificationId);
+      
+      // Remove the notification from our local state
+      set(state => ({ 
+        notifications: state.notifications.filter(n => n.id !== parseInt(notificationId)),
+        loading: false 
+      }));
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || "Failed to delete notification",
+        loading: false
+      });
+      throw err;
+    }
+  },
+
+  searchSecretaries: (searchTerm) => {
     set({ filters: { search: searchTerm } });
   }
 }));

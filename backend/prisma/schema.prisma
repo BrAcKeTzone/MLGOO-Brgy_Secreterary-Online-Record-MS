@@ -51,7 +51,8 @@ model User {
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   reports              Report[]
-  notifications        Notification[]
+  notifications        Notification[] @relation("NotificationRecipients")
+  readNotifications    Notification[] @relation("NotificationRead")
   logs                 Log[]
   validIDFrontUrl      String?
   validIDFrontPublicId String?
@@ -68,7 +69,7 @@ model Barangay {
 
 model Report {
   id            Int          @id @default(autoincrement())
-  reportType    String       
+  reportType    String
   reportName    String
   status        ReportStatus @default(PENDING)
   submittedDate DateTime     @default(now())
@@ -77,12 +78,12 @@ model Report {
   fileName      String
   fileSize      Int
   comments      String?      @db.Text
-  attachments   Json?        
+  attachments   Json?
   updatedAt     DateTime?    @updatedAt
-  
+
   // Relations
-  barangay      Barangay     @relation(fields: [barangayId], references: [id])
-  submittedBy   User         @relation(fields: [userId], references: [id])
+  barangay    Barangay @relation(fields: [barangayId], references: [id])
+  submittedBy User     @relation(fields: [userId], references: [id])
 }
 
 model Notification {
@@ -91,7 +92,8 @@ model Notification {
   message  String   @db.Text
   type     String // reminder, system, success, alert, info, event
   priority String // high, medium, normal
-  sentTo   User[]
+  sentTo   User[]   @relation("NotificationRecipients")
+  readBy   User[]   @relation("NotificationRead")
   dateSent DateTime @default(now())
 }
 

@@ -8,6 +8,8 @@ const userListRoutes = require('./routes/userListRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const reportRoutes = require('./routes/reportRoutes'); 
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+
 
 
 const app = express();
@@ -31,6 +33,7 @@ app.use('/api/users', userListRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reports', reportRoutes); 
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 
 app.get('/', (req, res) => {

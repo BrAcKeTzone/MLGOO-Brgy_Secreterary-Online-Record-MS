@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { sampleNotifications } from '../data/samples/sampleNotifications';
 import { CURRENT_YEAR } from '../utils/dateUtils';
+import { notificationAPI } from '../services/api';
 
 const useBrgyNotificationStore = create((set, get) => ({
   notifications: [],
@@ -13,29 +13,25 @@ const useBrgyNotificationStore = create((set, get) => ({
   fetchNotifications: async (filters = null) => {
     set({ loading: true, error: null });
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
+      // Call the real API endpoint
+      const response = await notificationAPI.getUserNotifications();
+      
+      let filteredNotifications = response.data;
+      
       // If no filters provided, use current store filters
       const currentFilters = filters || get().filters;
 
-      // Filter notifications for the current user (Barangay Secretary)
-      // Assuming you have a way to identify the current user's ID
-      const currentUserId = "user001"; // Replace with actual user ID
-
-      let filteredNotifications = sampleNotifications.filter(notification =>
-        notification.sentTo.some(recipient => recipient.userId === currentUserId)
-      );
-
-      // Filter by year
-      filteredNotifications = filteredNotifications.filter(notification =>
-        new Date(notification.dateSent).getFullYear().toString() === currentFilters.year
-      );
+      // Filter by year if needed
+      if (currentFilters.year) {
+        filteredNotifications = filteredNotifications.filter(notification =>
+          new Date(notification.dateSent).getFullYear().toString() === currentFilters.year
+        );
+      }
 
       set({ notifications: filteredNotifications, loading: false });
     } catch (err) {
       set({
-        error: err.message || "Failed to fetch notifications",
+        error: err.response?.data?.message || "Failed to fetch notifications",
         loading: false
       });
     }
@@ -44,24 +40,24 @@ const useBrgyNotificationStore = create((set, get) => ({
   markAsRead: async (notificationId) => {
     set({ loading: true, error: null });
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Call the actual API endpoint
+      await notificationAPI.markNotificationRead(notificationId);
 
+      // Update local state to reflect the notification as read
       set(state => ({
         notifications: state.notifications.map(notification => {
-          if (notification._id === notificationId) {
-            const updatedSentTo = notification.sentTo.map(recipient => ({
-              ...recipient,
-              read: true // Mark as read for all recipients (or specific recipient)
-            }));
-            return { ...notification, sentTo: updatedSentTo };
+          if (notification.id === parseInt(notificationId)) {
+            return { ...notification, isRead: true };
           }
           return notification;
         }),
         loading: false
       }));
     } catch (err) {
-      set({ error: err.message || "Failed to mark as read", loading: false });
+      set({ 
+        error: err.response?.data?.message || "Failed to mark as read", 
+        loading: false 
+      });
     }
   },
 
