@@ -1,6 +1,6 @@
 import React from "react";
 import { format } from "date-fns";
-import { FaBell, FaInfoCircle, FaExclamationTriangle, FaCheckCircle, FaClock, FaCalendarAlt, FaEnvelopeOpen, FaEnvelope } from "react-icons/fa";
+import { FaBell, FaInfoCircle, FaExclamationTriangle, FaCheckCircle, FaClock, FaCalendarAlt, FaEnvelopeOpen, FaEnvelope, FaLock } from "react-icons/fa";
 
 const BrgyNotificationList = ({ notifications, onMarkAsRead, loading }) => {
   const formatDate = (dateString) => {
@@ -76,7 +76,18 @@ const BrgyNotificationList = ({ notifications, onMarkAsRead, loading }) => {
                     {getPriorityBadge(notification.priority)}
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 my-1">{notification.message}</p>
+                
+                {notification.isRead ? (
+                  // Show full message if notification is read
+                  <p className="text-sm text-gray-600 my-1">{notification.message}</p>
+                ) : (
+                  // Show a locked message prompt if notification is unread
+                  <div className="flex items-center space-x-2 my-1 py-2 px-3 bg-gray-50 rounded-md border border-gray-100">
+                    <FaLock className="text-gray-400" />
+                    <p className="text-sm text-gray-500 italic">Click to view message content</p>
+                  </div>
+                )}
+                
                 <div className="flex justify-between items-center mt-2">
                   <p className="text-xs text-gray-500">
                     {formatDate(notification.dateSent)}
