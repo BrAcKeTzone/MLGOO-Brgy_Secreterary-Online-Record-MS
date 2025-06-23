@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   FaUsers,
   FaFileAlt,
@@ -7,6 +7,7 @@ import {
   FaCheck,
   FaClock,
   FaTimesCircle,
+  FaSync,
 } from "react-icons/fa";
 import useAuthStore from "../store/authStore";
 import useDashboardStore from "../store/dashboardStore";
@@ -35,9 +36,13 @@ const AdminDashboard = () => {
   } = useDashboardStore();
 
   const [mlgooData, setMlgooData] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const loadDashboardData = async () => {
+  // Create a memoized refresh function
+  const refreshDashboardData = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
       await fetchMetrics();
       await fetchActivityData();
 
@@ -46,17 +51,35 @@ const AdminDashboard = () => {
         const mlgooAnalytics = await fetchMlgooAnalytics();
         setMlgooData(mlgooAnalytics);
       }
-    };
 
-    loadDashboardData();
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error("Error refreshing dashboard data:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [fetchMetrics, fetchActivityData, fetchMlgooAnalytics, user]);
+
+  // Initial data load
+  useEffect(() => {
+    refreshDashboardData();
 
     // Clean up store data on unmount
     return () => {
       useDashboardStore.getState().clearDashboardData();
     };
-  }, [fetchMetrics, fetchActivityData, fetchMlgooAnalytics, user]);
+  }, [refreshDashboardData]);
 
-  if (loading && !metrics) {
+  // Set up auto-refresh interval (every 60 seconds)
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refreshDashboardData();
+    }, 60000 * 5); // 60000 ms = 1 minute
+
+    return () => clearInterval(intervalId);
+  }, [refreshDashboardData]);
+
+  if (loading && !metrics && !isRefreshing) {
     return <LoadingScreen message="Loading dashboard data..." />;
   }
 
@@ -67,6 +90,10 @@ const AdminDashboard = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return format(new Date(dateString), "MMM dd, yyyy");
+  };
+
+  const formatDateTime = (date) => {
+    return format(date, "MMM dd, yyyy 'at' h:mm:ss a");
   };
 
   // Status badge styling
@@ -89,6 +116,24 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <WelcomeSection userName={user?.firstName} />
+
+      {/* Last Updated & Refresh Info */}
+      <div className="flex flex-wrap items-center justify-between mb-6">
+        <div className="flex items-center text-sm text-gray-500 mb-2 md:mb-0">
+          <FaClock className="mr-1" />
+          <span>Last updated: {formatDateTime(lastUpdated)}</span>
+        </div>
+        <button
+          onClick={refreshDashboardData}
+          disabled={isRefreshing}
+          className={`flex items-center text-sm ${
+            isRefreshing ? "text-gray-400" : "text-blue-600 hover:text-blue-800"
+          } transition-colors`}
+        >
+          <FaSync className={`mr-1 ${isRefreshing ? "animate-spin" : ""}`} />
+          {isRefreshing ? "Refreshing..." : "Refresh data"}
+        </button>
+      </div>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

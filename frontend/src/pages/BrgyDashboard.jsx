@@ -22,7 +22,6 @@ import RecentActivity from "../components/HomeComp/RecentActivity";
 const BrgyDashboard = () => {
   const { user } = useAuthStore();
   const {
-    metrics,
     brgyMetrics,
     activityData,
     analyticsData,
