@@ -97,12 +97,12 @@ export const dashboardAPI = {
   fetchMlgooMetrics: () => api.get('/dashboard/mlgoo-metrics'),
   // For Barangay Secretary
   fetchBarangayMetrics: () => api.get('/dashboard/barangay-metrics'),
-  // Analytics for charts (monthly data, distributions)
+  // Analytics for charts (monthly data, distributions) - for MLGOO
   fetchAnalytics: () => api.get('/dashboard/analytics'),
+  // Barangay-specific analytics - for Barangay Secretary
+  fetchBarangayAnalytics: () => api.get('/dashboard/barangay-analytics'),
   // MLGOO-specific analytics
   fetchMlgooAnalytics: () => api.get('/dashboard/mlgoo-analytics'),
-  // Weekly activity data for charts
-  fetchWeeklyActivity: () => api.get('/dashboard/analytics'),
 };
 
 // Home API endpoints

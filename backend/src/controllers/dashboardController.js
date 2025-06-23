@@ -224,12 +224,20 @@ exports.getBarangaySecretaryDashboardMetrics = async (req, res) => {
 };
 
 /**
- * Get dashboard analytics data
+ * Get dashboard analytics data - now accepts an optional barangayId parameter
  */
 exports.getDashboardAnalytics = async (req, res) => {
   try {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
+    
+    // Build filter condition based on user role
+    let reportFilter = {};
+    
+    // If user is a barangay secretary, filter by their barangay ID
+    if (req.user.role === 'BARANGAY_SECRETARY' && req.user.barangayId) {
+      reportFilter = { barangayId: req.user.barangayId };
+    }
     
     // Get monthly report submissions for the current year
     const monthlyCounts = [];
@@ -240,6 +248,7 @@ exports.getDashboardAnalytics = async (req, res) => {
       
       const reportCount = await prisma.report.count({
         where: {
+          ...reportFilter,
           submittedDate: {
             gte: startDate,
             lte: endDate
@@ -256,6 +265,7 @@ exports.getDashboardAnalytics = async (req, res) => {
     // Get report type distribution
     const reportTypes = await prisma.report.groupBy({
       by: ['reportType'],
+      where: reportFilter,
       _count: {
         reportType: true
       }
@@ -269,6 +279,7 @@ exports.getDashboardAnalytics = async (req, res) => {
     // Get status distribution
     const statuses = await prisma.report.groupBy({
       by: ['status'],
+      where: reportFilter,
       _count: {
         status: true
       }
@@ -288,6 +299,95 @@ exports.getDashboardAnalytics = async (req, res) => {
     console.error('Error fetching dashboard analytics:', error);
     res.status(500).json({
       message: 'Failed to fetch dashboard analytics',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * Get specific analytics for the Barangay Dashboard
+ */
+exports.getBarangayAnalytics = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Get user info to determine barangay
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { assignedBrgy: true }
+    });
+    
+    if (!user || !user.barangayId) {
+      return res.status(400).json({ 
+        message: 'User is not assigned to a barangay' 
+      });
+    }
+    
+    const barangayId = user.barangayId;
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    
+    // Get monthly report submissions for the current year for this barangay
+    const monthlyCounts = [];
+    
+    for (let month = 0; month < 12; month++) {
+      const startDate = new Date(currentYear, month, 1);
+      const endDate = new Date(currentYear, month + 1, 0);
+      
+      const reportCount = await prisma.report.count({
+        where: {
+          barangayId,
+          submittedDate: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      });
+      
+      monthlyCounts.push({
+        month: month + 1, // 1-12
+        count: reportCount
+      });
+    }
+    
+    // Get report type distribution for this barangay
+    const reportTypes = await prisma.report.groupBy({
+      by: ['reportType'],
+      where: { barangayId },
+      _count: {
+        reportType: true
+      }
+    });
+    
+    const reportTypeDistribution = reportTypes.map(type => ({
+      reportType: type.reportType,
+      count: type._count.reportType
+    }));
+    
+    // Get status distribution for this barangay
+    const statuses = await prisma.report.groupBy({
+      by: ['status'],
+      where: { barangayId },
+      _count: {
+        status: true
+      }
+    });
+    
+    const statusDistribution = statuses.map(status => ({
+      status: status.status,
+      count: status._count.status
+    }));
+    
+    res.json({
+      monthlyCounts,
+      reportTypeDistribution,
+      statusDistribution,
+      barangayName: user.assignedBrgy.name
+    });
+  } catch (error) {
+    console.error('Error fetching barangay analytics:', error);
+    res.status(500).json({
+      message: 'Failed to fetch barangay analytics',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

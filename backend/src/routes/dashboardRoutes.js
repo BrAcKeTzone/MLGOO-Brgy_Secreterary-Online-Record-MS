@@ -23,10 +23,18 @@ router.get(
   dashboardController.getBarangaySecretaryDashboardMetrics
 );
 
-// Dashboard analytics - accessible to both roles
+// Dashboard analytics - for MLGOO (all barangays)
 router.get(
   '/analytics',
+  roleMiddleware(['MLGOO_STAFF']),
   dashboardController.getDashboardAnalytics
+);
+
+// Barangay-specific analytics - for Barangay Secretary (only their barangay)
+router.get(
+  '/barangay-analytics',
+  roleMiddleware(['BARANGAY_SECRETARY']),
+  dashboardController.getBarangayAnalytics
 );
 
 // MLGOO-specific analytics

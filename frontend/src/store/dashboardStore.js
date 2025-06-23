@@ -70,8 +70,17 @@ const useDashboardStore = create((set, get) => ({
   fetchActivityData: async () => {
     set({ loading: true, error: null });
     try {
-      // Get analytics data
-      const response = await dashboardAPI.fetchAnalytics();
+      const user = useAuthStore.getState().user;
+      let response;
+
+      // Get analytics data based on user role
+      if (user && user.role === 'MLGOO_STAFF') {
+        response = await dashboardAPI.fetchAnalytics();
+      } else if (user && user.role === 'BARANGAY_SECRETARY') {
+        response = await dashboardAPI.fetchBarangayAnalytics(); // Use barangay-specific endpoint
+      } else {
+        throw new Error("Unknown user role");
+      }
       
       // Format monthly data for the activity chart
       const formattedActivity = response.data.monthlyCounts.map(item => {
