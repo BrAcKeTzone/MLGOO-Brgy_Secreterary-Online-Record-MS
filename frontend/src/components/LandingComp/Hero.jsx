@@ -126,7 +126,7 @@ const Hero = () => {
           <div
             className={`fixed z-50 pointer-events-none ${
               isMobile
-                ? "inset-0 flex items-center justify-center"
+                ? "inset-0 flex items-center justify-center overflow-y-auto"
                 : "inset-y-0 left-0 flex items-center md:pl-6 pl-2"
             }`}
           >
@@ -152,13 +152,13 @@ const Hero = () => {
           <div
             className={`fixed z-50 pointer-events-none ${
               isMobile
-                ? "inset-0 flex items-center justify-center"
+                ? "inset-0 flex items-center justify-center overflow-y-auto"
                 : "inset-y-0 right-0 flex items-center md:pr-6 pr-2"
             }`}
           >
             <div
               className={`pointer-events-auto ${
-                isMobile ? "w-full h-full" : "w-full max-w-md"
+                isMobile ? "w-full h-full" : "w-full max-w-md max-h-screen overflow-y-auto"
               }`}
             >
               <ModalSignup
@@ -177,7 +177,7 @@ const Hero = () => {
           <div
             className={`fixed z-50 pointer-events-none ${
               isMobile
-                ? "inset-0 flex items-center justify-center"
+                ? "inset-0 flex items-center justify-center overflow-y-auto"
                 : "inset-0 flex items-center justify-center"
             }`}
           >
