@@ -415,6 +415,14 @@ exports.updateReportStatus = async (req, res) => {
       where: { id: reportId },
       include: {
         barangay: true,
+        submittedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
       }
     });
 
@@ -433,6 +441,38 @@ exports.updateReportStatus = async (req, res) => {
       include: {
         barangay: true,
         submittedBy: true
+      }
+    });
+
+    // Create notification for the report submitter
+    const notificationType = status === 'APPROVED' ? 'success' : 'alert';
+    const notificationTitle = status === 'APPROVED' 
+      ? 'Report Approved' 
+      : 'Report Needs Revision';
+    
+    const notificationMessage = status === 'APPROVED'
+      ? `Your report "${updatedReport.reportName}" has been approved.`
+      : `Your report "${updatedReport.reportName}" has been rejected and needs revision. ${comments ? `Comments: ${comments}` : ''}`;
+
+    // Create the notification in the database
+    await prisma.notification.create({
+      data: {
+        title: notificationTitle,
+        message: notificationMessage,
+        type: notificationType,
+        priority: 'high',
+        sentTo: {
+          connect: { id: existingReport.submittedBy.id }
+        }
+      }
+    });
+
+    // Create log entry for this action
+    await prisma.log.create({
+      data: {
+        action: `REPORT_${status}`,
+        userId: req.user.id,
+        details: `${status === 'APPROVED' ? 'Approved' : 'Rejected'} report "${updatedReport.reportName}" from ${existingReport.barangay.name}`
       }
     });
 
