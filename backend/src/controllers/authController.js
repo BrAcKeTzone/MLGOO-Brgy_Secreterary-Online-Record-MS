@@ -421,6 +421,15 @@ exports.login = async (req, res) => {
       validIDBackUrl: user.validIDBackUrl
     };
 
+    // Create login log entry
+    await prisma.log.create({
+      data: {
+        action: 'USER_LOGIN',
+        userId: user.id,
+        details: `User ${user.firstName} ${user.lastName} (${user.email}) logged in successfully from ${req.ip || 'unknown'} using ${req.headers['user-agent'] || 'unknown browser'}`
+      }
+    });
+
     res.status(200).json({
       token,
       user: userResponse
