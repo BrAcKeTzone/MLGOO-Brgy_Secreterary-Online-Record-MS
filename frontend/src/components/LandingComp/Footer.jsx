@@ -34,6 +34,7 @@ const Footer = () => {
               <FaEnvelope className="mr-2 group-hover:scale-110 transition-transform" />
               Contact
             </a>
+            <span className="text-gray-600">•</span>
             <a
               href="https://www.facebook.com/LGUExample"
               target="_blank"
