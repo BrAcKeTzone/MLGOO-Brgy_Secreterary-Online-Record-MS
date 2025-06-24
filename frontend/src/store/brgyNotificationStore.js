@@ -56,6 +56,16 @@ const useBrgyNotificationStore = create((set, get) => ({
         }
       }
 
+      // Sort notifications - unread first, then by date
+      filteredNotifications.sort((a, b) => {
+        // First sort by read status (unread first)
+        if (a.isRead !== b.isRead) {
+          return a.isRead ? 1 : -1;
+        }
+        // Then sort by date (newest first)
+        return new Date(b.dateSent) - new Date(a.dateSent);
+      });
+
       set({ notifications: filteredNotifications, loading: false });
     } catch (err) {
       set({
@@ -81,6 +91,16 @@ const useBrgyNotificationStore = create((set, get) => ({
         }),
         loading: false
       }));
+      
+      // Update unread count in any other components that might be using it
+      const updatedNotifications = get().notifications;
+      const unreadCount = updatedNotifications.filter(notification => !notification.isRead).length;
+      
+      // If we've read all notifications and filter is set to unread only, refresh with all notifications
+      const currentFilters = get().filters;
+      if (unreadCount === 0 && currentFilters.readStatus === "unread") {
+        get().updateFilters({ readStatus: "all" });
+      }
     } catch (err) {
       set({ 
         error: err.response?.data?.message || "Failed to mark as read", 

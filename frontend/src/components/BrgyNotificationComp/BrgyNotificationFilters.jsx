@@ -1,8 +1,13 @@
 import React from "react";
 import FormSelect from "../Common/FormSelect";
 import { getYearOptions } from "../../utils/dateUtils";
+import { FaUndo } from "react-icons/fa";
 
-const BrgyNotificationFilters = ({ filters, onFilterChange }) => {
+const BrgyNotificationFilters = ({
+  filters,
+  onFilterChange,
+  onResetFilters,
+}) => {
   const handleChange = (change) => {
     onFilterChange(change);
   };
@@ -34,9 +39,17 @@ const BrgyNotificationFilters = ({ filters, onFilterChange }) => {
   ];
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-      <h2 className="text-lg font-semibold mb-4">Filter Notifications</h2>
-      
+    <div className="bg-white p-4 rounded-lg shadow-md mb-6 border border-gray-100">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Filter Notifications</h2>
+        <button
+          onClick={onResetFilters}
+          className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+        >
+          <FaUndo className="mr-1" /> Reset Filters
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <FormSelect
           label="Year"
