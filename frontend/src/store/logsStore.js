@@ -1,33 +1,52 @@
 import { create } from "zustand";
-import { sampleLogs } from "../data/samples/sampleLogs";
-
-const SIMULATED_DELAY = 1500;
+import { logsAPI } from "../services/api";
 
 const useLogsStore = create((set, get) => ({
   logs: [],
   filteredLogs: [],
   loading: false,
   error: null,
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 20,
+    pages: 0
+  },
+  actionTypes: [], // Store available action types from API
   filters: {
     search: "",
     action: "all",
     startDate: "",
-    endDate: ""
+    endDate: "",
+    page: 1,
+    limit: 20
   },
 
   fetchLogs: async () => {
     set({ loading: true, error: null });
     try {
-      await new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY));
-      // const { data } = await logsAPI.fetchLogs();
-      const data = sampleLogs; // Using sample data for now
+      const queryParams = new URLSearchParams();
+      const filters = get().filters;
+      
+      // Add all filters to query params
+      if (filters.search) queryParams.append('search', filters.search);
+      if (filters.action && filters.action !== 'all') queryParams.append('action', filters.action);
+      if (filters.startDate) queryParams.append('startDate', filters.startDate);
+      if (filters.endDate) queryParams.append('endDate', filters.endDate);
+      queryParams.append('page', filters.page);
+      queryParams.append('limit', filters.limit);
+      
+      const { data } = await logsAPI.fetchLogs(queryParams);
       
       set({ 
-        logs: data,
-        filteredLogs: data,
+        logs: data.logs,
+        filteredLogs: data.logs,
+        actionTypes: data.actionTypes || [],
+        pagination: data.pagination,
         loading: false 
       });
     } catch (err) {
+      console.error("Error fetching logs:", err);
       set({
         error: err.response?.data?.message || "Failed to fetch logs",
         loading: false
@@ -36,52 +55,62 @@ const useLogsStore = create((set, get) => ({
   },
 
   updateFilters: (newFilters) => {
-    const { logs } = get();
     const filters = { ...get().filters, ...newFilters };
+    
+    // If we're changing filters (not page), reset to page 1
+    if (newFilters.search !== undefined || 
+        newFilters.action !== undefined || 
+        newFilters.startDate !== undefined || 
+        newFilters.endDate !== undefined) {
+      filters.page = 1;
+    }
+    
     set({ filters });
-
-    let filtered = [...logs];
-
-    // Apply search filter
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filtered = filtered.filter(log => 
-        log.action.toLowerCase().includes(searchTerm) ||
-        log.userName.toLowerCase().includes(searchTerm) ||
-        log.details.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    // Apply action type filter
-    if (filters.action !== "all") {
-      filtered = filtered.filter(log => log.action === filters.action);
-    }
-
-    // Apply date range filter
-    if (filters.startDate) {
-      filtered = filtered.filter(log => 
-        new Date(log.timestamp) >= new Date(filters.startDate)
-      );
-    }
-    if (filters.endDate) {
-      filtered = filtered.filter(log => 
-        new Date(log.timestamp) <= new Date(filters.endDate)
-      );
-    }
-
-    set({ filteredLogs: filtered });
+    get().fetchLogs(); // Fetch logs with new filters
   },
 
   clearFilters: () => {
-    set(state => ({
-      filters: {
-        search: "",
-        action: "all",
-        startDate: "",
-        endDate: ""
-      },
-      filteredLogs: state.logs
-    }));
+    const clearedFilters = {
+      search: "",
+      action: "all",
+      startDate: "",
+      endDate: "",
+      page: 1,
+      limit: 20
+    };
+    
+    set({ filters: clearedFilters });
+    get().fetchLogs(); // Fetch logs with cleared filters
+  },
+
+  nextPage: () => {
+    const { pagination, filters } = get();
+    if (filters.page < pagination.pages) {
+      get().updateFilters({ page: filters.page + 1 });
+    }
+  },
+
+  prevPage: () => {
+    const { filters } = get();
+    if (filters.page > 1) {
+      get().updateFilters({ page: filters.page - 1 });
+    }
+  },
+  
+  removeLogsByDateRange: async (startDate, endDate) => {
+    set({ loading: true, error: null });
+    try {
+      await logsAPI.removeLogs({ startDate, endDate });
+      // After removal, refresh logs
+      await get().fetchLogs();
+      return true;
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || "Failed to remove logs",
+        loading: false
+      });
+      return false;
+    }
   }
 }));
 

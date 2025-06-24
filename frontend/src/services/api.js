@@ -182,8 +182,8 @@ export const reportAPI = {
 
 // Logs API endpoints
 export const logsAPI = {
-  fetchLogs: () => api.get('/logs'),
-  searchLogs: (filters) => api.post('/logs/search', filters),
+  fetchLogs: (queryParams) => api.get(`/logs?${queryParams}`),
+  removeLogs: (dateRange) => api.delete('/logs/remove', { data: dateRange }),
 };
 
 export const profileAPI = {
