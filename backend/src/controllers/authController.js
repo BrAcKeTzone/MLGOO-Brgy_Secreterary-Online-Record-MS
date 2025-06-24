@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { 
   sendOtpEmail, 
   sendPasswordChangedEmail, 
@@ -10,7 +10,6 @@ const {
   generateOtp
 } = require('../services/emailService');
 const cloudinary = require('../config/cloudinary');
-const prisma = new PrismaClient();
 
 // Just update the uploadToCloudinary function to ensure consistent folder usage
 

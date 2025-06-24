@@ -1,7 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const bcrypt = require('bcryptjs');
 const { sendPasswordChangedEmail } = require('../services/emailService');
-const prisma = new PrismaClient();
 
 exports.getProfile = async (req, res) => {
   try {

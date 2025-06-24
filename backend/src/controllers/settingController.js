@@ -1,6 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { convertToNumber } = require('../utils/helpers');
-const prisma = new PrismaClient();
 
 // --- Barangays ---
 exports.getBarangays = async (req, res) => {

@@ -1,7 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-const cloudinary = require('../config/cloudinary');
-const streamifier = require('streamifier');
+const prisma = require('../lib/prisma');
 const { deleteMultipleImages } = require('../utils/cloudinary');
 const path = require('path');
 
