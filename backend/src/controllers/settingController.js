@@ -15,6 +15,16 @@ exports.createBarangay = async (req, res) => {
   try {
     const { name } = req.body;
     const barangay = await prisma.barangay.create({ data: { name } });
+    
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'BARANGAY_CREATED',
+        userId: req.user.id,
+        details: `Created new barangay "${name}" (ID: ${barangay.id})`
+      }
+    });
+    
     res.status(201).json({ barangay });
   } catch (error) {
     res.status(500).json({ message: 'Failed to create barangay', error: error.message });
@@ -25,10 +35,26 @@ exports.updateBarangay = async (req, res) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
+    
+    // Get original barangay for logging
+    const originalBarangay = await prisma.barangay.findUnique({
+      where: { id: Number(id) }
+    });
+    
     const barangay = await prisma.barangay.update({
       where: { id: Number(id) },
       data: { name }
     });
+    
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'BARANGAY_UPDATED',
+        userId: req.user.id,
+        details: `Updated barangay ID ${id} from "${originalBarangay.name}" to "${name}"`
+      }
+    });
+    
     res.json({ barangay });
   } catch (error) {
     res.status(500).json({ message: 'Failed to update barangay', error: error.message });
@@ -38,7 +64,23 @@ exports.updateBarangay = async (req, res) => {
 exports.deleteBarangay = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Get barangay details for logging
+    const barangay = await prisma.barangay.findUnique({
+      where: { id: Number(id) }
+    });
+    
     await prisma.barangay.delete({ where: { id: Number(id) } });
+    
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'BARANGAY_DELETED',
+        userId: req.user.id,
+        details: `Deleted barangay "${barangay.name}" (ID: ${id})`
+      }
+    });
+    
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete barangay', error: error.message });
@@ -59,6 +101,16 @@ exports.createReportType = async (req, res) => {
   try {
     const { name, shortName } = req.body;
     const reportType = await prisma.reportType.create({ data: { name, shortName } });
+    
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'REPORT_TYPE_CREATED',
+        userId: req.user.id,
+        details: `Created new report type "${name}" with shortName "${shortName}" (ID: ${reportType.id})`
+      }
+    });
+    
     res.status(201).json({ reportType });
   } catch (error) {
     res.status(500).json({ message: 'Failed to create report type', error: error.message });
@@ -69,10 +121,26 @@ exports.updateReportType = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, shortName } = req.body;
+    
+    // Get original report type for logging
+    const originalType = await prisma.reportType.findUnique({
+      where: { id: Number(id) }
+    });
+    
     const reportType = await prisma.reportType.update({
       where: { id: Number(id) },
       data: { name, shortName }
     });
+    
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'REPORT_TYPE_UPDATED',
+        userId: req.user.id,
+        details: `Updated report type ID ${id} from "${originalType.name}" (${originalType.shortName}) to "${name}" (${shortName})`
+      }
+    });
+    
     res.json({ reportType });
   } catch (error) {
     res.status(500).json({ message: 'Failed to update report type', error: error.message });
@@ -82,7 +150,23 @@ exports.updateReportType = async (req, res) => {
 exports.deleteReportType = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Get report type details for logging
+    const reportType = await prisma.reportType.findUnique({
+      where: { id: Number(id) }
+    });
+    
     await prisma.reportType.delete({ where: { id: Number(id) } });
+    
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'REPORT_TYPE_DELETED',
+        userId: req.user.id,
+        details: `Deleted report type "${reportType.name}" (${reportType.shortName}, ID: ${id})`
+      }
+    });
+    
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete report type', error: error.message });
@@ -160,6 +244,15 @@ exports.createPrivacyPolicySection = async (req, res) => {
       }
     });
     
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'PRIVACY_POLICY_CREATED',
+        userId: req.user.id,
+        details: `Created new privacy policy section "${title}" (ID: ${section.id}, Order: ${section.order})`
+      }
+    });
+    
     res.status(201).json({ section });
   } catch (error) {
     console.error('Error creating privacy policy section:', error);
@@ -172,14 +265,10 @@ exports.updatePrivacyPolicySection = async (req, res) => {
     const { id } = req.params;
     const { title, content, order } = req.body;
     
-    // Check if section exists
-    const existingSection = await prisma.privacyPolicy.findUnique({
+    // Get original section for logging
+    const originalSection = await prisma.privacyPolicy.findUnique({
       where: { id: Number(id) }
     });
-    
-    if (!existingSection) {
-      return res.status(404).json({ message: 'Privacy policy section not found' });
-    }
     
     // Check content length if it's being updated
     if (content && content.length > 65535) {
@@ -192,7 +281,7 @@ exports.updatePrivacyPolicySection = async (req, res) => {
     let sectionOrder = order;
     
     // If order is being changed and specified in the request
-    if (sectionOrder !== undefined && sectionOrder !== existingSection.order) {
+    if (sectionOrder !== undefined && sectionOrder !== originalSection.order) {
       // Check if another section already has this order
       const existingWithOrder = await prisma.privacyPolicy.findFirst({
         where: { 
@@ -229,6 +318,15 @@ exports.updatePrivacyPolicySection = async (req, res) => {
       }
     });
     
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'PRIVACY_POLICY_UPDATED',
+        userId: req.user.id,
+        details: `Updated privacy policy section ID ${id} from "${originalSection.title}" to "${title}"`
+      }
+    });
+    
     res.json({ section });
   } catch (error) {
     console.error('Error updating privacy policy section:', error);
@@ -252,6 +350,15 @@ exports.deletePrivacyPolicySection = async (req, res) => {
     // Delete the section
     await prisma.privacyPolicy.delete({
       where: { id: Number(id) }
+    });
+    
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'PRIVACY_POLICY_SECTION_DELETED',
+        userId: req.user.id,
+        details: `Deleted privacy policy section "${existingSection.title}" (ID: ${id})`
+      }
     });
     
     // Get remaining sections ordered by their current order
@@ -352,6 +459,15 @@ exports.createTermsOfServiceSection = async (req, res) => {
       }
     });
     
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'TERMS_OF_SERVICE_CREATED',
+        userId: req.user.id,
+        details: `Created new terms of service section "${title}" (ID: ${section.id}, Order: ${section.order})`
+      }
+    });
+    
     res.status(201).json({ section });
   } catch (error) {
     console.error('Error creating terms of service section:', error);
@@ -364,14 +480,10 @@ exports.updateTermsOfServiceSection = async (req, res) => {
     const { id } = req.params;
     const { title, content, order } = req.body;
     
-    // Check if section exists
-    const existingSection = await prisma.termsOfService.findUnique({
+    // Get original section for logging
+    const originalSection = await prisma.termsOfService.findUnique({
       where: { id: Number(id) }
     });
-    
-    if (!existingSection) {
-      return res.status(404).json({ message: 'Terms of service section not found' });
-    }
     
     // Check content length if it's being updated
     if (content && content.length > 65535) {
@@ -384,7 +496,7 @@ exports.updateTermsOfServiceSection = async (req, res) => {
     let sectionOrder = order;
     
     // If order is being changed and specified in the request
-    if (sectionOrder !== undefined && sectionOrder !== existingSection.order) {
+    if (sectionOrder !== undefined && sectionOrder !== originalSection.order) {
       // Check if another section already has this order
       const existingWithOrder = await prisma.termsOfService.findFirst({
         where: { 
@@ -421,6 +533,15 @@ exports.updateTermsOfServiceSection = async (req, res) => {
       }
     });
     
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'TERMS_OF_SERVICE_UPDATED',
+        userId: req.user.id,
+        details: `Updated terms of service section ID ${id} from "${originalSection.title}" to "${title}"`
+      }
+    });
+    
     res.json({ section });
   } catch (error) {
     console.error('Error updating terms of service section:', error);
@@ -446,6 +567,15 @@ exports.deleteTermsOfServiceSection = async (req, res) => {
       where: { id: Number(id) }
     });
 
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'TERMS_OF_SERVICE_SECTION_DELETED',
+        userId: req.user.id,
+        details: `Deleted terms of service section "${existingSection.title}" (ID: ${id})`
+      }
+    });
+    
     // Get remaining sections ordered by their current order
     const remainingSections = await prisma.termsOfService.findMany({
       orderBy: { order: 'asc' }
@@ -587,6 +717,15 @@ exports.createValidIDType = async (req, res) => {
         isActive,
         createdAt: new Date(),
         updatedAt: new Date()
+      }
+    });
+    
+    // Create log entry
+    await prisma.log.create({
+      data: {
+        action: 'VALID_ID_TYPE_CREATED',
+        userId: req.user.id,
+        details: `Created new valid ID type "${name}" (ID: ${validIDType.id}, Active: ${isActive})`
       }
     });
     

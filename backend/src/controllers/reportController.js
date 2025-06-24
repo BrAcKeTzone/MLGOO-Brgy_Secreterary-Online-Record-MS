@@ -361,6 +361,15 @@ exports.createReport = async (req, res) => {
       }
     });
 
+    // Create log entry for successful report submission
+    await prisma.log.create({
+      data: {
+        action: 'REPORT_SUBMITTED',
+        userId: req.user.id,
+        details: `User ${report.submittedBy.firstName} ${report.submittedBy.lastName} submitted report "${reportName}" (${reportTypeCheck.shortName}) from Barangay ${report.barangay.name}`
+      }
+    });
+
     res.status(201).json({
       message: 'Report submitted successfully',
       report: {

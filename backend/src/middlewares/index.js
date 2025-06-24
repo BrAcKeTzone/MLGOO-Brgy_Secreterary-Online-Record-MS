@@ -14,7 +14,8 @@ const roles = {
   mlgooStaff: roleMiddleware(['MLGOO_STAFF']),
   barangaySecretary: roleMiddleware(['BARANGAY_SECRETARY']),
   bothRoles: roleMiddleware(['MLGOO_STAFF', 'BARANGAY_SECRETARY']),
-  adminAccess: roleMiddleware(['ADMIN', 'MLGOO_STAFF'])
+  adminAccess: roleMiddleware(['ADMIN', 'MLGOO_STAFF']),
+  anyAuthenticated: (req, res, next) => next() // Allows any authenticated user
 };
 
 // Create authentication chains
@@ -25,7 +26,9 @@ const auth = {
   secretary: [authenticate, checkAccountStatus, roles.barangaySecretary],
   bothRoles: [authenticate, checkAccountStatus, roles.bothRoles],
   admin: [authenticate, checkAccountStatus, roles.adminAccess],
-  sensitive: [authenticate, checkAccountStatus, logSensitiveOperation]
+  sensitive: [authenticate, checkAccountStatus, logSensitiveOperation],
+  // New chain for read-only access to settings
+  readSettings: [authenticate, checkAccountStatus, roles.anyAuthenticated]
 };
 
 module.exports = {
