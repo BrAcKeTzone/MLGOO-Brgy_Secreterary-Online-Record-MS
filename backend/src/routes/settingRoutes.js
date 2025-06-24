@@ -1,6 +1,9 @@
-const express = require('express');
-const router = express.Router();
+const createRouter = require('../utils/routerFactory');
+const { auth } = require('../middlewares');
 const settingController = require('../controllers/settingController');
+
+// Create router with admin authentication for all setting routes
+const router = createRouter(auth.admin);
 
 // --- Barangays ---
 router.get('/barangays', settingController.getBarangays);

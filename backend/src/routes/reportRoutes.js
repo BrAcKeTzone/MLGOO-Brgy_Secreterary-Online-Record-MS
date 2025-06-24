@@ -1,32 +1,17 @@
-const express = require('express');
-const router = express.Router();
-const { authenticate } = require('../middlewares/auth');
-const roleMiddleware = require('../middlewares/roleMiddleware');
-const checkAccountStatus = require('../middlewares/checkAccountStatus');
+const createRouter = require('../utils/routerFactory');
+const { auth, logSensitiveOperation } = require('../middlewares');
 const reportController = require('../controllers/reportController');
 
-// Apply authentication middleware to all routes
-router.use(authenticate);
-router.use(checkAccountStatus);
-
-// Request logging middleware for sensitive operations
-const logSensitiveOperation = (req, res, next) => {
-  console.log(`SENSITIVE OPERATION: ${req.method} ${req.originalUrl} by user ID ${req.user.id}`);
-  next();
-};
-
-// Define user role access
-const mlgooStaffAccess = roleMiddleware(['MLGOO_STAFF']);
-const barangaySecretaryAccess = roleMiddleware(['BARANGAY_SECRETARY']);
-const bothRolesAccess = roleMiddleware(['MLGOO_STAFF', 'BARANGAY_SECRETARY']);
+// Create a router with standard auth middleware
+const router = createRouter(auth.standard);
 
 // Reports routes
-router.get('/', bothRolesAccess, reportController.getAllReports);
-router.get('/:id', bothRolesAccess, reportController.getReportById);
-router.post('/', barangaySecretaryAccess, reportController.createReport);
-router.patch('/:id/status', mlgooStaffAccess, reportController.updateReportStatus);
-router.delete('/:id', bothRolesAccess, logSensitiveOperation, reportController.deleteReport);
-router.get('/barangay/:barangayId', bothRolesAccess, reportController.getReportsByBarangay);
-router.put('/:id', barangaySecretaryAccess, reportController.updateReport);
+router.get('/', auth.bothRoles, reportController.getAllReports);
+router.get('/:id', auth.bothRoles, reportController.getReportById);
+router.post('/', auth.secretary, reportController.createReport);
+router.patch('/:id/status', auth.mlgoo, reportController.updateReportStatus);
+router.delete('/:id', [...auth.bothRoles, logSensitiveOperation], reportController.deleteReport);
+router.get('/barangay/:barangayId', auth.bothRoles, reportController.getReportsByBarangay);
+router.put('/:id', auth.secretary, reportController.updateReport);
 
 module.exports = router;
