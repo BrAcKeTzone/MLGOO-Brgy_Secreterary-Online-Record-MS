@@ -104,61 +104,33 @@ exports.sendPasswordChangedEmail = async (to) => {
 };
 
 
-exports.sendAccountDisabledEmail = async (to) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject: 'Account Disabled',
-    html: `
-      <h3>Your account has been disabled.</h3>
-      <p>Please visit the school to contact the admin for further assistance.</p>
-    `
-  };
+// exports.sendAdminAppointmentEmail = async (to) => {
+//   const mailOptions = {
+//     from: process.env.EMAIL_USER,
+//     to,
+//     subject: 'Admin Appointment',
+//     html: `
+//       <h3>You have been appointed as an admin.</h3>
+//       <p>You now have access to the admin dashboard.</p>
+//     `
+//   };
 
-  return transporter.sendMail(mailOptions);
-};
+//   return transporter.sendMail(mailOptions);
+// };
 
-exports.sendAccountEnabledEmail = async (to) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject: 'Account Enabled',
-    html: `
-      <h3>Your account has been enabled.</h3>
-      <p>You can now login to the portal.</p>
-    `
-  };
+// exports.sendRemoveAdminPrivilegeEmail = async (to) => {
+//   const mailOptions = {
+//     from: process.env.EMAIL_USER,
+//     to,
+//     subject: 'Admin Privilege Revoked',
+//     html: `
+//       <h3>Your admin privilege has been revoked.</h3>
+//       <p>You no longer have access to the admin dashboard.</p>
+//     `
+//   };
 
-  return transporter.sendMail(mailOptions);
-};
-
-exports.sendAdminAppointmentEmail = async (to) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject: 'Admin Appointment',
-    html: `
-      <h3>You have been appointed as an admin.</h3>
-      <p>You now have access to the admin dashboard.</p>
-    `
-  };
-
-  return transporter.sendMail(mailOptions);
-};
-
-exports.sendRemoveAdminPrivilegeEmail = async (to) => {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject: 'Admin Privilege Revoked',
-    html: `
-      <h3>Your admin privilege has been revoked.</h3>
-      <p>You no longer have access to the admin dashboard.</p>
-    `
-  };
-
-  return transporter.sendMail(mailOptions);
-};
+//   return transporter.sendMail(mailOptions);
+// };
 
 exports.sendAccountPendingEmail = async (to, name) => {
   const mailOptions = {
@@ -181,6 +153,26 @@ exports.sendAccountPendingEmail = async (to, name) => {
   return transporter.sendMail(mailOptions);
 };
 
+exports.sendAccountEnabledEmail = async (to, name) => {
+  const mailOptions = {
+    from: `"Brgy Secretary Online Record MS" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: 'Account Enabled',
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Hello ${name},</h2>
+        <p>Your account has been enabled successfully.</p>
+        <p>You can now log in to the Barangay Secretary Online Record Management System.</p>
+        <br>
+        <p>Best regards,</p>
+        <p>Brgy Secretary Online Record MS Team</p>
+      </div>
+    `
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
 exports.sendAccountDeactivatedEmail = async (to, name) => {
   const mailOptions = {
     from: `"Brgy Secretary Online Record MS" <${process.env.EMAIL_USER}>`,
@@ -191,6 +183,34 @@ exports.sendAccountDeactivatedEmail = async (to, name) => {
         <h2>Hello ${name},</h2>
         <p>Your account has been deactivated.</p>
         <p>Please contact your MLGOO staff or system administrator for account reactivation.</p>
+        <br>
+        <p>Best regards,</p>
+        <p>Brgy Secretary Online Record MS Team</p>
+      </div>
+    `
+  };
+
+  return transporter.sendMail(mailOptions);
+};
+
+exports.sendAccountRejectedEmail = async (to, name, reason) => {
+  const mailOptions = {
+    from: `"Brgy Secretary Online Record MS" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: 'Account Registration Rejected',
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Hello ${name},</h2>
+        <p>We regret to inform you that your account registration has been rejected.</p>
+        <p><strong>Reason:</strong> ${reason}</p>
+        <p>You may try to register again with the following suggestions:</p>
+        <ul>
+          <li>Make sure your ID images are clear and all text is readable</li>
+          <li>Ensure that the ID you're submitting is on our list of accepted IDs</li>
+          <li>Verify that all information you provided matches your ID</li>
+          <li>Make sure you are the currently appointed secretary of the barangay you selected</li>
+        </ul>
+        <p>If you have any questions or need assistance, please contact your MLGOO staff.</p>
         <br>
         <p>Best regards,</p>
         <p>Brgy Secretary Online Record MS Team</p>

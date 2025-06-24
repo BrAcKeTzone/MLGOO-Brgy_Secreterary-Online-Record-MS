@@ -1,5 +1,10 @@
 const prisma = require('../lib/prisma');
 const { deleteMultipleImages } = require('../utils/cloudinary');
+const { 
+  sendAccountEnabledEmail, 
+  sendAccountDeactivatedEmail,
+  sendAccountRejectedEmail
+} = require('../services/emailService');
 
 /**
  * Get all users with pagination and filtering
@@ -130,9 +135,26 @@ exports.updateUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, activeStatus } = req.body;
+    const userId = parseInt(id);
 
     if (!status && !activeStatus) {
       return res.status(400).json({ message: 'Status or activeStatus is required' });
+    }
+    
+    // Get user's current data for comparison and notification
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        firstName: true,
+        lastName: true,
+        creationStatus: true,
+        activeStatus: true,
+      }
+    });
+
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // Prepare update data
@@ -141,7 +163,7 @@ exports.updateUserStatus = async (req, res) => {
     if (activeStatus) updateData.activeStatus = activeStatus;
 
     const updatedUser = await prisma.user.update({
-      where: { id: parseInt(id) },
+      where: { id: userId },
       data: updateData,
       select: {
         id: true,
@@ -159,6 +181,46 @@ exports.updateUserStatus = async (req, res) => {
         }
       }
     });
+    
+    // Create log entries based on what changed
+    if (status && status !== currentUser.creationStatus) {
+      await prisma.log.create({
+        data: {
+          action: 'USER_STATUS_UPDATED',
+          userId: req.user.id, // The admin/staff who made the change
+          details: `Changed user ${updatedUser.firstName} ${updatedUser.lastName} creation status from ${currentUser.creationStatus} to ${status}${rejectionReason ? ` with reason: ${rejectionReason}` : ''}`
+        }
+      });
+      
+      // Send email if account is rejected
+      if (status === 'REJECTED') {
+        const fullName = `${updatedUser.firstName} ${updatedUser.lastName}`;
+        await sendAccountRejectedEmail(
+          updatedUser.email, 
+          fullName, 
+           'Your identification documents may be unclear or invalid. Please try again with clearer images of your valid ID.'
+        );
+      }
+    }
+    
+    if (activeStatus && activeStatus !== currentUser.activeStatus) {
+      await prisma.log.create({
+        data: {
+          action: 'USER_ACTIVE_STATUS_UPDATED',
+          userId: req.user.id, // The admin/staff who made the change
+          details: `Changed user ${updatedUser.firstName} ${updatedUser.lastName} active status from ${currentUser.activeStatus || 'NULL'} to ${activeStatus}`
+        }
+      });
+      
+      // Send appropriate emails based on the new active status
+      const fullName = `${updatedUser.firstName} ${updatedUser.lastName}`;
+      
+      if (activeStatus === 'ACTIVE') {
+        await sendAccountEnabledEmail(updatedUser.email, fullName);
+      } else if (activeStatus === 'DEACTIVATED') {
+        await sendAccountDeactivatedEmail(updatedUser.email, fullName);
+      }
+    }
 
     res.json({
       user: {
