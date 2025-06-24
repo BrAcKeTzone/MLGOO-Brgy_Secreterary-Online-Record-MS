@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const transporter = require('../config/nodemailer');
 
 exports.sendOtpEmail = async (to, otp) => {
@@ -27,7 +26,10 @@ exports.sendOtpEmail = async (to, otp) => {
 };
 
 exports.generateOtp = () => {
-  return crypto.randomInt(100000, 999999).toString(); 
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const otp = (array[0] % (999999 - 100000 + 1) + 100000).toString(); // generate random number between 100000 and 999999
+  return otp.padStart(6, '0'); // pad with zeros to 6 digits
 };
 
 exports.sendWelcomeEmail = async (to, name, role) => {
