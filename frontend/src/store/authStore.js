@@ -121,6 +121,7 @@ const useAuthStore = create((set) => ({
       const uploadPromises = [];
       let nationalIdFront = null;
       let nationalIdBack = null;
+      let uploadErrors = [];
 
       // Upload front ID image if provided
       if (formData.nationalIdFront) {
@@ -135,7 +136,8 @@ const useAuthStore = create((set) => ({
           })
           .catch(error => {
             console.error("Front ID upload failed:", error);
-            throw new Error("Failed to upload front ID image. Please try again.");
+            uploadErrors.push("Failed to upload front ID image. Please try with a smaller image or check your internet connection.");
+            // Don't throw here, let's continue to try uploading the back image
           });
         uploadPromises.push(frontUploadPromise);
       } else {
@@ -160,7 +162,8 @@ const useAuthStore = create((set) => ({
           })
           .catch(error => {
             console.error("Back ID upload failed:", error);
-            throw new Error("Failed to upload back ID image. Please try again.");
+            uploadErrors.push("Failed to upload back ID image. Please try with a smaller image or check your internet connection.");
+            // Don't throw here
           });
         uploadPromises.push(backUploadPromise);
       } else {
@@ -174,7 +177,18 @@ const useAuthStore = create((set) => ({
 
       // Wait for all uploads to complete
       console.log("Waiting for all image uploads to complete...");
-      await Promise.all(uploadPromises);
+      await Promise.allSettled(uploadPromises); // Use Promise.allSettled instead of Promise.all
+    
+      // Check for upload errors
+      if (uploadErrors.length > 0 || !nationalIdFront || !nationalIdBack) {
+        const errorMessage = uploadErrors.join(" ");
+        set({ 
+          loading: false,
+          error: errorMessage || "Failed to upload ID images. Please try again with smaller images."
+        });
+        throw new Error(errorMessage || "Failed to upload ID images");
+      }
+      
       console.log("All image uploads completed successfully");
       
       // Create the signup data object with proper formatting
@@ -209,7 +223,7 @@ const useAuthStore = create((set) => ({
     } catch (err) {
       console.error("Signup error:", err);
       set({
-        error: err.response?.data?.message || err.message || "Signup failed",
+        error: err.response?.data?.message || err.message || "Signup failed. Please try again or use smaller ID images.",
         loading: false,
       });
       throw err;

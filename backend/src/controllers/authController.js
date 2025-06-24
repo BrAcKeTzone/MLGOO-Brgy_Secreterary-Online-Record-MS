@@ -32,11 +32,12 @@ const uploadToCloudinary = async (base64Image, folder = 'tabina_oms/valid_ids') 
         throw new Error('Invalid image format');
       }
       
-      // Upload the image to Cloudinary
+      // Upload the image to Cloudinary with increased timeout
       const result = await cloudinary.uploader.upload(base64Image, {
         folder,
         resource_type: 'image',
-        flags: 'attachment'
+        flags: 'attachment',
+        timeout: 60000 // 60 second timeout
       });
       
       return {
@@ -245,7 +246,7 @@ exports.signup = async (req, res) => {
       console.log("Setting validIDTypeId to:", userData.validIDTypeId);
     }
 
-    // Handle image uploads to Cloudinary
+    // Handle image uploads to Cloudinary with better error handling
     try {
       // Process front ID image
       if (nationalIdFront) {
@@ -254,7 +255,15 @@ exports.signup = async (req, res) => {
         
         // Handle either base64 string or object with url
         if (typeof nationalIdFront === 'string') {
-          frontImageData = await uploadToCloudinary(nationalIdFront);
+          try {
+            frontImageData = await uploadToCloudinary(nationalIdFront);
+          } catch (frontUploadError) {
+            console.error('Front ID upload error:', frontUploadError);
+            return res.status(500).json({ 
+              message: 'Failed to upload front ID image. Please try with a smaller image or check your connection.', 
+              error: frontUploadError.message 
+            });
+          }
         } else if (nationalIdFront.url) {
           // If already uploaded and has URL
           frontImageData = {
@@ -276,7 +285,15 @@ exports.signup = async (req, res) => {
         
         // Handle either base64 string or object with url
         if (typeof nationalIdBack === 'string') {
-          backImageData = await uploadToCloudinary(nationalIdBack);
+          try {
+            backImageData = await uploadToCloudinary(nationalIdBack);
+          } catch (backUploadError) {
+            console.error('Back ID upload error:', backUploadError);
+            return res.status(500).json({ 
+              message: 'Failed to upload back ID image. Please try with a smaller image or check your connection.', 
+              error: backUploadError.message 
+            });
+          }
         } else if (nationalIdBack.url) {
           // If already uploaded and has URL
           backImageData = {
@@ -292,7 +309,10 @@ exports.signup = async (req, res) => {
       }
     } catch (uploadError) {
       console.error('Error uploading images:', uploadError);
-      return res.status(500).json({ message: 'Failed to upload ID images. Please try again.' });
+      return res.status(500).json({ 
+        message: 'Failed to upload ID images. The server might be experiencing high load or the connection is slow. Please try again with smaller images.',
+        error: process.env.NODE_ENV === 'development' ? uploadError.message : undefined
+      });
     }
 
     console.log("Final userData being sent to database:", {

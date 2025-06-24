@@ -7,12 +7,16 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to include auth token
+// Add request interceptor to include auth token and increase timeout
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // Add longer timeout for all requests
+  config.timeout = 60000; // 60 second timeout
+  
   return config;
 });
 
@@ -39,7 +43,7 @@ export const authAPI = {
   resetPassword: (email, newPassword) => 
     api.post('/auth/reset-password', { email, newPassword }),
   
-  // Added method to upload image files
+  // Updated method to upload image files with better error handling
   uploadImage: (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -51,6 +55,14 @@ export const authAPI = {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        // Increase timeout for uploads
+        timeout: 60000, // 60 second timeout
+        onUploadProgress: (progressEvent) => {
+          // Optional: You can track upload progress here
+          console.log(`Upload progress: ${Math.round(
+            (progressEvent.loaded / progressEvent.total) * 100
+          )}%`);
+        }
       }
     );
   },
@@ -155,7 +167,7 @@ export const reportAPI = {
   updateReport: (reportId, reportData) => 
     api.put(`/reports/${reportId}`, reportData),
     
-  // Upload report files to cloudinary
+  // Updated method to upload report files with better error handling
   uploadReportFiles: (files, reportType) => {
     const formData = new FormData();
     
@@ -169,6 +181,13 @@ export const reportAPI = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 120000, // 2 minute timeout for multiple files
+      onUploadProgress: (progressEvent) => {
+        // Optional: You can track upload progress here
+        console.log(`Upload progress: ${Math.round(
+          (progressEvent.loaded / progressEvent.total) * 100
+        )}%`);
+      }
     });
   },
   

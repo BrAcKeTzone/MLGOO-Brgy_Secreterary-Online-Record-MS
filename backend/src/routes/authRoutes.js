@@ -5,14 +5,29 @@ const validate = require('../middlewares/validate');
 const { registerSchema, loginSchema } = require('../validations/authValidation');
 const authController = require('../controllers/authController');
 
-// Configure multer for file uploads
+// Configure multer for file uploads with increased limits
 const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB max file size for ID documents
+    fileSize: 10 * 1024 * 1024, // Increase to 10MB max file size for ID documents
   }
 });
+
+// Error handler for multer file size limits
+const handleMulterError = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ 
+        message: 'File too large. Maximum size is 10MB.'
+      });
+    }
+    return res.status(400).json({ 
+      message: `Upload error: ${err.message}` 
+    });
+  }
+  next(err);
+};
 
 // Helper middleware to handle file uploads for IDs during signup if needed
 const handleIdUploads = (req, res, next) => {
@@ -40,6 +55,7 @@ router.post('/signup-with-files',
     { name: 'nationalIdFront', maxCount: 1 },
     { name: 'nationalIdBack', maxCount: 1 }
   ]),
+  handleMulterError,
   handleIdUploads,
   validate(registerSchema),
   authController.signup
@@ -47,6 +63,7 @@ router.post('/signup-with-files',
 
 // Standard JSON signup (with URLs or base64)
 router.post('/signup', 
+  express.json({ limit: '15mb' }), // Increase JSON size limit for base64 images
   validate(registerSchema), 
   authController.signup
 );
