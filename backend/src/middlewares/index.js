@@ -9,6 +9,11 @@ const logSensitiveOperation = (req, res, next) => {
   next();
 };
 
+// Public access middleware - allows any request through
+const publicAccess = (req, res, next) => {
+  next();
+};
+
 // Predefined role combinations
 const roles = {
   mlgooStaff: roleMiddleware(['MLGOO_STAFF']),
@@ -27,8 +32,10 @@ const auth = {
   bothRoles: [authenticate, checkAccountStatus, roles.bothRoles],
   admin: [authenticate, checkAccountStatus, roles.adminAccess],
   sensitive: [authenticate, checkAccountStatus, logSensitiveOperation],
-  // New chain for read-only access to settings
-  readSettings: [authenticate, checkAccountStatus, roles.anyAuthenticated]
+  // Read-only access to settings for authenticated users
+  readSettings: [authenticate, checkAccountStatus, roles.anyAuthenticated],
+  // Public access to settings with no authentication required
+  public: [publicAccess]
 };
 
 module.exports = {
@@ -37,6 +44,7 @@ module.exports = {
   checkAccountStatus,
   validate,
   logSensitiveOperation,
+  publicAccess,
   roles,
   auth
 };

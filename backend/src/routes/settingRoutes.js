@@ -4,13 +4,13 @@ const { auth } = require('../middlewares');
 const settingController = require('../controllers/settingController');
 
 // --- Barangays ---
-// GET routes accessible by all authenticated users
-router.get('/barangays', auth.readSettings, settingController.getBarangays);
-router.get('/report-types', auth.readSettings, settingController.getReportTypes);
-router.get('/privacy-policy', auth.readSettings, settingController.getPrivacyPolicy);
-router.get('/terms-of-service', auth.readSettings, settingController.getTermsOfService);
-router.get('/valid-id-types', auth.readSettings, settingController.getValidIDTypes);
-router.get('/valid-id-types/active', auth.readSettings, settingController.getActiveValidIDTypes);
+// GET routes accessible by the public without authentication
+router.get('/barangays', auth.public, settingController.getBarangays);
+router.get('/report-types', auth.public, settingController.getReportTypes);
+router.get('/privacy-policy', auth.public, settingController.getPrivacyPolicy);
+router.get('/terms-of-service', auth.public, settingController.getTermsOfService);
+router.get('/valid-id-types', auth.public, settingController.getValidIDTypes);
+router.get('/valid-id-types/active', auth.public, settingController.getActiveValidIDTypes);
 
 // Modification routes restricted to admin
 router.post('/barangays', auth.admin, settingController.createBarangay);
