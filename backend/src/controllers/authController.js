@@ -308,6 +308,15 @@ exports.signup = async (req, res) => {
       },
     });
 
+    // Create log entry for successful signup
+    await prisma.log.create({
+      data: {
+        action: 'USER_SIGNUP',
+        userId: user.id,
+        details: `New ${role} account created for ${firstName} ${lastName} (${email}) with status ${creationStatus}${user.barangayId ? ` for Barangay ID ${user.barangayId}` : ''}`
+      }
+    });
+
     // Send welcome email with appropriate status notification
     if (creationStatus === 'APPROVED') {
       // Send different welcome email for first MLGOO_STAFF
