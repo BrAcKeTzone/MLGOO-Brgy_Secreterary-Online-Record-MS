@@ -3,7 +3,7 @@ import React from "react";
 const ImageDisplay = ({ image, side }) => (
   <div>
     <label className="block text-gray-700 text-sm font-semibold mb-2">
-      National ID ({side})
+      Valid ID ({side})
     </label>
     {image ? (
       <div className="border rounded-lg overflow-hidden">

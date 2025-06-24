@@ -140,23 +140,25 @@ const Profile = () => {
               />
             </div>
 
-            {/* Role - Full width regardless of screen size */}
-            <FormInput
-              label="Role"
-              name="role"
-              value={profileData?.role || ""}
-              disabled={true}
-            />
-
-            {/* Barangay - Only shown for users with assigned barangay */}
-            {profileData?.assignedBrgy && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {/* Role - Full width regardless of screen size */}
               <FormInput
-                label="Assigned Barangay"
-                name="barangay"
-                value={profileData.assignedBrgy?.name || ""}
+                label="Role"
+                name="role"
+                value={profileData?.role || ""}
                 disabled={true}
               />
-            )}
+
+              {/* Barangay - Only shown for users with assigned barangay */}
+              {profileData?.assignedBrgy && (
+                <FormInput
+                  label="Assigned Barangay"
+                  name="barangay"
+                  value={profileData.assignedBrgy?.name || ""}
+                  disabled={true}
+                />
+              )}
+            </div>
           </div>
         </div>
 
