@@ -378,7 +378,7 @@ exports.login = async (req, res) => {
     if (user.creationStatus === 'PENDING') {
       await sendAccountPendingEmail(email, `${user.firstName} ${user.lastName}`);
       return res.status(403).json({ 
-        message: 'Your account is pending approval. Please check your email.',
+        message: 'Your account is pending approval. You will be notified when approved.',
       });
     }
 
