@@ -134,7 +134,7 @@ exports.getUsers = async (req, res) => {
 exports.updateUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, activeStatus } = req.body;
+    const { status, activeStatus, rejectionReason } = req.body;
     const userId = parseInt(id);
 
     if (!status && !activeStatus) {
@@ -198,7 +198,7 @@ exports.updateUserStatus = async (req, res) => {
         await sendAccountRejectedEmail(
           updatedUser.email, 
           fullName, 
-           'Your identification documents may be unclear or invalid. Please try again with clearer images of your valid ID.'
+          rejectionReason || 'Your identification documents may be unclear or invalid. Please try again with clearer images of your valid ID.'
         );
       }
     }
@@ -266,23 +266,103 @@ exports.deleteUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Delete user's ID images from cloud storage
-    const imagePublicIds = [user.validIDFrontPublicId, user.validIDBackPublicId].filter(Boolean);
-    
-    if (imagePublicIds.length > 0) {
-      try {
-        await deleteMultipleImages(imagePublicIds);
-      } catch (imageError) {
-        console.error('Error deleting images:', imageError);
-        // Continue with user deletion even if image deletion fails
-      }
-    }
+    // Begin transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete logs created by this user
+      await tx.log.deleteMany({
+        where: { userId }
+      });
 
-    // Delete the user
-    await prisma.user.delete({ where: { id: userId } });
+      // 2. Handle notifications - disconnect user from all notifications
+      // First, get all notifications where user is in sentTo
+      const sentToNotifications = await tx.notification.findMany({
+        where: {
+          sentTo: {
+            some: { id: userId }
+          }
+        },
+        select: { id: true }
+      });
+
+      // Update each notification to remove the user
+      for (const notification of sentToNotifications) {
+        await tx.notification.update({
+          where: { id: notification.id },
+          data: {
+            sentTo: {
+              disconnect: { id: userId }
+            }
+          }
+        });
+      }
+
+      // Do the same for readBy
+      const readByNotifications = await tx.notification.findMany({
+        where: {
+          readBy: {
+            some: { id: userId }
+          }
+        },
+        select: { id: true }
+      });
+
+      for (const notification of readByNotifications) {
+        await tx.notification.update({
+          where: { id: notification.id },
+          data: {
+            readBy: {
+              disconnect: { id: userId }
+            }
+          }
+        });
+      }
+
+      // 3. Find and handle reports by this user
+      const userReports = await tx.report.findMany({
+        where: { userId },
+        select: { 
+          id: true,
+          attachments: true
+        }
+      });
+
+      // Collect report attachment IDs for Cloudinary deletion
+      const reportAttachmentIds = [];
+      userReports.forEach(report => {
+        if (report.attachments && Array.isArray(report.attachments)) {
+          report.attachments.forEach(attachment => {
+            if (attachment.public_id) {
+              reportAttachmentIds.push(attachment.public_id);
+            }
+          });
+        }
+      });
+
+      // Delete all reports
+      await tx.report.deleteMany({
+        where: { userId }
+      });
+
+      // 4. Delete the user
+      await tx.user.delete({
+        where: { id: userId }
+      });
+
+      // Return the IDs to delete from cloud storage after transaction completes
+      return [...reportAttachmentIds, user.validIDFrontPublicId, user.validIDBackPublicId].filter(Boolean);
+    }).then(async (cloudinaryIds) => {
+      // Delete images from Cloudinary after successful DB transaction
+      if (cloudinaryIds.length > 0) {
+        try {
+          await deleteMultipleImages(cloudinaryIds);
+        } catch (imageError) {
+          console.error('Error deleting cloud images:', imageError);
+        }
+      }
+    });
 
     res.status(200).json({ 
-      message: 'User deleted successfully',
+      message: 'User and associated data deleted successfully',
       deletedUser: { id: userId, email: user.email }
     });
   } catch (error) {

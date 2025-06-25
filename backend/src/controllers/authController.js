@@ -346,13 +346,13 @@ exports.signup = async (req, res) => {
       },
     });
 
-    // Create log entry for successful signup
+    // Create log entry for successful signup with barangay name instead of just ID
     await prisma.log.create({
       data: {
         action: "USER_SIGNUP",
         userId: user.id,
         details: `New ${role} account created for ${firstName} ${lastName} (${email}) with status ${creationStatus}${
-          user.barangayId ? ` for Barangay ID ${user.barangayId}` : ""
+          user.assignedBrgy ? ` for Barangay ${user.assignedBrgy.name}` : ""
         }`,
       },
     });
