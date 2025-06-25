@@ -217,7 +217,7 @@ const useAuthStore = create((set) => ({
       console.log("Signup successful:", data);
       set({ 
         loading: false,
-        successMessage: data.message || 'Account created successfully! Please wait for admin approval.' 
+        successMessage: 'Account created successfully! Please wait for admin approval.' 
       });
       return data;
     } catch (err) {
@@ -227,7 +227,7 @@ const useAuthStore = create((set) => ({
         loading: false,
       });
       throw err;
-    }
+    } 
   },
 
   requestPasswordReset: async (email) => {

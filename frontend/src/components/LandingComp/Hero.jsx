@@ -5,11 +5,13 @@ import heroImage from "../../assets/logo1.png";
 import ModalLogin from "./Modal/ModalLogin";
 import ModalSignup from "./Modal/ModalSignup";
 import ModalForgotPass from "./Modal/ModalForgotPass";
+import SignupSuccessModal from "../Auth/Modals/SignupSuccessModal";
 
 const Hero = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showForgotPass, setShowForgotPass] = useState(false);
+  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Check if the device is mobile
@@ -53,6 +55,16 @@ const Hero = () => {
     setShowLogin(false);
     setShowSignup(false);
     setShowForgotPass(false);
+    setShowSignupSuccess(false);
+  };
+
+  const handleSignupSuccess = () => {
+    setShowSignup(false);
+    setShowSignupSuccess(true);
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSignupSuccess(false);
   };
 
   return (
@@ -158,7 +170,9 @@ const Hero = () => {
           >
             <div
               className={`pointer-events-auto ${
-                isMobile ? "w-full h-full" : "w-full max-w-md max-h-screen overflow-y-auto"
+                isMobile
+                  ? "w-full h-full"
+                  : "w-full max-w-md max-h-screen overflow-y-auto"
               }`}
             >
               <ModalSignup
@@ -166,7 +180,18 @@ const Hero = () => {
                 onLoginClick={handleLoginClick}
                 isOpen={showSignup}
                 isMobile={isMobile}
+                onSignupSuccess={handleSignupSuccess}
               />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSignupSuccess && (
+          <div className="fixed z-50 inset-0 overflow-y-auto pointer-events-none">
+            <div className="flex items-center justify-center min-h-screen pointer-events-auto">
+              <SignupSuccessModal onClose={handleSuccessModalClose} />
             </div>
           </div>
         )}

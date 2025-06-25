@@ -3,7 +3,13 @@ import { motion } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
 import SignupForm from "../../Auth/SignupForm";
 
-const ModalSignup = ({ isOpen, onClose, onLoginClick, isMobile }) => {
+const ModalSignup = ({
+  isOpen,
+  onClose,
+  onLoginClick,
+  isMobile,
+  onSignupSuccess,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -26,15 +32,18 @@ const ModalSignup = ({ isOpen, onClose, onLoginClick, isMobile }) => {
       </button>
 
       <div
-        className={`${
-          isMobile ? "px-6 py-8" : "p-6"
-        } ${isMobile ? "overflow-y-auto" : ""}`}
+        className={`${isMobile ? "px-6 py-8" : "p-6"} ${
+          isMobile ? "overflow-y-auto" : ""
+        }`}
       >
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Create an Account
         </h2>
 
-        <SignupForm onLoginClick={onLoginClick} />
+        <SignupForm
+          onLoginClick={onLoginClick}
+          onSignupSuccess={onSignupSuccess}
+        />
 
         <div className="mt-6">
           <p className="text-center text-sm text-gray-300">
