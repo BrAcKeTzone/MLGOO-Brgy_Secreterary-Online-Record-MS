@@ -23,9 +23,11 @@ const useDocumentStore = create((set, get) => ({
     pages: 1
   },
   
-  // Add state for modal
+  // Modal state
   selectedDocument: null,
   viewModalOpen: false,
+  rejectModalOpen: false,
+  documentToReject: null,
 
   fetchDocuments: async (filters = null) => {
     set({ loading: true, error: null });
@@ -87,7 +89,9 @@ const useDocumentStore = create((set, get) => ({
   approveDocument: async (documentId) => {
     set({ loading: true, error: null });
     try {
-      await reportAPI.updateReportStatus(documentId, { status: 'APPROVED' });
+      await reportAPI.updateReportStatus(documentId, { 
+        status: 'APPROVED' 
+      });
       
       toast.success('Document approved successfully');
       
@@ -102,12 +106,19 @@ const useDocumentStore = create((set, get) => ({
     }
   },
 
-  rejectDocument: async (documentId) => {
+  // Updated reject document with reason
+  rejectDocument: async (documentId, rejectReason) => {
     set({ loading: true, error: null });
     try {
-      await reportAPI.updateReportStatus(documentId, { status: 'REJECTED' });
+      await reportAPI.updateReportStatus(documentId, { 
+        status: 'REJECTED',
+        rejectReason: rejectReason
+      });
       
       toast.success('Document rejected successfully');
+      
+      // Close reject modal
+      set({ rejectModalOpen: false, documentToReject: null });
       
       // Refresh the documents list
       await get().fetchDocuments();
@@ -138,16 +149,24 @@ const useDocumentStore = create((set, get) => ({
     }
   },
 
-  // Add functions to handle modal
+  // Modal management
   fetchDocumentDetails: async (docId) => {
     set({ loading: true, error: null });
     try {
       const response = await reportAPI.getReportById(docId);
+      
+      // Format the document data and ensure rejection reason is properly included
+      const formattedDocument = {
+        ...response.data.report,
+        // Make sure rejectReason is included in the document details
+        rejectReason: response.data.report.rejectReason || null,
+      };
+      
       set({ 
-        selectedDocument: response.data.report,
+        selectedDocument: formattedDocument,
         loading: false 
       });
-      return response.data.report;
+      return formattedDocument;
     } catch (err) {
       set({
         error: err.response?.data?.message || "Failed to fetch document details", 
@@ -170,6 +189,30 @@ const useDocumentStore = create((set, get) => ({
     set({ 
       selectedDocument: null,
       viewModalOpen: false 
+    });
+  },
+
+  // New methods for reject modal
+  openRejectModal: async (docId) => {
+    // Fetch document details if not already selected
+    let documentToReject = get().selectedDocument;
+    
+    if (!documentToReject || documentToReject.id !== docId) {
+      documentToReject = await get().fetchDocumentDetails(docId);
+    }
+    
+    if (documentToReject) {
+      set({ 
+        documentToReject,
+        rejectModalOpen: true 
+      });
+    }
+  },
+
+  closeRejectModal: () => {
+    set({ 
+      documentToReject: null,
+      rejectModalOpen: false 
     });
   }
 }));

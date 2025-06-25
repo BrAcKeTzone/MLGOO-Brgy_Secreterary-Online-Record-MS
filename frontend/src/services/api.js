@@ -152,8 +152,8 @@ export const reportAPI = {
     api.post('/reports', reportData),
     
   // Update report status (for MLGOO staff)
-  updateReportStatus: (reportId, { status, comments }) => 
-    api.patch(`/reports/${reportId}/status`, { status, comments }),
+  updateReportStatus: (reportId, { status, comments, rejectReason }) => 
+    api.patch(`/reports/${reportId}/status`, { status, comments, rejectReason }),
     
   // Delete a report
   deleteReport: (reportId) => 

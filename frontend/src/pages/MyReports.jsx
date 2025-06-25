@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import useMyReportsStore from "../store/myReportsStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
@@ -19,7 +18,6 @@ import {
 } from "react-icons/fa";
 
 const MyReports = () => {
-  const navigate = useNavigate();
   const {
     reports,
     loading,
@@ -295,17 +293,18 @@ const MyReports = () => {
                       </div>
 
                       {/* Preview for images */}
-                      {file.contentType &&
-                        file.contentType.includes("image") && (
-                          <div className="mt-2">
-                            <img
-                              src={file.url}
-                              alt={file.fileName}
-                              className="w-full h-auto object-contain rounded-md"
-                              style={{ maxHeight: "150px" }}
-                            />
-                          </div>
-                        )}
+                      {((file.contentType &&
+                        file.contentType.includes("image")) ||
+                        (file.mimetype && file.mimetype.includes("image"))) && (
+                        <div className="mt-2">
+                          <img
+                            src={file.url}
+                            alt={file.fileName || file.originalname}
+                            className="w-full h-auto object-contain rounded-md"
+                            style={{ maxHeight: "150px" }}
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -315,6 +314,15 @@ const MyReports = () => {
                 </div>
               )}
             </div>
+
+            {/* Rejection Reason Section - Added with the same styling as DocumentTable */}
+            {selectedReport.status === "REJECTED" &&
+              selectedReport.rejectReason && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg text-red-500 p-4">
+                  <span className="font-semibold">Reason of Rejection:</span>{" "}
+                  {selectedReport.rejectReason}
+                </div>
+              )}
 
             {/* Action buttons */}
             <div className="border-t pt-4 flex flex-wrap items-center justify-between gap-3">

@@ -91,6 +91,7 @@ exports.getAllReports = async (req, res) => {
           fileName: true,
           fileSize: true,
           comments: true,
+          rejectReason: true, 
           attachments: true,
           updatedAt: true
         },
@@ -118,6 +119,7 @@ exports.getAllReports = async (req, res) => {
       fileName: report.fileName,
       fileSize: report.fileSize,
       comments: report.comments,
+      rejectReason: report.rejectReason, 
       attachments: report.attachments,
       updatedAt: report.updatedAt
     }));
@@ -173,6 +175,7 @@ exports.getReportById = async (req, res) => {
         fileName: true,
         fileSize: true,
         comments: true,
+        rejectReason: true, // Ensure this field is included
         attachments: true,
         updatedAt: true
       }
@@ -203,6 +206,7 @@ exports.getReportById = async (req, res) => {
       fileName: report.fileName,
       fileSize: report.fileSize,
       comments: report.comments,
+      rejectReason: report.rejectReason, // Include in the formatted response
       attachments: report.attachments,
       updatedAt: report.updatedAt
     };
@@ -406,12 +410,17 @@ exports.createReport = async (req, res) => {
 exports.updateReportStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, comments } = req.body;
+    const { status, comments, rejectReason } = req.body;
     const reportId = parseInt(id);
 
     // Validate status
     if (!status || !['PENDING', 'APPROVED', 'REJECTED'].includes(status)) {
       return res.status(400).json({ message: 'Valid status is required' });
+    }
+
+    // If status is REJECTED, ensure rejection reason is provided
+    if (status === 'REJECTED' && !rejectReason) {
+      return res.status(400).json({ message: 'Rejection reason is required when rejecting a report' });
     }
 
     // Only MLGOO_STAFF can update report status
@@ -439,14 +448,25 @@ exports.updateReportStatus = async (req, res) => {
       return res.status(404).json({ message: 'Report not found' });
     }
 
+    // Prepare update data
+    const updateData = {
+      status,
+      comments: comments || existingReport.comments, // Update comments if provided
+      updatedAt: new Date()
+    };
+    
+    // Add rejection reason if status is REJECTED
+    if (status === 'REJECTED') {
+      updateData.rejectReason = rejectReason;
+    } else if (status === 'APPROVED') {
+      // Clear any existing rejection reason when approving
+      updateData.rejectReason = null;
+    }
+
     // Update the report status
     const updatedReport = await prisma.report.update({
       where: { id: reportId },
-      data: {
-        status,
-        comments: comments || existingReport.comments, // Update comments if provided
-        updatedAt: new Date()
-      },
+      data: updateData,
       include: {
         barangay: true,
         submittedBy: true
@@ -459,10 +479,11 @@ exports.updateReportStatus = async (req, res) => {
       ? 'Report Approved' 
       : 'Report Needs Revision';
     
+    // Improve notification message to clearly distinguish between report comments and rejection reasons
     const notificationMessage = status === 'APPROVED'
       ? `Your report "${updatedReport.reportName}" has been approved.`
-      : `Your report "${updatedReport.reportName}" has been rejected and needs revision. ${comments ? `Comments: ${comments}` : ''}`;
-
+      : `Your report "${updatedReport.reportName}" has been rejected and needs revision. ${rejectReason ? `Reason for rejection: ${rejectReason}` : ''}`;
+    
     // Create the notification in the database
     await prisma.notification.create({
       data: {
@@ -481,7 +502,7 @@ exports.updateReportStatus = async (req, res) => {
       data: {
         action: `REPORT_${status}`,
         userId: req.user.id,
-        details: `${status === 'APPROVED' ? 'Approved' : 'Rejected'} report "${updatedReport.reportName}" from ${existingReport.barangay.name}`
+        details: `${status === 'APPROVED' ? 'Approved' : 'Rejected'} report "${updatedReport.reportName}" from ${existingReport.barangay.name}${status === 'REJECTED' ? ` with reason: ${rejectReason}` : ''}`
       }
     });
 
@@ -503,6 +524,7 @@ exports.updateReportStatus = async (req, res) => {
         fileName: updatedReport.fileName,
         fileSize: updatedReport.fileSize,
         comments: updatedReport.comments,
+        rejectReason: updatedReport.rejectReason,
         attachments: updatedReport.attachments,
         updatedAt: updatedReport.updatedAt
       }
@@ -666,6 +688,7 @@ exports.getReportsByBarangay = async (req, res) => {
           fileName: true,
           fileSize: true,
           comments: true,
+          rejectReason: true, // Add this field
           attachments: true,
           updatedAt: true
         },
@@ -692,6 +715,7 @@ exports.getReportsByBarangay = async (req, res) => {
       fileName: report.fileName,
       fileSize: report.fileSize,
       comments: report.comments,
+      rejectReason: report.rejectReason, // Add this field
       attachments: report.attachments,
       updatedAt: report.updatedAt
     }));

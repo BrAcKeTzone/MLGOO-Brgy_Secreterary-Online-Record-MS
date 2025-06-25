@@ -4,6 +4,7 @@ import LoadingScreen from "../components/Common/LoadingScreen";
 import ErrorScreen from "../components/Common/ErrorScreen";
 import DocumentFilters from "../components/DocumentManagementComp/DocumentFilters";
 import DocumentTable from "../components/DocumentManagementComp/DocumentTable";
+import RejectReasonModal from "../components/DocumentManagementComp/Modal/RejectReasonModal";
 import { format } from "date-fns";
 import { FaClock, FaSync } from "react-icons/fa";
 
@@ -22,6 +23,10 @@ const ManageDocuments = () => {
     openViewModal,
     closeViewModal,
     viewModalOpen,
+    openRejectModal,
+    closeRejectModal,
+    rejectModalOpen,
+    documentToReject
   } = useDocumentStore();
 
   // State for overlay loading during actions
@@ -53,8 +58,11 @@ const ManageDocuments = () => {
       if (viewModalOpen) {
         closeViewModal();
       }
+      if (rejectModalOpen) {
+        closeRejectModal();
+      }
     };
-  }, [refreshData, closeViewModal, viewModalOpen]);
+  }, [refreshData, closeViewModal, closeRejectModal, viewModalOpen, rejectModalOpen]);
 
   // Set up auto-refresh interval (every 60 seconds)
   useEffect(() => {
@@ -85,9 +93,15 @@ const ManageDocuments = () => {
   };
 
   const handleRejectDocument = async (docId) => {
+    // Open the reject modal instead of rejecting immediately
+    openRejectModal(docId);
+  };
+  
+  // New function to handle final rejection with reason
+  const handleRejectWithReason = async (reason) => {
     setActionLoading(true);
-    await rejectDocument(docId);
-    setLastUpdated(new Date()); // Update timestamp after successful rejection
+    await rejectDocument(documentToReject.id, reason);
+    setLastUpdated(new Date());
     setActionLoading(false);
   };
 
@@ -173,6 +187,16 @@ const ManageDocuments = () => {
         onDelete={handleDeleteDocument}
         onView={handleViewDocument}
       />
+      
+      {/* Reject Reason Modal */}
+      {rejectModalOpen && documentToReject && (
+        <RejectReasonModal
+          isOpen={rejectModalOpen}
+          onClose={closeRejectModal}
+          onSubmit={handleRejectWithReason}
+          documentName={documentToReject.reportName}
+        />
+      )}
     </div>
   );
 };

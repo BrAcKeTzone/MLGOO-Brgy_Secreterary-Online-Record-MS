@@ -136,11 +136,18 @@ const useMyReportsStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await reportAPI.getReportById(reportId);
+      
+      // Ensure that rejectReason is properly included in the report object
+      const reportData = {
+        ...response.data.report,
+        rejectReason: response.data.report.rejectReason || null,
+      };
+      
       set({ 
-        selectedReport: response.data.report,
+        selectedReport: reportData,
         loading: false 
       });
-      return response.data.report;
+      return reportData;
     } catch (err) {
       set({
         error: err.response?.data?.message || "Failed to fetch report details",

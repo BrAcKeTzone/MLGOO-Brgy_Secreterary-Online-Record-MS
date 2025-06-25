@@ -78,6 +78,7 @@ model Report {
   fileName      String
   fileSize      Int
   comments      String?      @db.Text
+  rejectReason  String?      @db.Text
   attachments   Json?
   updatedAt     DateTime?    @updatedAt
 

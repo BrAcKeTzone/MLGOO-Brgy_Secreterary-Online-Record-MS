@@ -1,11 +1,11 @@
 import React from "react";
 import { format } from "date-fns";
-import { 
-  FaCheck, 
-  FaTimes, 
-  FaTrash, 
-  FaEye, 
-  FaDownload, 
+import {
+  FaCheck,
+  FaTimes,
+  FaTrash,
+  FaEye,
+  FaDownload,
   FaFilePdf,
   FaFileWord,
   FaFileExcel,
@@ -13,15 +13,24 @@ import {
   FaFile,
   FaCalendarAlt,
   FaBuilding,
-  FaFolder
+  FaFolder,
 } from "react-icons/fa";
 import TableActions from "../Common/TableActions";
 import Pagination from "../Common/Pagination";
 import Modal from "../Common/Modal";
 import useDocumentStore from "../../store/documentStore";
 
-const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onReject, onDelete, onView }) => {
-  const { selectedDocument, viewModalOpen, closeViewModal } = useDocumentStore();
+const DocumentTable = ({
+  documents,
+  pagination,
+  onPageChange,
+  onApprove,
+  onReject,
+  onDelete,
+  onView,
+}) => {
+  const { selectedDocument, viewModalOpen, closeViewModal } =
+    useDocumentStore();
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -43,14 +52,18 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
   // Function to get the appropriate file icon based on mimetype
   const getFileIcon = (mimetype) => {
     if (!mimetype) return <FaFile />;
-    
-    if (mimetype.includes('pdf')) {
+
+    if (mimetype.includes("pdf")) {
       return <FaFilePdf className="text-red-500" />;
-    } else if (mimetype.includes('word') || mimetype.includes('doc')) {
+    } else if (mimetype.includes("word") || mimetype.includes("doc")) {
       return <FaFileWord className="text-blue-500" />;
-    } else if (mimetype.includes('excel') || mimetype.includes('sheet') || mimetype.includes('csv')) {
+    } else if (
+      mimetype.includes("excel") ||
+      mimetype.includes("sheet") ||
+      mimetype.includes("csv")
+    ) {
       return <FaFileExcel className="text-green-500" />;
-    } else if (mimetype.includes('image')) {
+    } else if (mimetype.includes("image")) {
       return <FaFileImage className="text-purple-500" />;
     } else {
       return <FaFile className="text-gray-500" />;
@@ -82,7 +95,7 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
         return "#F59E0B"; // Tailwind's yellow-500
     }
   };
-  
+
   if (!documents || documents.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
@@ -101,7 +114,7 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
               key={doc.id}
               className="bg-white rounded-lg shadow p-4 flex flex-col border-l-4 hover:shadow-lg transition-shadow"
               style={{
-                borderLeftColor: getBorderColor(doc.status)
+                borderLeftColor: getBorderColor(doc.status),
               }}
             >
               {/* Header with name and status */}
@@ -110,29 +123,31 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
                   {doc.reportName}
                 </h3>
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(doc.status)}`}
+                  className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(
+                    doc.status
+                  )}`}
                 >
                   {doc.status}
                 </span>
               </div>
-              
+
               {/* Document details */}
               <div className="space-y-2 mb-4 flex-grow">
                 <div className="flex items-center text-sm">
                   <FaFolder className="mr-2 text-gray-400" />
                   <span>{doc.reportType}</span>
                 </div>
-                
+
                 <div className="flex items-center text-sm">
                   <FaBuilding className="mr-2 text-gray-400" />
                   <span>{doc.barangayName}</span>
                 </div>
-                
+
                 <div className="flex items-center text-sm">
                   <FaCalendarAlt className="mr-2 text-gray-400" />
                   <span>{formatDate(doc.submittedDate)}</span>
                 </div>
-                
+
                 {doc.attachments && doc.attachments.length > 0 && (
                   <div className="flex items-center text-sm">
                     <FaFile className="mr-2 text-gray-400" />
@@ -140,7 +155,7 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
                   </div>
                 )}
               </div>
-              
+
               {/* Action buttons */}
               <div className="border-t pt-3 flex justify-center">
                 <TableActions
@@ -148,7 +163,8 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
                     {
                       icon: <FaEye />,
                       onClick: () => onView(doc.id),
-                      className: "text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100",
+                      className:
+                        "text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100",
                       title: "View Details",
                     },
                     ...(doc.status === "PENDING"
@@ -172,7 +188,8 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
                     {
                       icon: <FaTrash />,
                       onClick: () => handleDelete(doc.id),
-                      className: "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100",
+                      className:
+                        "text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100",
                       title: "Delete",
                     },
                   ]}
@@ -226,14 +243,20 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{doc.reportType}</div>
+                    <div className="text-sm text-gray-900">
+                      {doc.reportType}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{doc.barangayName}</div>
+                    <div className="text-sm text-gray-900">
+                      {doc.barangayName}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(doc.status)}`}
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
+                        doc.status
+                      )}`}
                     >
                       {doc.status}
                     </span>
@@ -260,7 +283,8 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
                               {
                                 icon: <FaCheck />,
                                 onClick: () => onApprove(doc.id),
-                                className: "text-green-600 hover:text-green-900",
+                                className:
+                                  "text-green-600 hover:text-green-900",
                                 title: "Approve",
                               },
                               {
@@ -286,7 +310,7 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
           </table>
         </div>
       </div>
-        
+
       {pagination && pagination.total > 0 && (
         <div className="py-3 px-6 bg-white border-t border-gray-200 mt-0 rounded-b-lg">
           <Pagination
@@ -307,40 +331,68 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
           <div className="p-4">
             {/* Document Information Section */}
             <div className="border-b pb-4 mb-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Report Information</h3>
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Report Information
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Report Name</div>
-                  <div className="text-gray-900">{selectedDocument.reportName}</div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">
+                    Report Name
+                  </div>
+                  <div className="text-gray-900">
+                    {selectedDocument.reportName}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Report Type</div>
-                  <div className="text-gray-900">{selectedDocument.reportType}</div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">
+                    Report Type
+                  </div>
+                  <div className="text-gray-900">
+                    {selectedDocument.reportType}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Status</div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">
+                    Status
+                  </div>
                   <div className="flex items-center">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(selectedDocument.status)}`}>
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(
+                        selectedDocument.status
+                      )}`}
+                    >
                       {selectedDocument.status}
                     </span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Barangay</div>
-                  <div className="text-gray-900">{selectedDocument.barangayName}</div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">
+                    Barangay
+                  </div>
+                  <div className="text-gray-900">
+                    {selectedDocument.barangayName}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Submitted By</div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">
+                    Submitted By
+                  </div>
                   <div className="text-gray-900">
                     {selectedDocument.submittedBy?.name || "N/A"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500 mb-1">Submission Date</div>
-                  <div className="text-gray-900">{formatDate(selectedDocument.submittedDate)}</div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">
+                    Submission Date
+                  </div>
+                  <div className="text-gray-900">
+                    {formatDate(selectedDocument.submittedDate)}
+                  </div>
                 </div>
                 <div className="md:col-span-2">
-                  <div className="text-sm font-medium text-gray-500 mb-1">Comments</div>
+                  <div className="text-sm font-medium text-gray-500 mb-1">
+                    Comments
+                  </div>
                   <div className="text-gray-900 bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
                     {selectedDocument.comments || "No comments provided"}
                   </div>
@@ -350,52 +402,70 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
 
             {/* Attachments Section */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-800 mb-3">Attachments</h3>
-              {selectedDocument.attachments && selectedDocument.attachments.length > 0 ? (
+              <h3 className="text-lg font-medium text-gray-800 mb-3">
+                Attachments
+              </h3>
+              {selectedDocument.attachments &&
+              selectedDocument.attachments.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {selectedDocument.attachments.map((file, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div
+                      key={index}
+                      className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+                    >
                       <div className="flex items-center mb-2">
                         {getFileIcon(file.contentType)}
                         <span className="ml-2 text-sm font-medium text-gray-700 truncate flex-grow">
                           {file.fileName}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">
                           {(file.fileSize / 1024).toFixed(2)} KB
                         </span>
-                        
-                        <a 
-                          href={file.url} 
-                          target="_blank" 
+
+                        <a
+                          href={file.url}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-800 flex items-center text-xs"
                         >
                           <FaDownload className="mr-1" /> Download
                         </a>
                       </div>
-                      
+
                       {/* Preview for images */}
-                      {file.contentType && file.contentType.includes('image') && (
-                        <div className="mt-2">
-                          <img 
-                            src={file.url} 
-                            alt={file.fileName} 
-                            className="w-full h-auto object-contain rounded-md"
-                            style={{ maxHeight: "150px" }}
-                          />
-                        </div>
-                      )}
+                      {file.contentType &&
+                        file.contentType.includes("image") && (
+                          <div className="mt-2">
+                            <img
+                              src={file.url}
+                              alt={file.fileName}
+                              className="w-full h-auto object-contain rounded-md"
+                              style={{ maxHeight: "150px" }}
+                            />
+                          </div>
+                        )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-gray-500 italic">No attachments available</div>
+                <div className="text-gray-500 italic">
+                  No attachments available
+                </div>
               )}
             </div>
-            
+
+            {/* Rejection Reason Section - With enhanced styling and moved below attachments */}
+            {selectedDocument.status === "REJECTED" &&
+              selectedDocument.rejectReason && (
+                <div className="mb-4 bg-red-50 border border-red-200 rounded-lg text-red-500 p-4">
+                  <span className="font-semibold">Reason of Rejection:</span>{" "}
+                  {selectedDocument.rejectReason}
+                </div>
+              )}
+
             {/* Action buttons */}
             <div className="border-t pt-4 flex flex-wrap items-center justify-between gap-3">
               {/* Status Management */}
@@ -423,12 +493,16 @@ const DocumentTable = ({ documents, pagination, onPageChange, onApprove, onRejec
                   </>
                 )}
               </div>
-              
+
               {/* Close/Delete buttons */}
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    if (window.confirm("Are you sure you want to delete this document?")) {
+                    if (
+                      window.confirm(
+                        "Are you sure you want to delete this document?"
+                      )
+                    ) {
                       onDelete(selectedDocument.id);
                       closeViewModal();
                     }
