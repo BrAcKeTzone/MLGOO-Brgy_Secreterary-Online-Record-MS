@@ -214,7 +214,7 @@ const SubmitReport = () => {
               </div>
 
               {/* Comments */}
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <FormTextbox
                   label="Comments or Description"
                   name="comments"
@@ -224,7 +224,7 @@ const SubmitReport = () => {
                   rows={4}
                   maxLength={500} // Set an appropriate limit
                 />
-              </div>
+              </div> */}
 
               {/* File Upload */}
               <div className="mb-4">

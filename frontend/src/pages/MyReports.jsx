@@ -316,13 +316,13 @@ const MyReports = () => {
             </div>
 
             {/* Rejection Reason Section - Added with the same styling as DocumentTable */}
-            {selectedReport.status === "REJECTED" &&
+            {/* {selectedReport.status === "REJECTED" &&
               selectedReport.rejectReason && (
                 <div className="mb-4 bg-red-50 border border-red-200 rounded-lg text-red-500 p-4">
                   <span className="font-semibold">Reason of Rejection:</span>{" "}
                   {selectedReport.rejectReason}
                 </div>
-              )}
+              )} */}
 
             {/* Action buttons */}
             <div className="border-t pt-4 flex flex-wrap items-center justify-between gap-3">

@@ -8,6 +8,19 @@ import {
   FaTimesCircle,
   FaExclamationCircle,
 } from "react-icons/fa";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell,
+} from "recharts";
 import useAuthStore from "../store/authStore";
 import useDashboardStore from "../store/dashboardStore";
 import LoadingScreen from "../components/Common/LoadingScreen";
@@ -250,7 +263,7 @@ const BrgyDashboard = () => {
       )}
 
       {/* Charts and Barangay Information in the same row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-8">
         {/* Monthly Activity Chart */}
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md w-full">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
@@ -309,7 +322,7 @@ const BrgyDashboard = () => {
         </div>
 
         {/* Barangay Information Panel */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        {/* <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Barangay Information
           </h2>
@@ -405,10 +418,10 @@ const BrgyDashboard = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Report Status Distribution */}
-        {analyticsData &&
+        {/* {analyticsData &&
           analyticsData.statusDistribution &&
           analyticsData.statusDistribution.length > 0 && (
             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md w-full">
@@ -463,7 +476,7 @@ const BrgyDashboard = () => {
                 </ResponsiveContainer>
               </div>
             </div>
-          )}
+          )} */}
       </div>
 
       {/* Recent Activity */}
@@ -475,20 +488,5 @@ const BrgyDashboard = () => {
     </div>
   );
 };
-
-// Import necessary Chart components
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-} from "recharts";
 
 export default BrgyDashboard;

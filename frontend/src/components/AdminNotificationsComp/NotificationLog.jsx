@@ -75,9 +75,9 @@ const NotificationLog = ({ notifications, onDelete }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Status
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                {/* <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   Actions
-                </th>
+                </th> */}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -116,14 +116,15 @@ const NotificationLog = ({ notifications, onDelete }) => {
                       )}
                     </div>
                     <div className="text-xs text-green-600 mt-1">
-                      {getReadCount(notification)} of {notification.sentTo?.length || 0} read
+                      {getReadCount(notification)} of{" "}
+                      {notification.sentTo?.length || 0} read
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex text-sm font-medium px-2 py-1 rounded-full ${
                         getPriorityColor(notification.priority) ===
-                          "text-red-600"
+                        "text-red-600"
                           ? "bg-red-100"
                           : getPriorityColor(notification.priority) ===
                             "text-yellow-600"
@@ -135,14 +136,14 @@ const NotificationLog = ({ notifications, onDelete }) => {
                         notification.priority.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  {/* <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => onDelete(notification.id)}
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete
                     </button>
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>

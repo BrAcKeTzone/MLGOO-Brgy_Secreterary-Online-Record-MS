@@ -14,22 +14,27 @@ import {
 
 const ActivityChart = ({ data, analyticsData }) => {
   const hasData = data && data.length > 0;
-  const hasAnalytics = analyticsData && 
-    (analyticsData.reportTypeDistribution?.length > 0 || 
-     analyticsData.statusDistribution?.length > 0);
+  const hasAnalytics =
+    analyticsData &&
+    (analyticsData.reportTypeDistribution?.length > 0 ||
+      analyticsData.statusDistribution?.length > 0);
 
   // Custom colors for status chart
   const getStatusColor = (status) => {
     switch (status) {
-      case 'APPROVED': return '#10B981';
-      case 'PENDING': return '#F59E0B';
-      case 'REJECTED': return '#EF4444';
-      default: return '#6B7280';
+      case "APPROVED":
+        return "#10B981";
+      case "PENDING":
+        return "#F59E0B";
+      case "REJECTED":
+        return "#EF4444";
+      default:
+        return "#6B7280";
     }
   };
 
   return (
-    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="mt-8 grid grid-cols-1 md:grid-cols-1 gap-8">
       {/* Monthly Activity Chart */}
       <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md w-full">
         <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
@@ -88,7 +93,7 @@ const ActivityChart = ({ data, analyticsData }) => {
       </div>
 
       {/* Report Status Distribution */}
-      {hasAnalytics && (
+      {/* {hasAnalytics && (
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md w-full">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
             Report Status Distribution
@@ -141,7 +146,7 @@ const ActivityChart = ({ data, analyticsData }) => {
             </div>
           )}
         </div>
-      )}
+      )} */}
     </div>
   );
 };

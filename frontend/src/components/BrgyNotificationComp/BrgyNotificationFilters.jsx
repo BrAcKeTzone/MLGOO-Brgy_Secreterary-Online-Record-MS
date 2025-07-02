@@ -75,13 +75,13 @@ const BrgyNotificationFilters = ({
           placeholder="Select Priority"
         />
 
-        <FormSelect
+        {/* <FormSelect
           label="Status"
           value={filters.readStatus || "all"}
           onChange={(e) => handleChange({ readStatus: e.target.value })}
           options={readStatusOptions}
           placeholder="Select Status"
-        />
+        /> */}
       </div>
     </div>
   );

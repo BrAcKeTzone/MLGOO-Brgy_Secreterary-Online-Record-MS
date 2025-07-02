@@ -17,7 +17,10 @@ const UserFilters = ({ filters, onFilterChange }) => {
   }, [fetchRoles, fetchBarangays]);
 
   const roleOptions = [{ _id: "all", name: "All Roles" }, ...(roles || [])];
-  const brgyOptions = [{ _id: "all", name: "All Barangays" }, ...(barangays || [])];
+  const brgyOptions = [
+    { _id: "all", name: "All Barangays" },
+    ...(barangays || []),
+  ];
 
   const handleSearch = () => {
     onFilterChange({ search: searchInput });
@@ -66,13 +69,13 @@ const UserFilters = ({ filters, onFilterChange }) => {
         className="h-[46px]"
       />
 
-      <FormSelect
+      {/* <FormSelect
         value={filters.barangay}
         onChange={(e) => onFilterChange({ barangay: e.target.value })}
         options={brgyOptions}
         placeholder="Select Barangay"
         className="h-[46px]"
-      />
+      /> */}
     </div>
   );
 };

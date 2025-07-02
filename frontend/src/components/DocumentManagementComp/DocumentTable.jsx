@@ -458,13 +458,13 @@ const DocumentTable = ({
             </div>
 
             {/* Rejection Reason Section - With enhanced styling and moved below attachments */}
-            {selectedDocument.status === "REJECTED" &&
+            {/* {selectedDocument.status === "REJECTED" &&
               selectedDocument.rejectReason && (
                 <div className="mb-4 bg-red-50 border border-red-200 rounded-lg text-red-500 p-4">
                   <span className="font-semibold">Reason of Rejection:</span>{" "}
                   {selectedDocument.rejectReason}
                 </div>
-              )}
+              )} */}
 
             {/* Action buttons */}
             <div className="border-t pt-4 flex flex-wrap items-center justify-between gap-3">

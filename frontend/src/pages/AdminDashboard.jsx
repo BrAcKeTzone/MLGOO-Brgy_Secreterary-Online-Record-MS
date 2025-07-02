@@ -158,7 +158,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* MLGOO Staff Additional Metrics */}
-      {user && user.role === "MLGOO_STAFF" && mlgooData && (
+      {/* {user && user.role === "MLGOO_STAFF" && mlgooData && (
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             System Coverage
@@ -198,7 +198,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Quick Links Grid */}
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Quick Access</h2>
@@ -329,7 +329,7 @@ const AdminDashboard = () => {
       <ActivityChart data={activityData} analyticsData={analyticsData} />
 
       {/* Barangay Stats */}
-      {user?.role === "MLGOO_STAFF" &&
+      {/* {user?.role === "MLGOO_STAFF" &&
         barangayStats &&
         barangayStats.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mt-8">
@@ -404,7 +404,7 @@ const AdminDashboard = () => {
               </table>
             </div>
           </div>
-        )}
+        )} */}
     </div>
   );
 };
