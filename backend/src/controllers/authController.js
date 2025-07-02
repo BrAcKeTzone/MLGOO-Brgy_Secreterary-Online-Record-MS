@@ -409,7 +409,7 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role, assignedBrgy } = req.body;
 
     const user = await prisma.user.findUnique({
       where: { email },
@@ -421,6 +421,18 @@ exports.login = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify role matches
+    if (user.role !== role) {
+      return res.status(400).json({ message: "Invalid role selected" });
+    }
+
+    // Verify barangay assignment for BARANGAY_SECRETARY
+    if (role === "BARANGAY_SECRETARY") {
+      if (!assignedBrgy || user.barangayId !== parseInt(assignedBrgy, 10)) {
+        return res.status(400).json({ message: "Invalid barangay assignment" });
+      }
     }
 
     // Check statuses before allowing login
@@ -488,7 +500,7 @@ exports.login = async (req, res) => {
           user.email
         }) logged in successfully from ${req.ip || "unknown"} using ${
           req.headers["user-agent"] || "unknown browser"
-        }`,
+        }${user.assignedBrgy ? ` - Barangay: ${user.assignedBrgy.name}` : ""}`,
       },
     });
 

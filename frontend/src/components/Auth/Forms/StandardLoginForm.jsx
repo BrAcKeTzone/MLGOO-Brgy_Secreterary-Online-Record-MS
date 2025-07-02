@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import FormInput from "../../Common/FormInput";
+import FormSelect from "../../Common/FormSelect";
 import PasswordInput from "../../Common/PasswordInput";
 import ErrorMessage from "../../Common/ErrorMessage";
 import SubmitButton from "../../Common/SubmitButton";
+import useSettingsStore from "../../../store/settingsStore";
+import useRoleStore from "../../../store/roleStore";
 
 const StandardLoginForm = ({
   form,
@@ -13,6 +16,30 @@ const StandardLoginForm = ({
   handleSubmit,
   togglePassword,
 }) => {
+  const { barangays, error: fetchBrgyError, fetchBarangays } = useSettingsStore();
+  const { roles, error: fetchRoleError, fetchRoles } = useRoleStore();
+
+  useEffect(() => {
+    fetchBarangays();
+    fetchRoles();
+  }, [fetchBarangays, fetchRoles]);
+
+  // Format barangays to ensure they have proper id structure
+  const formattedBarangays = barangays.map((brgy) => ({
+    _id: brgy.id || brgy._id,
+    id: brgy.id || brgy._id, // Ensure both formats exist
+    name: brgy.name,
+  }));
+
+  // Format roles to ensure they have proper id structure
+  const formattedRoles = roles.map((role) => ({
+    _id: role.id || role._id,
+    id: role.id || role._id, // Ensure both formats exist
+    name: role.name,
+  }));
+
+  const isBarangaySecretary = form.role === "BARANGAY_SECRETARY";
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -27,6 +54,30 @@ const StandardLoginForm = ({
         placeholder="Enter your email"
         required
       />
+
+      <FormSelect
+        label="Role"
+        name="role"
+        value={form.role}
+        onChange={handleChange}
+        required
+        options={formattedRoles}
+        placeholder="Select your role"
+        error={fetchRoleError}
+      />
+
+      {isBarangaySecretary && (
+        <FormSelect
+          label="Assigned Barangay"
+          name="assignedBrgy"
+          value={form.assignedBrgy}
+          onChange={handleChange}
+          required
+          options={formattedBarangays}
+          placeholder="Select a barangay"
+          error={fetchBrgyError}
+        />
+      )}
 
       <PasswordInput
         label="Password"
@@ -44,7 +95,7 @@ const StandardLoginForm = ({
 
       <SubmitButton
         loading={loading}
-        disabled={!form.email || !form.password}
+        disabled={!form.email || !form.password || !form.role || (isBarangaySecretary && !form.assignedBrgy)}
         loadingText="Logging in..."
         text="Login"
       />

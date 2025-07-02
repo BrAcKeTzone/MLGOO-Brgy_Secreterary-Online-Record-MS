@@ -22,8 +22,14 @@ exports.registerSchema = Joi.object({
   }).required()
 });
 
-// Keep your other schemas as they are
+// Updated login schema to include role and assignedBrgy
 exports.loginSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().required()
+  password: Joi.string().required(),
+  role: Joi.string().valid('MLGOO_STAFF', 'BARANGAY_SECRETARY').required(),
+  assignedBrgy: Joi.when('role', {
+    is: 'BARANGAY_SECRETARY',
+    then: Joi.number().integer().required(),
+    otherwise: Joi.number().integer().allow(null, '')
+  })
 });

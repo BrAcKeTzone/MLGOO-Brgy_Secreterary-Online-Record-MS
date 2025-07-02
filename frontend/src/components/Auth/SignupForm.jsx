@@ -20,7 +20,7 @@ const SignupForm = ({ onSignupSuccess }) => {
     password: "",
     confirmPassword: "",
     dateOfBirth: "",
-    validIDTypeId: "", // Added validIDTypeId field
+    validIDTypeId: "",
     nationalIdFront: null,
     nationalIdBack: null,
   });
