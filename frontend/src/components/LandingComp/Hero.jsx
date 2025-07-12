@@ -99,10 +99,10 @@ const Hero = () => {
               Online Record Management System
             </span>
           </h1>
-          <p className="text-xl md:text-2xl mb-12 text-gray-300 max-w-3xl mx-auto">
+          {/* <p className="text-xl md:text-2xl mb-12 text-gray-300 max-w-3xl mx-auto">
             Digitizing local governance for the Municipality of Tabina,
             Zamboanga del Sur
-          </p>
+          </p> */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
             {/* Login Button */}
             <motion.button
