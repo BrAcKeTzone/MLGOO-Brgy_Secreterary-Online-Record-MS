@@ -322,6 +322,15 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           </div>
+
+          <div className="mt-4 flex justify-end">
+            <a
+              href="/manage-documents"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              View all reports →
+            </a>
+          </div>
         </div>
       )}
 
