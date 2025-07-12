@@ -430,13 +430,7 @@ const BrgyDashboard = () => {
                     <XAxis dataKey="status" />
                     <YAxis />
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: "white",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "6px",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      }}
-                      formatter={(value, name) => [value, "Count"]}
+                      content={<CustomStatusTooltip />}
                     />
                     <Bar
                       dataKey="count"
@@ -490,5 +484,30 @@ import {
   Bar,
   Cell,
 } from "recharts";
+
+// Custom tooltip component for status distribution
+const CustomStatusTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    
+    return (
+      <div className="bg-white p-3 border border-gray-300 rounded shadow-lg">
+        <p className="font-semibold text-gray-800">{`Status: ${label}`}</p>
+        <p className="text-blue-600">{`Total: ${data.count}`}</p>
+        {data.reportTypes && Object.keys(data.reportTypes).length > 0 && (
+          <div className="mt-2 border-t pt-2">
+            <p className="text-sm font-medium text-gray-600 mb-1">By Report Type:</p>
+            {Object.entries(data.reportTypes).map(([reportType, count]) => (
+              <p key={reportType} className="text-sm text-gray-700">
+                {reportType}: {count}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default BrgyDashboard;

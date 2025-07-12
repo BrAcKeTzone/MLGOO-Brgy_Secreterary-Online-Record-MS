@@ -275,24 +275,43 @@ exports.getDashboardAnalytics = async (req, res) => {
       count: type._count.reportType
     }));
     
-    // Get status distribution
-    const statuses = await prisma.report.groupBy({
-      by: ['status'],
+    // Get enhanced status distribution with report type breakdown
+    const statusDistribution = await prisma.report.findMany({
       where: reportFilter,
-      _count: {
-        status: true
+      select: {
+        status: true,
+        reportType: true
       }
     });
     
-    const statusDistribution = statuses.map(status => ({
-      status: status.status,
-      count: status._count.status
-    }));
+    // Group by status and then by report type
+    const statusGrouped = {};
+    statusDistribution.forEach(report => {
+      if (!statusGrouped[report.status]) {
+        statusGrouped[report.status] = {};
+      }
+      if (!statusGrouped[report.status][report.reportType]) {
+        statusGrouped[report.status][report.reportType] = 0;
+      }
+      statusGrouped[report.status][report.reportType]++;
+    });
+    
+    // Format the enhanced status distribution
+    const enhancedStatusDistribution = Object.keys(statusGrouped).map(status => {
+      const reportTypeBreakdown = statusGrouped[status];
+      const totalCount = Object.values(reportTypeBreakdown).reduce((sum, count) => sum + count, 0);
+      
+      return {
+        status,
+        count: totalCount,
+        reportTypes: reportTypeBreakdown
+      };
+    });
     
     res.json({
       monthlyCounts,
       reportTypeDistribution,
-      statusDistribution
+      statusDistribution: enhancedStatusDistribution
     });
   } catch (error) {
     console.error('Error fetching dashboard analytics:', error);
@@ -363,24 +382,43 @@ exports.getBarangayAnalytics = async (req, res) => {
       count: type._count.reportType
     }));
     
-    // Get status distribution for this barangay
-    const statuses = await prisma.report.groupBy({
-      by: ['status'],
+    // Get enhanced status distribution with report type breakdown for this barangay
+    const statusDistribution = await prisma.report.findMany({
       where: { barangayId },
-      _count: {
-        status: true
+      select: {
+        status: true,
+        reportType: true
       }
     });
     
-    const statusDistribution = statuses.map(status => ({
-      status: status.status,
-      count: status._count.status
-    }));
+    // Group by status and then by report type
+    const statusGrouped = {};
+    statusDistribution.forEach(report => {
+      if (!statusGrouped[report.status]) {
+        statusGrouped[report.status] = {};
+      }
+      if (!statusGrouped[report.status][report.reportType]) {
+        statusGrouped[report.status][report.reportType] = 0;
+      }
+      statusGrouped[report.status][report.reportType]++;
+    });
+    
+    // Format the enhanced status distribution
+    const enhancedStatusDistribution = Object.keys(statusGrouped).map(status => {
+      const reportTypeBreakdown = statusGrouped[status];
+      const totalCount = Object.values(reportTypeBreakdown).reduce((sum, count) => sum + count, 0);
+      
+      return {
+        status,
+        count: totalCount,
+        reportTypes: reportTypeBreakdown
+      };
+    });
     
     res.json({
       monthlyCounts,
       reportTypeDistribution,
-      statusDistribution,
+      statusDistribution: enhancedStatusDistribution,
       barangayName: user.assignedBrgy.name
     });
   } catch (error) {
