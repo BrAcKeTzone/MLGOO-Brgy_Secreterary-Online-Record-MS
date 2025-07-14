@@ -619,6 +619,7 @@ exports.getReportsByBarangay = async (req, res) => {
   try {
     const { barangayId } = req.params;
     const { 
+      search,  // Add this missing parameter
       year, 
       reportType, 
       status,
@@ -630,6 +631,14 @@ exports.getReportsByBarangay = async (req, res) => {
     
     // Build query conditions
     let whereConditions = { barangayId: barId };
+
+    // Apply search filter - Add this missing functionality
+    if (search) {
+      whereConditions.OR = [
+        { reportName: { contains: search } },
+        { comments: { contains: search } }
+      ];
+    }
 
     // Apply report type filter
     if (reportType && reportType !== 'all') {
@@ -688,7 +697,7 @@ exports.getReportsByBarangay = async (req, res) => {
           fileName: true,
           fileSize: true,
           comments: true,
-          rejectReason: true, // Add this field
+          rejectReason: true,
           attachments: true,
           updatedAt: true
         },
@@ -715,7 +724,7 @@ exports.getReportsByBarangay = async (req, res) => {
       fileName: report.fileName,
       fileSize: report.fileSize,
       comments: report.comments,
-      rejectReason: report.rejectReason, // Add this field
+      rejectReason: report.rejectReason,
       attachments: report.attachments,
       updatedAt: report.updatedAt
     }));
